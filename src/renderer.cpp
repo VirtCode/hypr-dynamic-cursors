@@ -1,4 +1,5 @@
 #include "globals.hpp"
+#include <GLES2/gl2.h>
 
 #define private public
 #include <hyprland/src/render/OpenGL.hpp>

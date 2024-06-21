@@ -11,7 +11,13 @@
 typedef void (*origRenderSofwareCursorsFor)(void*, SP<CMonitor>, timespec*, CRegion&, std::optional<Vector2D>);
 inline CFunctionHook* g_pRenderSoftwareCursorsForHook = nullptr;
 void hkRenderSoftwareCursorsFor(void* thisptr, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos) {
-    g_pDynamicCursors->render((CPointerManager*) thisptr, pMonitor, now, damage, overridePos);
+    g_pDynamicCursors->renderSoftware((CPointerManager*) thisptr, pMonitor, now, damage, overridePos);
+}
+
+typedef void (*origDamageIfSoftware)(void*);
+inline CFunctionHook* g_pDamageIfSoftwareHook = nullptr;
+void hkDamageIfSoftware(void* thisptr) {
+    g_pDynamicCursors->damageSoftware((CPointerManager*) thisptr);
 }
 
 APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
@@ -30,6 +36,10 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     static const auto RENDER_SOFTWARE_CURSORS_FOR_METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "renderSoftwareCursorsFor");
     g_pRenderSoftwareCursorsForHook = HyprlandAPI::createFunctionHook(PHANDLE, RENDER_SOFTWARE_CURSORS_FOR_METHODS[0].address, (void*) &hkRenderSoftwareCursorsFor);
     g_pRenderSoftwareCursorsForHook->hook();
+
+    static const auto DAMAGE_IF_SOFTWARE_METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "damageIfSoftware");
+    g_pDamageIfSoftwareHook = HyprlandAPI::createFunctionHook(PHANDLE, DAMAGE_IF_SOFTWARE_METHODS[0].address, (void*) &hkDamageIfSoftware);
+    g_pDamageIfSoftwareHook->hook();
 
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_LENGTH, Hyprlang::INT{20});
 

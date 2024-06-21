@@ -13,7 +13,7 @@
 #include "cursor.hpp"
 #include "renderer.hpp"
 
-void CDynamicCursors::render(CPointerManager* pointers, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos) {
+void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos) {
 
     if (!pointers->hasCursor())
         return;
@@ -38,9 +38,31 @@ void CDynamicCursors::render(CPointerManager* pointers, SP<CMonitor> pMonitor, t
         return;
 
     box.scale(pMonitor->scale);
+
+    // we rotate the cursor by our calculated amount
     box.rot = this->calculate(&pointers->pointerPos);
 
+    // now pass the hotspot to rotate around
     renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, pointers->currentCursorImage.hotspot);
+}
+
+void CDynamicCursors::damageSoftware(CPointerManager* pointers) {
+
+    // we damage a 3x3 area around the cursor, to accomodate for all possible hotspots and rotations
+    Vector2D size = pointers->currentCursorImage.size / pointers->currentCursorImage.scale;
+    CBox b = CBox{pointers->pointerPos, size * 3}.translate(-(pointers->currentCursorImage.hotspot + size));
+
+    static auto PNOHW = CConfigValue<Hyprlang::INT>("cursor:no_hardware_cursors");
+
+    for (auto& mw : pointers->monitorStates) {
+        if (mw->monitor.expired())
+            continue;
+
+        if ((mw->softwareLocks > 0 || mw->hardwareFailed || *PNOHW) && b.overlaps({mw->monitor->vecPosition, mw->monitor->vecSize})) {
+            g_pHyprRenderer->damageBox(&b, mw->monitor->shouldSkipScheduleFrameOnMouseEvent());
+            break;
+        }
+    }
 }
 
 double CDynamicCursors::calculate(Vector2D* pos) {

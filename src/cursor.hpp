@@ -7,7 +7,9 @@ class CDynamicCursors;
 class CDynamicCursors {
   public:
     /* hook on renderSoftwareCursorsFor */
-    void render(CPointerManager* pointers, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos);
+    void renderSoftware(CPointerManager* pointers, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos);
+    /* hook on damageIfSoftware*/
+    void damageSoftware(CPointerManager* pointers);
 
   private:
     // calculates the current angle of the cursor
