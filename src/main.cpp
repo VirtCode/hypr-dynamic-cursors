@@ -5,11 +5,13 @@
 #include <unistd.h>
 
 #include "globals.hpp"
+#include "render.hpp"
 
 typedef void (*origRenderSofwareCursorsFor)(void*, SP<CMonitor>, timespec*, CRegion&, std::optional<Vector2D>);
 inline CFunctionHook* g_pRenderSoftwareCursorsForHook = nullptr;
 
 void hkRenderSoftwareCursorsFor(void* thisptr, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos) {
+    g_pDynamicCursors->render((CPointerManager*) thisptr, pMonitor, now, damage, overridePos);
     //(*(origRenderSofwareCursorsFor)g_pRenderSoftwareCursorsForHook->m_pOriginal)(thisptr, pMonitor, now, damage, overridePos);
 }
 
@@ -27,6 +29,8 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     static const auto METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "renderSoftwareCursorsFor");
     g_pRenderSoftwareCursorsForHook = HyprlandAPI::createFunctionHook(PHANDLE, METHODS[0].address, (void*) &hkRenderSoftwareCursorsFor);
     g_pRenderSoftwareCursorsForHook->hook();
+
+    g_pDynamicCursors = std::make_unique<CDynamicCursors>();
 
     return {"dynamic-cursors", "The most stupid cursor plugin.", "Virt", "1.1"};
 }
