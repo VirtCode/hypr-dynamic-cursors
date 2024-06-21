@@ -1,5 +1,5 @@
 PLUGIN_NAME=dynamic-cursors
-SOURCE_FILES=$(wildcard ./src/*.cpp)
+SOURCE_FILES=$(wildcard ./src/*.cpp ./src/*/*.cpp)
 
 all: $(PLUGIN_NAME).so
 

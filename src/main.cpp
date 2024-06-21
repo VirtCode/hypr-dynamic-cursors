@@ -2,17 +2,16 @@
 #include <hyprland/src/plugins/HookSystem.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
 #include <hyprland/src/helpers/Monitor.hpp>
+#include <hyprlang.hpp>
 #include <unistd.h>
 
 #include "globals.hpp"
-#include "render.hpp"
+#include "cursor.hpp"
 
 typedef void (*origRenderSofwareCursorsFor)(void*, SP<CMonitor>, timespec*, CRegion&, std::optional<Vector2D>);
 inline CFunctionHook* g_pRenderSoftwareCursorsForHook = nullptr;
-
 void hkRenderSoftwareCursorsFor(void* thisptr, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos) {
     g_pDynamicCursors->render((CPointerManager*) thisptr, pMonitor, now, damage, overridePos);
-    //(*(origRenderSofwareCursorsFor)g_pRenderSoftwareCursorsForHook->m_pOriginal)(thisptr, pMonitor, now, damage, overridePos);
 }
 
 APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
@@ -26,11 +25,13 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
         throw std::runtime_error("[dynamic-cursors] Version mismatch");
     }
 
-    static const auto METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "renderSoftwareCursorsFor");
-    g_pRenderSoftwareCursorsForHook = HyprlandAPI::createFunctionHook(PHANDLE, METHODS[0].address, (void*) &hkRenderSoftwareCursorsFor);
+    g_pDynamicCursors = std::make_unique<CDynamicCursors>();
+
+    static const auto RENDER_SOFTWARE_CURSORS_FOR_METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "renderSoftwareCursorsFor");
+    g_pRenderSoftwareCursorsForHook = HyprlandAPI::createFunctionHook(PHANDLE, RENDER_SOFTWARE_CURSORS_FOR_METHODS[0].address, (void*) &hkRenderSoftwareCursorsFor);
     g_pRenderSoftwareCursorsForHook->hook();
 
-    g_pDynamicCursors = std::make_unique<CDynamicCursors>();
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_LENGTH, Hyprlang::INT{20});
 
     return {"dynamic-cursors", "The most stupid cursor plugin.", "Virt", "1.1"};
 }

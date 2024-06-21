@@ -6,10 +6,10 @@ class CDynamicCursors;
 
 class CDynamicCursors {
   public:
+    /* hook on renderSoftwareCursorsFor */
     void render(CPointerManager* pointers, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos);
 
   private:
-    double size = 10;
     // calculates the current angle of the cursor
     double calculate(Vector2D* pos);
     // this is the end of the virtual stick

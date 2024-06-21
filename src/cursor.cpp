@@ -1,13 +1,17 @@
 #include "globals.hpp"
 
 #include <cmath>
-#include <hyprland/src/Compositor.hpp>
 
 #define private public
 #include <hyprland/src/managers/PointerManager.hpp>
+#include <hyprland/src/render/OpenGL.hpp>
 #undef private
 
-#include "render.hpp"
+#include <hyprland/src/Compositor.hpp>
+#include <hyprland/src/config/ConfigValue.hpp>
+
+#include "cursor.hpp"
+#include "renderer.hpp"
 
 void CDynamicCursors::render(CPointerManager* pointers, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos) {
 
@@ -36,31 +40,33 @@ void CDynamicCursors::render(CPointerManager* pointers, SP<CMonitor> pMonitor, t
     box.scale(pMonitor->scale);
     box.rot = this->calculate(&pointers->pointerPos);
 
-    g_pHyprOpenGL->renderTextureWithDamage(texture, &box, &damage, 1.F);
+    renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, pointers->currentCursorImage.hotspot);
 }
 
 double CDynamicCursors::calculate(Vector2D* pos) {
+    static auto* const* PLENGTH = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_LENGTH)->getDataStaticPtr();
+
     // translate to origin
-    this->end.x -= pos->x;
-    this->end.y -= pos->y;
+    end.x -= pos->x;
+    end.y -= pos->y;
 
     // normalize
-    double size = this->end.size();
-    this->end.x /= size;
-    this->end.y /= size;
+    double size = end.size();
+    end.x /= size;
+    end.y /= size;
 
     // scale to length
-    this->end.x *= this->size;
-    this->end.y *= this->size;
+    end.x *= **PLENGTH;
+    end.y *= **PLENGTH;
 
     // calculate angle
-    double angle = -atan(this->end.x / this->end.y);
-    if (this->end.y > 0) angle += PI;
+    double angle = -atan(end.x / end.y);
+    if (end.y > 0) angle += PI;
     angle += PI;
 
     // translate back
-    this->end.x += pos->x;
-    this->end.y += pos->y;
+    end.x += pos->x;
+    end.y += pos->y;
 
     return angle;
 }
