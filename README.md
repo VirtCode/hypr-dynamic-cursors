@@ -8,6 +8,7 @@ Why should you use this? Right, why did I implement this again?
 ## showcase
 Currently, the cursor is being simulated as a stick being dragged across a surface. In action, this looks like this.
 
+https://github.com/VirtCode/hypr-dynamic-cursor/assets/41426325/ccd6d742-8e2b-4073-a35e-318c7e19705c
 
 ## state
 This plugin is still very early in its development. **Currently, only the `-git` version of hyprland is supported**. There are also multiple things which may or may not be implemented in the future:
