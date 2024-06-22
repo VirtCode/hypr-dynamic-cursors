@@ -20,6 +20,24 @@ void hkDamageIfSoftware(void* thisptr) {
     g_pDynamicCursors->damageSoftware((CPointerManager*) thisptr);
 }
 
+typedef wlr_buffer* (*origRenderHWCursorBuffer)(void*, SP<CPointerManager::SMonitorPointerState>, SP<CTexture>);
+inline CFunctionHook* g_pRenderHWCursorBufferHook = nullptr;
+wlr_buffer* hkRenderHWCursorBuffer(void* thisptr, SP<CPointerManager::SMonitorPointerState> state, SP<CTexture> texture) {
+    return g_pDynamicCursors->renderHardware((CPointerManager*) thisptr, state, texture);
+}
+
+typedef bool (*origSetHWCursorBuffer)(void*, SP<CPointerManager::SMonitorPointerState>, wlr_buffer*);
+inline CFunctionHook* g_pSetHWCursorBufferHook = nullptr;
+bool hkSetHWCursorBuffer(void* thisptr, SP<CPointerManager::SMonitorPointerState> state, wlr_buffer* buffer) {
+    return g_pDynamicCursors->setHardware((CPointerManager*) thisptr, state, buffer);
+}
+
+typedef void (*origOnCursorMoved)(void*);
+inline CFunctionHook* g_pOnCursorMovedHook = nullptr;
+void hkOnCursorMoved(void* thisptr) {
+    return g_pDynamicCursors->onCursorMoved((CPointerManager*) thisptr);
+}
+
 APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     PHANDLE = handle;
 
@@ -41,7 +59,20 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     g_pDamageIfSoftwareHook = HyprlandAPI::createFunctionHook(PHANDLE, DAMAGE_IF_SOFTWARE_METHODS[0].address, (void*) &hkDamageIfSoftware);
     g_pDamageIfSoftwareHook->hook();
 
+    static const auto RENDER_HW_CURSOR_BUFFER_METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "renderHWCursorBuffer");
+    g_pRenderHWCursorBufferHook = HyprlandAPI::createFunctionHook(PHANDLE, RENDER_HW_CURSOR_BUFFER_METHODS[0].address, (void*) &hkRenderHWCursorBuffer);
+    g_pRenderHWCursorBufferHook->hook();
+
+    static const auto SET_HW_CURSOR_BUFFER_METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "setHWCursorBuffer");
+    g_pSetHWCursorBufferHook = HyprlandAPI::createFunctionHook(PHANDLE, SET_HW_CURSOR_BUFFER_METHODS[0].address, (void*) &hkSetHWCursorBuffer);
+    g_pSetHWCursorBufferHook->hook();
+
+    static const auto ON_CURSOR_MOVED_METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "onCursorMoved");
+    g_pOnCursorMovedHook = HyprlandAPI::createFunctionHook(PHANDLE, ON_CURSOR_MOVED_METHODS[0].address, (void*) &hkOnCursorMoved);
+    g_pOnCursorMovedHook->hook();
+
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_LENGTH, Hyprlang::INT{20});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_HW_DEBUG, Hyprlang::INT{0});
 
     return {"dynamic-cursors", "The most stupid cursor plugin.", "Virt", "1.1"};
 }
