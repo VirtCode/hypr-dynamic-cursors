@@ -11,31 +11,46 @@
 typedef void (*origRenderSofwareCursorsFor)(void*, SP<CMonitor>, timespec*, CRegion&, std::optional<Vector2D>);
 inline CFunctionHook* g_pRenderSoftwareCursorsForHook = nullptr;
 void hkRenderSoftwareCursorsFor(void* thisptr, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos) {
-    g_pDynamicCursors->renderSoftware((CPointerManager*) thisptr, pMonitor, now, damage, overridePos);
+    static auto* const* PENABLED = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_ENABLED)->getDataStaticPtr();
+
+    if (**PENABLED) g_pDynamicCursors->renderSoftware((CPointerManager*) thisptr, pMonitor, now, damage, overridePos);
+    else (*(origRenderSofwareCursorsFor)g_pRenderSoftwareCursorsForHook->m_pOriginal)(thisptr, pMonitor, now, damage, overridePos);
 }
 
 typedef void (*origDamageIfSoftware)(void*);
 inline CFunctionHook* g_pDamageIfSoftwareHook = nullptr;
 void hkDamageIfSoftware(void* thisptr) {
-    g_pDynamicCursors->damageSoftware((CPointerManager*) thisptr);
+    static auto* const* PENABLED = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_ENABLED)->getDataStaticPtr();
+
+    if (**PENABLED) g_pDynamicCursors->damageSoftware((CPointerManager*) thisptr);
+    else (*(origDamageIfSoftware)g_pDamageIfSoftwareHook->m_pOriginal)(thisptr);
 }
 
 typedef wlr_buffer* (*origRenderHWCursorBuffer)(void*, SP<CPointerManager::SMonitorPointerState>, SP<CTexture>);
 inline CFunctionHook* g_pRenderHWCursorBufferHook = nullptr;
 wlr_buffer* hkRenderHWCursorBuffer(void* thisptr, SP<CPointerManager::SMonitorPointerState> state, SP<CTexture> texture) {
-    return g_pDynamicCursors->renderHardware((CPointerManager*) thisptr, state, texture);
+    static auto* const* PENABLED = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_ENABLED)->getDataStaticPtr();
+
+    if (**PENABLED) return g_pDynamicCursors->renderHardware((CPointerManager*) thisptr, state, texture);
+    else return (*(origRenderHWCursorBuffer)g_pRenderHWCursorBufferHook->m_pOriginal)(thisptr, state, texture);
 }
 
 typedef bool (*origSetHWCursorBuffer)(void*, SP<CPointerManager::SMonitorPointerState>, wlr_buffer*);
 inline CFunctionHook* g_pSetHWCursorBufferHook = nullptr;
 bool hkSetHWCursorBuffer(void* thisptr, SP<CPointerManager::SMonitorPointerState> state, wlr_buffer* buffer) {
-    return g_pDynamicCursors->setHardware((CPointerManager*) thisptr, state, buffer);
+    static auto* const* PENABLED = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_ENABLED)->getDataStaticPtr();
+
+    if (**PENABLED) return g_pDynamicCursors->setHardware((CPointerManager*) thisptr, state, buffer);
+    else return (*(origSetHWCursorBuffer)g_pSetHWCursorBufferHook->m_pOriginal)(thisptr, state, buffer);
 }
 
 typedef void (*origOnCursorMoved)(void*);
 inline CFunctionHook* g_pOnCursorMovedHook = nullptr;
 void hkOnCursorMoved(void* thisptr) {
-    return g_pDynamicCursors->onCursorMoved((CPointerManager*) thisptr);
+    static auto* const* PENABLED = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_ENABLED)->getDataStaticPtr();
+
+    if (**PENABLED) return g_pDynamicCursors->onCursorMoved((CPointerManager*) thisptr);
+    else return (*(origOnCursorMoved)g_pOnCursorMovedHook->m_pOriginal)(thisptr);
 }
 
 APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
@@ -71,8 +86,11 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     g_pOnCursorMovedHook = HyprlandAPI::createFunctionHook(PHANDLE, ON_CURSOR_MOVED_METHODS[0].address, (void*) &hkOnCursorMoved);
     g_pOnCursorMovedHook->hook();
 
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_ENABLED, Hyprlang::INT{1});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_LENGTH, Hyprlang::INT{20});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_HW_DEBUG, Hyprlang::INT{0});
+
+    HyprlandAPI::reloadConfig();
 
     return {"dynamic-cursors", "The most stupid cursor plugin.", "Virt", "1.1"};
 }

@@ -21,8 +21,11 @@ class CDynamicCursors {
     bool setHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, wlr_buffer* buf);
 
   private:
-    // calculates the current angle of the cursor
-    double calculate(Vector2D* pos);
+    // current angle of the cursor in radiants
+    double angle;
+
+    // calculates the current angle of the cursor, returns whether the angle has changed
+    bool calculate(Vector2D* pos);
     // this is the end of the virtual stick
     Vector2D end;
 };

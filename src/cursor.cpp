@@ -51,7 +51,7 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     box.scale(pMonitor->scale);
 
     // we rotate the cursor by our calculated amount
-    box.rot = this->calculate(&pointers->pointerPos);
+    box.rot = this->angle;
 
     // now pass the hotspot to rotate around
     renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, pointers->currentCursorImage.hotspot);
@@ -151,7 +151,7 @@ wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPoint
 
     // the box should start in the middle portion, rotate by our calculated amount
     CBox xbox = {size, Vector2D{pointers->currentCursorImage.size / pointers->currentCursorImage.scale * state->monitor->scale}.round()};
-    xbox.rot = this->calculate(&pointers->pointerPos);
+    xbox.rot = this->angle;
 
     //  use our custom draw function
     renderCursorTextureInternalWithDamage(texture, &xbox, &damage, 1.F, pointers->currentCursorImage.hotspot);
@@ -198,6 +198,8 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
     if (!pointers->hasCursor())
         return;
 
+    bool changed = calculate(&pointers->pointerPos);
+
     for (auto& m : g_pCompositor->m_vMonitors) {
         auto state = pointers->stateFor(m);
 
@@ -206,12 +208,16 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
         if (state->hardwareFailed || !state->entered)
             continue;
 
-        // we set a new hardware cursor on every move
-        pointers->attemptHardwareCursor(state);
+        const auto CURSORPOS = pointers->getCursorPosForMonitor(m);
+        m->output->impl->move_cursor(m->output, CURSORPOS.x, CURSORPOS.y);
+
+        // we set a new hardware cursor if the angle has changed significantly
+        if (changed)
+            pointers->attemptHardwareCursor(state);
     }
 }
 
-double CDynamicCursors::calculate(Vector2D* pos) {
+bool CDynamicCursors::calculate(Vector2D* pos) {
     static auto* const* PLENGTH = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_LENGTH)->getDataStaticPtr();
 
     // translate to origin
@@ -236,5 +242,11 @@ double CDynamicCursors::calculate(Vector2D* pos) {
     end.x += pos->x;
     end.y += pos->y;
 
-    return angle;
+    // we only consider the angle changed if it is larger than 1 degree
+    if (abs(this->angle - angle) > (PI / 180)) {
+        this->angle = angle;
+        return true;
+    }
+
+    return false;
 }
