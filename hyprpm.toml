@@ -1,0 +1,7 @@
+[dynamic-cursors]
+description = "make your cursors more realistic"
+authors = ["Virt"]
+output = "out/dynamic-cursors.so"
+build = [
+    "make all",
+]

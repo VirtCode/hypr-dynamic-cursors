@@ -92,7 +92,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     HyprlandAPI::reloadConfig();
 
-    return {"dynamic-cursors", "The most stupid cursor plugin.", "Virt", "1.1"};
+    return {"dynamic-cursors", "make your cursor more realistic", "Virt", "0.1"};
 }
 
 APICALL EXPORT void PLUGIN_EXIT() {
