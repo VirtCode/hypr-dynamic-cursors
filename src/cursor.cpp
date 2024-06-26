@@ -173,11 +173,17 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
     if (!state->monitor->output->impl->set_cursor)
         return false;
 
-    const auto HOTSPOT = pointers->transformedHotspot(state->monitor.lock());
+    auto P_MONITOR = state->monitor.lock();
+    if (!P_MONITOR->output->cursor_swapchain) return false;
+
+    // we need to transform the hotspot manually as we need to indent it by the size
+    const auto HOTSPOT = CBox{(pointers->currentCursorImage.hotspot + pointers->currentCursorImage.size) * P_MONITOR->scale, {0, 0}}
+        .transform(wlTransformToHyprutils(wlr_output_transform_invert(P_MONITOR->transform)), P_MONITOR->output->cursor_swapchain->width, P_MONITOR->output->cursor_swapchain->height)
+        .pos();
 
     Debug::log(TRACE, "[pointer] hw transformed hotspot for {}: {}", state->monitor->szName, HOTSPOT);
 
-    if (!state->monitor->output->impl->set_cursor(state->monitor->output, buf, HOTSPOT.x + pointers->currentCursorImage.size.x, HOTSPOT.y + pointers->currentCursorImage.size.y))
+    if (!state->monitor->output->impl->set_cursor(state->monitor->output, buf, HOTSPOT.x, HOTSPOT.y))
         return false;
 
     wlr_buffer_unlock(state->cursorFrontBuffer);
