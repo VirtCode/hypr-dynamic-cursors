@@ -2,11 +2,13 @@
 #include <hyprland/src/plugins/HookSystem.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
 #include <hyprland/src/helpers/Monitor.hpp>
+#include <hyprland/src/Compositor.hpp>
 #include <hyprlang.hpp>
 #include <unistd.h>
 
 #include "globals.hpp"
 #include "cursor.hpp"
+#include "src/managers/PointerManager.hpp"
 
 typedef void (*origRenderSofwareCursorsFor)(void*, SP<CMonitor>, timespec*, CRegion&, std::optional<Vector2D>);
 inline CFunctionHook* g_pRenderSoftwareCursorsForHook = nullptr;
@@ -53,6 +55,19 @@ void hkOnCursorMoved(void* thisptr) {
     else return (*(origOnCursorMoved)g_pOnCursorMovedHook->m_pOriginal)(thisptr);
 }
 
+void onTick() {
+    g_pDynamicCursors->onTick(g_pPointerManager.get());
+}
+
+int onTick(void* data) {
+    g_pDynamicCursors->onTick(g_pPointerManager.get());
+
+    const int TIMEOUT = g_pHyprRenderer->m_pMostHzMonitor ? 1000.0 / g_pHyprRenderer->m_pMostHzMonitor->refreshRate : 16;
+    wl_event_source_timer_update(tick, TIMEOUT);
+
+    return 0;
+}
+
 APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     PHANDLE = handle;
 
@@ -86,9 +101,18 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     g_pOnCursorMovedHook = HyprlandAPI::createFunctionHook(PHANDLE, ON_CURSOR_MOVED_METHODS[0].address, (void*) &hkOnCursorMoved);
     g_pOnCursorMovedHook->hook();
 
+    // for some damn reason this tick handler does not work
+    // static auto P_TICK = HyprlandAPI::registerCallbackDynamic(PHANDLE, "tick", [](void* self, SCallbackInfo& info, std::any data) { std::cout << "ticking?" << "\n"; });
+    // so we have to use this (stolen from hyprtrails)
+    tick = wl_event_loop_add_timer(g_pCompositor->m_sWLEventLoop, &onTick, nullptr);
+    wl_event_source_timer_update(tick, 1);
+
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_ENABLED, Hyprlang::INT{1});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_MODE, Hyprlang::STRING{"air"});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_FUNCTION, Hyprlang::STRING{"negative_quadratic"});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_LENGTH, Hyprlang::INT{20});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_HW_DEBUG, Hyprlang::INT{0});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_MASS, Hyprlang::INT{5000});
 
     HyprlandAPI::reloadConfig();
 

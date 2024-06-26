@@ -1,8 +1,9 @@
 #include "globals.hpp"
+#include "src/debug/Log.hpp"
 
-#include <chrono>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 
 #define private public
 #include <hyprland/src/managers/PointerManager.hpp>
@@ -198,13 +199,27 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
 }
 
 /*
+Should the cursor be updated after move?
+*/
+bool shouldMove() {
+    static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
+    return !strcmp(*PMODE, "stick");
+}
+
+/*
+Should the cursor be updated after tick?
+*/
+bool shouldUpdate() {
+    static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
+    return !strcmp(*PMODE, "air");
+}
+
+/*
 Handles cursor move events.
 */
 void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
     if (!pointers->hasCursor())
         return;
-
-    bool changed = calculate(&pointers->pointerPos);
 
     for (auto& m : g_pCompositor->m_vMonitors) {
         auto state = pointers->stateFor(m);
@@ -216,19 +231,118 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
 
         const auto CURSORPOS = pointers->getCursorPosForMonitor(m);
         m->output->impl->move_cursor(m->output, CURSORPOS.x, CURSORPOS.y);
+    }
 
-        // we set a new hardware cursor if the angle has changed significantly
-        if (changed)
-            pointers->attemptHardwareCursor(state);
+    if (shouldMove()) calculate();
+}
+
+void CDynamicCursors::onTick(CPointerManager* pointers) {
+    if (shouldUpdate()) calculate();
+}
+
+void CDynamicCursors::calculate() {
+    static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
+
+    double angle = 0;
+    if (!strcmp(*PMODE, "stick"))
+        angle = calculateStick();
+    else if (!strcmp(*PMODE, "air"))
+        angle = calculateAir();
+
+    // we only consider the angle changed if it is larger than 1 degree
+    if (abs(this->angle - angle) > (PI / 180)) {
+        this->angle = angle;
+
+        // damage software and change hardware cursor shape
+        g_pPointerManager->damageIfSoftware();
+
+        for (auto& m : g_pCompositor->m_vMonitors) {
+            auto state = g_pPointerManager->stateFor(m);
+            if (state->hardwareFailed || !state->entered)
+                continue;
+
+            g_pPointerManager->attemptHardwareCursor(state);
+        }
     }
 }
 
-bool CDynamicCursors::calculate(Vector2D* pos) {
+double airFunction(double speed) {
+    static auto const* PFUNCTION = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_FUNCTION)->getDataStaticPtr();
+    static auto* const* PMASS = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MASS)->getDataStaticPtr();
+    double mass = **PMASS;
+
+    double result = 0;
+    if (!strcmp(*PFUNCTION, "linear")) {
+
+        result = speed / **PMASS;
+
+    } else if (!strcmp(*PFUNCTION, "quadratic")) {
+
+
+        // (1 / m²) * x², is a quadratic function which will reach 1 at m
+        result = (1.0 / (mass * mass)) * (speed * speed);
+        result *= (speed > 0 ? 1 : -1);
+
+    } else if (!strcmp(*PFUNCTION, "negative_quadratic")) {
+
+        float x = std::abs(speed);
+        // (-1 / m²) * (x - m)² + 1, is a quadratic function with the inverse curvature which will reach 1 at m
+        result = (-1.0 / (mass * mass)) * ((x - mass) * (x - mass)) + 1;
+        if (x > mass) result = 1; // need to clamp manually, as the function would decrease again
+
+        result *= (speed > 0 ? 1 : -1);
+    } else {
+        Debug::log(WARN, "[dynamic-cursors] unknown air function specified");
+    }
+
+    return std::clamp(result, -1.0, 1.0);
+}
+
+double CDynamicCursors::calculateAir() {
+    // create samples array
+    int max = g_pHyprRenderer->m_pMostHzMonitor->refreshRate / 10; // 100ms worth of history
+    samples.resize(max);
+
+    // capture current sample
+    samples[samples_index] = Vector2D{g_pPointerManager->pointerPos};
+    int current = samples_index;
+    samples_index = (samples_index + 1) % max; // increase for next sample
+    int first = samples_index;
+
+    /* turns out this is not relevant on my systems (should've checked before implementing lol):
+    // motion smooting
+    // fills samples in between with linear approximations
+    // accomodates for mice with low polling rates and monitors with high fps
+    int previous = current == 0 ? max - 1 : current - 1;
+    if (samples[previous] != samples[current]) {
+        int steps = std::abs(samples_last_change - previous);
+        Vector2D amount = (samples[current] - samples[previous]) / steps;
+
+        int factor = 1;
+        for (int i = (samples_last_change + 1) % max; i != current; i = (i + 1) % max) {
+            samples[i] += amount * factor++;
+        }
+
+        samples_last_change = current;
+    } else if (samples_last_change == current) {
+        samples_last_change = first; // next is the last then
+    }
+    */
+
+    // calculate speed and tilt
+    double speed = (samples[current].x - samples[first].x) / 0.1;
+
+    return airFunction(speed) * (PI / 3); // 120° in both directions
+}
+
+double CDynamicCursors::calculateStick() {
     static auto* const* PLENGTH = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_LENGTH)->getDataStaticPtr();
 
+    auto pos = g_pPointerManager->pointerPos;
+
     // translate to origin
-    end.x -= pos->x;
-    end.y -= pos->y;
+    end.x -= pos.x;
+    end.y -= pos.y;
 
     // normalize
     double size = end.size();
@@ -245,14 +359,8 @@ bool CDynamicCursors::calculate(Vector2D* pos) {
     angle += PI;
 
     // translate back
-    end.x += pos->x;
-    end.y += pos->y;
+    end.x += pos.x;
+    end.y += pos.y;
 
-    // we only consider the angle changed if it is larger than 1 degree
-    if (abs(this->angle - angle) > (PI / 180)) {
-        this->angle = angle;
-        return true;
-    }
-
-    return false;
+    return angle;
 }

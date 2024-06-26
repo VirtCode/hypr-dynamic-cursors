@@ -16,7 +16,7 @@ This plugin is still very early in its development. **Currently, only the `-git`
 - [X] Stick simulation
 - [ ] Per-shape length and starting angle (at least with serverside cursors)
 - [ ] Pendulum simulation
-- [ ] Air Drag simulation
+- [X] Air Drag simulation
 
 If anything here sounds interesting to you, don't hesitate to contribute.
 
