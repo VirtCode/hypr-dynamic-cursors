@@ -199,22 +199,6 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
 }
 
 /*
-Should the cursor be updated after move?
-*/
-bool shouldMove() {
-    static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
-    return !strcmp(*PMODE, "stick");
-}
-
-/*
-Should the cursor be updated after tick?
-*/
-bool shouldUpdate() {
-    static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
-    return !strcmp(*PMODE, "air");
-}
-
-/*
 Handles cursor move events.
 */
 void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
@@ -233,24 +217,33 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
         m->output->impl->move_cursor(m->output, CURSORPOS.x, CURSORPOS.y);
     }
 
-    if (shouldMove()) calculate();
+    static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
+    if (!strcmp(*PMODE, "rotate")) calculate();
 }
 
+/*
+Handle cursor tick events.
+*/
 void CDynamicCursors::onTick(CPointerManager* pointers) {
-    if (shouldUpdate()) calculate();
+    static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
+
+    if (!strcmp(*PMODE, "tilt")) calculate();
 }
 
 void CDynamicCursors::calculate() {
     static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
+    static auto* const* PTHRESHOLD = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_THRESHOLD)->getDataStaticPtr();
 
     double angle = 0;
-    if (!strcmp(*PMODE, "stick"))
+    if (!strcmp(*PMODE, "rotate"))
         angle = calculateStick();
-    else if (!strcmp(*PMODE, "air"))
+    else if (!strcmp(*PMODE, "tilt"))
         angle = calculateAir();
+    else
+        Debug::log(WARN, "[dynamic-cursors] unknown mode specified");
 
     // we only consider the angle changed if it is larger than 1 degree
-    if (abs(this->angle - angle) > (PI / 180)) {
+    if (abs(this->angle - angle) > ((PI / 180) * **PTHRESHOLD)) {
         this->angle = angle;
 
         // damage software and change hardware cursor shape
@@ -291,9 +284,8 @@ double airFunction(double speed) {
         if (x > mass) result = 1; // need to clamp manually, as the function would decrease again
 
         result *= (speed > 0 ? 1 : -1);
-    } else {
+    } else
         Debug::log(WARN, "[dynamic-cursors] unknown air function specified");
-    }
 
     return std::clamp(result, -1.0, 1.0);
 }

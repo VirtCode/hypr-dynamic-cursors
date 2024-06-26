@@ -108,11 +108,15 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     wl_event_source_timer_update(tick, 1);
 
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_ENABLED, Hyprlang::INT{1});
-    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_MODE, Hyprlang::STRING{"air"});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_MODE, Hyprlang::STRING{"tilt"});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_THRESHOLD, Hyprlang::INT{2});
+
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_FUNCTION, Hyprlang::STRING{"negative_quadratic"});
-    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_LENGTH, Hyprlang::INT{20});
-    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_HW_DEBUG, Hyprlang::INT{0});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_MASS, Hyprlang::INT{5000});
+
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_LENGTH, Hyprlang::INT{20});
+
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_HW_DEBUG, Hyprlang::INT{0});
 
     HyprlandAPI::reloadConfig();
 
