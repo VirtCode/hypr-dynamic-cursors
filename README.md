@@ -3,9 +3,9 @@ This plugin makes your cursor more realistic by simulating how it would behave i
 
 Why did I implement this again?
 
-Inspired by KDE, it also supports shake to find, to enlarge the cursor when it is shaken so it is easier to find it.
+Inspired by KDE, it also supports shake to find, to enlarge the cursor when it is shaken so it is easier to find it. It can be enabled separately or together with one simulation mode.
 
-### behaviour modes
+### simulation modes
 The plugin supports two different modes, `rotate` and `tilt`. They both are customizable and have a different base behaviour.
 
 #### `rotate`
@@ -14,12 +14,12 @@ In this mode, the cursor is simulated as a stick which is dragged across the scr
 https://github.com/VirtCode/hypr-dynamic-cursor/assets/41426325/ccd6d742-8e2b-4073-a35e-318c7e19705c
 
 #### `tilt`
-In this mode, the cursor is tilted based on the X direction and speed it is moving at. It was intended to simulate how an object would be affected by air drag, but implemented is only a rough approximation. This mode can also be customized extensively with different activation functions, and is enabled by default.
+In this mode, the cursor is tilted based on the `x` direction and speed it is moving at. It was intended to simulate how an object would be affected by air drag, but implemented is only a rough approximation. This mode can also be customized extensively with different activation functions, and is enabled by default.
 
 https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/ae25415c-e77f-4c85-864c-2eedbfe432e3
 
 ### shake to find
-The plugin supports shake to find, akin to how KDE Plasma, MacOS, etc. do it. It is enabled by default.
+The plugin supports shake to find, akin to how KDE Plasma, MacOS, etc. do it. It can also be extensively configured and is enabled by default. If you only want shake to find, and no weird cursor behaviour, you can disable the above modes with the mode `none`.
 
 https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/9ff64a9b-64e5-4595-b721-dcb4d62bee18
 

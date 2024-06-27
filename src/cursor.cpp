@@ -223,7 +223,7 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
     }
 
     static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
-    if (!strcmp(*PMODE, "rotate")) calculate();
+    if (!strcmp(*PMODE, "rotate")) calculate(false);
 }
 
 /*
@@ -233,17 +233,19 @@ void CDynamicCursors::onTick(CPointerManager* pointers) {
     static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
     static auto* const* PSHAKE = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE)->getDataStaticPtr();
 
-    if (!strcmp(*PMODE, "tilt") || **PSHAKE) calculate();
+    if (!strcmp(*PMODE, "tilt") || **PSHAKE) calculate(true);
 }
 
-void CDynamicCursors::calculate() {
+void CDynamicCursors::calculate(bool tick) {
     static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
     static auto* const* PTHRESHOLD = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_THRESHOLD)->getDataStaticPtr();
     static auto* const* PSHAKE = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE)->getDataStaticPtr();
     static auto* const* PSHAKE_EFFECTS = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_EFFECTS)->getDataStaticPtr();
 
-    double zoom = 1;
-    if (**PSHAKE)
+    // only calculate zoom on tick
+    // yes, a refactor of this whole file would be a godsent
+    double zoom = tick ? 1 : this->zoom;
+    if (**PSHAKE && tick)
         zoom = calculateShake();
 
     double angle = 0;
@@ -272,7 +274,7 @@ void CDynamicCursors::calculate() {
         }
     }
 
-    // we only consider the angle changed if it is larger than 1 degree
+    // we only consider the angle changed if it is larger than the threshold
     if (abs(this->angle - angle) > ((PI / 180) * **PTHRESHOLD) || abs(this->zoom - zoom) > 0.1 || (zoom == 1 && this->zoom != 1)) {
         this->angle = angle;
         this->zoom = zoom;
@@ -372,8 +374,6 @@ double CDynamicCursors::calculateShake() {
 
     // discard when the diagonal is small, so we don't have issues with inaccuracies
     if (diagonal < 100) return 1.0;
-
-    std::cout << trail << " " << diagonal << " " << (trail / diagonal) << "\n";
 
     return std::max(1.0, ((trail / diagonal) - **PTHRESHOLD) * **PFACTOR);
 }

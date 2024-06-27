@@ -31,7 +31,7 @@ class CDynamicCursors {
     bool software = false;
 
     // calculates the current angle of the cursor, and changes the cursor shape
-    void calculate();
+    void calculate(bool tick);
 
     // calculate the angle of the cursor if stick
     double calculateStick();
