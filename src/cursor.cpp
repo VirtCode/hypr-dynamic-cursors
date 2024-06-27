@@ -254,11 +254,26 @@ void CDynamicCursors::calculate() {
     else if (strcmp(*PMODE, "none")) // if not none, print warning
         Debug::log(WARN, "[dynamic-cursors] unknown mode specified");
 
-    if (zoom > 1 && !**PSHAKE_EFFECTS)
-        angle = 0;
+    if (zoom > 1) {
+        if (!**PSHAKE_EFFECTS) angle = 0;
+
+        if (!software) {
+            g_pPointerManager->lockSoftwareAll();
+            software = true;
+        }
+
+    } else {
+        if (software) {
+            // damage so it is cleared
+            g_pPointerManager->damageIfSoftware();
+
+            g_pPointerManager->unlockSoftwareAll();
+            software = false;
+        }
+    }
 
     // we only consider the angle changed if it is larger than 1 degree
-    if (abs(this->angle - angle) > ((PI / 180) * **PTHRESHOLD) || abs(this->zoom - zoom) > 0.1) {
+    if (abs(this->angle - angle) > ((PI / 180) * **PTHRESHOLD) || abs(this->zoom - zoom) > 0.1 || (zoom == 1 && this->zoom != 1)) {
         this->angle = angle;
         this->zoom = zoom;
 

@@ -27,6 +27,8 @@ class CDynamicCursors {
     double angle;
     // current zoom value of the cursor
     double zoom = 1;
+    // whether we have already locked software
+    bool software = false;
 
     // calculates the current angle of the cursor, and changes the cursor shape
     void calculate();

@@ -5,23 +5,23 @@ Why did I implement this again?
 
 Inspired by KDE, it also supports shake to find, to enlarge the cursor when it is shaken so it is easier to find it.
 
-## behaviour modes
+### behaviour modes
 The plugin supports two different modes, `rotate` and `tilt`. They both are customizable and have a different base behaviour.
 
-### `rotate`
+#### `rotate`
 In this mode, the cursor is simulated as a stick which is dragged across the screen on one end. This means it will rotate towards the movement direction, and feels really realistic.
 
 https://github.com/VirtCode/hypr-dynamic-cursor/assets/41426325/ccd6d742-8e2b-4073-a35e-318c7e19705c
 
-### `tilt`
+#### `tilt`
 In this mode, the cursor is tilted based on the X direction and speed it is moving at. It was intended to simulate how an object would be affected by air drag, but implemented is only a rough approximation. This mode can also be customized extensively with different activation functions, and is enabled by default.
 
 https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/ae25415c-e77f-4c85-864c-2eedbfe432e3
 
-## shake to find
+### shake to find
 The plugin supports shake to find, akin to how KDE Plasma, MacOS, etc. do it. It is enabled by default.
 
-INSERT VIDEO HERE
+https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/9ff64a9b-64e5-4595-b721-dcb4d62bee18
 
 ## state
 This plugin is still very early in its development. **Currently, only the `-git` version of hyprland is supported**. There are also multiple things which may or may not be implemented in the future:
@@ -114,7 +114,7 @@ plugin:dynamic-cursors {
 ```
 
 ## performance
-Depending on your hyprland configuration, this plugin can have a different performance impact. It mainly depends on whether you are using software or hardware cursors:
+Depending on your hyprland configuration, this plugin can have a different performance impact. Different behaviours have a different impact, but it mainly depends on whether you are using software or hardware cursors:
 
 **Software Cursors**: No (additional) performance impact. <br>
 Rotating the cursor can be done in the same draw call that is used to draw the cursor anyways, so there is no additional performance impact. Note however that software cursors in of themselves are not really efficient.
@@ -122,7 +122,9 @@ Rotating the cursor can be done in the same draw call that is used to draw the c
 **Hardware Cursors**: Medium performance impact. <br>
 To rotate the cursor smoothly, the cursor shape needs to be changed quite often. This is not exactly compatible with how hardware cursors are intended to work. With this plugin, the overhead of changing the cursor shape can be noticed more often, making it use more resources. Compared to normal hardware cursors, there is a big performance hit, but it is still more efficient than using software cursor though.
 
-The plugin also has a base performance impact, which is practically zero when mode is `rotate` and still low if it is `tilt`.
+Note that if the cusor is currently *being* magnified, software cursors will be used, as hardware cursors have a hardware size limit.
+
+If you have any ideas to improve performance, don't hesitate to contribute!
 
 ## development
 To work on this plugin, you can clone this repository and use the Makefile to build it. I suggest opening a nested Hyprland session, and loading the plugin there:
