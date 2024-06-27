@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <hyprlang.hpp>
 
 #define private public
 #include <hyprland/src/managers/PointerManager.hpp>
@@ -26,6 +27,7 @@ Reimplements rendering of the software cursor.
 Is also largely identical to hyprlands impl, but uses our custom rendering to rotate the cursor.
 */
 void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos) {
+    static auto* const* PNEAREST = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_NEAREST)->getDataStaticPtr();
 
     if (!pointers->hasCursor())
         return;
@@ -50,12 +52,14 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
         return;
 
     box.scale(pMonitor->scale);
+    box.w *= zoom;
+    box.h *= zoom;
 
     // we rotate the cursor by our calculated amount
     box.rot = this->angle;
 
     // now pass the hotspot to rotate around
-    renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, pointers->currentCursorImage.hotspot);
+    renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, pointers->currentCursorImage.hotspot * zoom, zoom > 1 && **PNEAREST);
 }
 
 /*
@@ -65,8 +69,8 @@ It is largely identical to hyprlands implementation, but expands the damage reag
 void CDynamicCursors::damageSoftware(CPointerManager* pointers) {
 
     // we damage a 3x3 area around the cursor, to accomodate for all possible hotspots and rotations
-    Vector2D size = pointers->currentCursorImage.size / pointers->currentCursorImage.scale;
-    CBox b = CBox{pointers->pointerPos, size * 3}.translate(-(pointers->currentCursorImage.hotspot + size));
+    Vector2D size = pointers->currentCursorImage.size / pointers->currentCursorImage.scale * zoom;
+    CBox b = CBox{pointers->pointerPos, size * 3}.translate(-(pointers->currentCursorImage.hotspot * zoom + size));
 
     static auto PNOHW = CConfigValue<Hyprlang::INT>("cursor:no_hardware_cursors");
 
@@ -87,10 +91,11 @@ It is largely copied from hyprland, but adjusted to allow the cursor to be rotat
 */
 wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<CTexture> texture) {
     static auto* const* PHW_DEBUG= (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_HW_DEBUG)->getDataStaticPtr();
+    static auto* const* PNEAREST = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_NEAREST)->getDataStaticPtr();
 
     auto output = state->monitor->output;
 
-    auto size = pointers->currentCursorImage.size;
+    auto size = pointers->currentCursorImage.size * zoom;
     // we try to allocate a buffer that is thrice as big, see software rendering
     auto target = size * 3;
 
@@ -151,11 +156,11 @@ wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPoint
         g_pHyprOpenGL->clear(CColor{0.F, 0.F, 0.F, 0.F});
 
     // the box should start in the middle portion, rotate by our calculated amount
-    CBox xbox = {size, Vector2D{pointers->currentCursorImage.size / pointers->currentCursorImage.scale * state->monitor->scale}.round()};
+    CBox xbox = {size, Vector2D{pointers->currentCursorImage.size / pointers->currentCursorImage.scale * state->monitor->scale * zoom}.round()};
     xbox.rot = this->angle;
 
     //  use our custom draw function
-    renderCursorTextureInternalWithDamage(texture, &xbox, &damage, 1.F, pointers->currentCursorImage.hotspot);
+    renderCursorTextureInternalWithDamage(texture, &xbox, &damage, 1.F, pointers->currentCursorImage.hotspot * zoom, zoom > 1 && **PNEAREST);
 
     g_pHyprOpenGL->end();
     glFlush();
@@ -178,7 +183,7 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
     if (!P_MONITOR->output->cursor_swapchain) return false;
 
     // we need to transform the hotspot manually as we need to indent it by the size
-    const auto HOTSPOT = CBox{(pointers->currentCursorImage.hotspot + pointers->currentCursorImage.size) * P_MONITOR->scale, {0, 0}}
+    const auto HOTSPOT = CBox{(pointers->currentCursorImage.hotspot + pointers->currentCursorImage.size) * P_MONITOR->scale * zoom, {0, 0}}
         .transform(wlTransformToHyprutils(wlr_output_transform_invert(P_MONITOR->transform)), P_MONITOR->output->cursor_swapchain->width, P_MONITOR->output->cursor_swapchain->height)
         .pos();
 
@@ -226,25 +231,36 @@ Handle cursor tick events.
 */
 void CDynamicCursors::onTick(CPointerManager* pointers) {
     static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
+    static auto* const* PSHAKE = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE)->getDataStaticPtr();
 
-    if (!strcmp(*PMODE, "tilt")) calculate();
+    if (!strcmp(*PMODE, "tilt") || **PSHAKE) calculate();
 }
 
 void CDynamicCursors::calculate() {
     static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
     static auto* const* PTHRESHOLD = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_THRESHOLD)->getDataStaticPtr();
+    static auto* const* PSHAKE = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE)->getDataStaticPtr();
+    static auto* const* PSHAKE_EFFECTS = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_EFFECTS)->getDataStaticPtr();
+
+    double zoom = 1;
+    if (**PSHAKE)
+        zoom = calculateShake();
 
     double angle = 0;
     if (!strcmp(*PMODE, "rotate"))
         angle = calculateStick();
     else if (!strcmp(*PMODE, "tilt"))
         angle = calculateAir();
-    else
+    else if (strcmp(*PMODE, "none")) // if not none, print warning
         Debug::log(WARN, "[dynamic-cursors] unknown mode specified");
 
+    if (zoom > 1 && !**PSHAKE_EFFECTS)
+        angle = 0;
+
     // we only consider the angle changed if it is larger than 1 degree
-    if (abs(this->angle - angle) > ((PI / 180) * **PTHRESHOLD)) {
+    if (abs(this->angle - angle) > ((PI / 180) * **PTHRESHOLD) || abs(this->zoom - zoom) > 0.1) {
         this->angle = angle;
+        this->zoom = zoom;
 
         // damage software and change hardware cursor shape
         g_pPointerManager->damageIfSoftware();
@@ -301,30 +317,50 @@ double CDynamicCursors::calculateAir() {
     samples_index = (samples_index + 1) % max; // increase for next sample
     int first = samples_index;
 
-    /* turns out this is not relevant on my systems (should've checked before implementing lol):
-    // motion smooting
-    // fills samples in between with linear approximations
-    // accomodates for mice with low polling rates and monitors with high fps
-    int previous = current == 0 ? max - 1 : current - 1;
-    if (samples[previous] != samples[current]) {
-        int steps = std::abs(samples_last_change - previous);
-        Vector2D amount = (samples[current] - samples[previous]) / steps;
-
-        int factor = 1;
-        for (int i = (samples_last_change + 1) % max; i != current; i = (i + 1) % max) {
-            samples[i] += amount * factor++;
-        }
-
-        samples_last_change = current;
-    } else if (samples_last_change == current) {
-        samples_last_change = first; // next is the last then
-    }
-    */
-
     // calculate speed and tilt
     double speed = (samples[current].x - samples[first].x) / 0.1;
 
     return airFunction(speed) * (PI / 3); // 120° in both directions
+}
+
+double CDynamicCursors::calculateShake() {
+    static auto* const* PTHRESHOLD = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_THRESHOLD)->getDataStaticPtr();
+    static auto* const* PFACTOR = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_FACTOR)->getDataStaticPtr();
+
+    int max = g_pHyprRenderer->m_pMostHzMonitor->refreshRate; // 1s worth of history
+    shake_samples.resize(max);
+    shake_samples_distance.resize(max);
+
+    int previous = shake_samples_index == 0 ? max - 1 : shake_samples_index - 1;
+    shake_samples[shake_samples_index] = Vector2D{g_pPointerManager->pointerPos};
+    shake_samples_distance[shake_samples_index] = shake_samples[shake_samples_index].distance(shake_samples[previous]);
+    shake_samples_index = (shake_samples_index + 1) % max; // increase for next sample
+
+    /*
+    The idea for this algorith was largely inspired by KDE Plasma
+    https://invent.kde.org/plasma/kwin/-/blob/master/src/plugins/shakecursor/shakedetector.cpp
+    */
+
+    // calculate total distance travelled
+    double trail = 0;
+    for (double distance : shake_samples_distance) trail += distance;
+
+    // calculate diagonal of bounding box travelled within
+    double left = 1e100, right = 0, bottom = 0, top = 1e100;
+    for (Vector2D position : shake_samples) {
+        left = std::min(left, position.x);
+        right = std::max(right, position.x);
+        top = std::min(top, position.y);
+        bottom = std::max(bottom, position.y);
+    }
+    double diagonal = Vector2D{left, top}.distance(Vector2D(right, bottom));
+
+    // discard when the diagonal is small, so we don't have issues with inaccuracies
+    if (diagonal < 100) return 1.0;
+
+    std::cout << trail << " " << diagonal << " " << (trail / diagonal) << "\n";
+
+    return std::max(1.0, ((trail / diagonal) - **PTHRESHOLD) * **PFACTOR);
 }
 
 double CDynamicCursors::calculateStick() {

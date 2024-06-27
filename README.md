@@ -3,18 +3,25 @@ This plugin makes your cursor more realistic by simulating how it would behave i
 
 Why did I implement this again?
 
-## showcase
+Inspired by KDE, it also supports shake to find, to enlarge the cursor when it is shaken so it is easier to find it.
+
+## behaviour modes
 The plugin supports two different modes, `rotate` and `tilt`. They both are customizable and have a different base behaviour.
 
-#### rotate
+### `rotate`
 In this mode, the cursor is simulated as a stick which is dragged across the screen on one end. This means it will rotate towards the movement direction, and feels really realistic.
 
 https://github.com/VirtCode/hypr-dynamic-cursor/assets/41426325/ccd6d742-8e2b-4073-a35e-318c7e19705c
 
-#### tilt
-In this mode, the cursor is tilted based on the X direction and speed it is moving at. It was intended to simulate how an object would be affected by air drag, but implemented is only a rough approximation. This mode can also be customized extensively with different activation functions.
+### `tilt`
+In this mode, the cursor is tilted based on the X direction and speed it is moving at. It was intended to simulate how an object would be affected by air drag, but implemented is only a rough approximation. This mode can also be customized extensively with different activation functions, and is enabled by default.
 
 https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/ae25415c-e77f-4c85-864c-2eedbfe432e3
+
+## shake to find
+The plugin supports shake to find, akin to how KDE Plasma, MacOS, etc. do it. It is enabled by default.
+
+INSERT VIDEO HERE
 
 ## state
 This plugin is still very early in its development. **Currently, only the `-git` version of hyprland is supported**. There are also multiple things which may or may not be implemented in the future:
@@ -25,10 +32,12 @@ This plugin is still very early in its development. **Currently, only the `-git`
 - [X] air drag simulation
 - [ ] pendulum simulation
 - [ ] per-shape length and starting angle (if possible)
+- [X] cursor shake to find
+- [ ] overdue refactoring (wait for aquamarine merge)
 
 If anything here sounds interesting to you, don't hesitate to contribute.
 
-Please note that this plugin was created more or less as a joke. I mainly wanted to see how using a rotating or tilted cursor was like. So I will not guarantee any future updates and bugfixes.
+Please note that this plugin was created more or less as a joke. I mainly wanted to see how using a rotating or tilted cursor was like. So I will not guarantee any future updates and bugfixes. The only useful features, shake to find, was implemented more or less as an afterthought.
 
 ## installation
 Installation is supported via `hyprpm`. Supported hyprland versions are `v0.42.0` (yet unreleased) and upwards. The main branch generally tries to target `-git`.
@@ -51,6 +60,7 @@ plugin:dynamic-cursors {
     # sets the cursor behaviour, supports these values:
     # tilt   - tilt the cursor based on x-velocity
     # rotate - rotate the cursor based on movement direction
+    # none   - do not change the cursors behaviour
     mode = tilt
 
     # minimum angle difference in degrees after which the shape is changed
@@ -77,6 +87,28 @@ plugin:dynamic-cursors {
         # quadratic          - a quadratic function is used (most realistic to actual air drag)
         # negative_quadratic - negative version of the quadratic one, feels more aggressive
         function = negative_quadratic
+    }
+
+    # enable shake to find
+    # magnifies the cursor if its is being shaken
+    shake = true
+
+    # for when shake = true
+    shake {
+
+        # controls how soon a shake is detected
+        # lower values mean sooner
+        threshold = 4.0
+
+        # controls how fast the cursor gets larger
+        factor = 1.5
+
+        # show cursor behaviour `tilt`, `rotate`, etc. while shaking
+        effects = false
+
+        # use nearest-neighbour (pixelated) scaling when shaking
+        # may look weird when effects are enabled
+        nearest = true
     }
 }
 ```

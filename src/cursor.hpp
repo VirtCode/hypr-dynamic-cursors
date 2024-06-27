@@ -25,6 +25,8 @@ class CDynamicCursors {
   private:
     // current angle of the cursor in radiants
     double angle;
+    // current zoom value of the cursor
+    double zoom = 1;
 
     // calculates the current angle of the cursor, and changes the cursor shape
     void calculate();
@@ -39,6 +41,11 @@ class CDynamicCursors {
     // ring buffer of last position samples
     std::vector<Vector2D> samples;
     int samples_index = 0;
+
+    double calculateShake();
+    std::vector<Vector2D> shake_samples;
+    std::vector<double> shake_samples_distance;
+    int shake_samples_index = 0;
 };
 
 inline std::unique_ptr<CDynamicCursors> g_pDynamicCursors;

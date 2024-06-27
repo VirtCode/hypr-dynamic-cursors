@@ -55,12 +55,10 @@ void hkOnCursorMoved(void* thisptr) {
     else return (*(origOnCursorMoved)g_pOnCursorMovedHook->m_pOriginal)(thisptr);
 }
 
-void onTick() {
-    g_pDynamicCursors->onTick(g_pPointerManager.get());
-}
-
 int onTick(void* data) {
-    g_pDynamicCursors->onTick(g_pPointerManager.get());
+    static auto* const* PENABLED = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_ENABLED)->getDataStaticPtr();
+
+    if (**PENABLED) g_pDynamicCursors->onTick(g_pPointerManager.get());
 
     const int TIMEOUT = g_pHyprRenderer->m_pMostHzMonitor ? 1000.0 / g_pHyprRenderer->m_pMostHzMonitor->refreshRate : 16;
     wl_event_source_timer_update(tick, TIMEOUT);
@@ -110,6 +108,12 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_ENABLED, Hyprlang::INT{1});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_MODE, Hyprlang::STRING{"tilt"});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_THRESHOLD, Hyprlang::INT{2});
+
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE, Hyprlang::INT{1});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_NEAREST, Hyprlang::INT{1});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_EFFECTS, Hyprlang::INT{0});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_THRESHOLD, Hyprlang::FLOAT{4});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_FACTOR, Hyprlang::FLOAT{1.5});
 
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_FUNCTION, Hyprlang::STRING{"negative_quadratic"});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_MASS, Hyprlang::INT{5000});
