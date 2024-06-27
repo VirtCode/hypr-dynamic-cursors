@@ -24,7 +24,7 @@ The plugin supports shake to find, akin to how KDE Plasma, MacOS, etc. do it. It
 https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/9ff64a9b-64e5-4595-b721-dcb4d62bee18
 
 ## state
-This plugin is still very early in its development. **Currently, only the `-git` version of hyprland is supported**. There are also multiple things which may or may not be implemented in the future:
+This plugin is still very early in its development. There are also multiple things which may or may not be implemented in the future:
 
 - [X] software cursor rendering
 - [X] hardware cursor rendering (as far as possible with wlroots)
@@ -37,10 +37,10 @@ This plugin is still very early in its development. **Currently, only the `-git`
 
 If anything here sounds interesting to you, don't hesitate to contribute.
 
-Please note that this plugin was created more or less as a joke. I mainly wanted to see how using a rotating or tilted cursor was like. So I will not guarantee any future updates and bugfixes. The only useful features, shake to find, was implemented more or less as an afterthought.
+Please note that this plugin was created more or less as a joke. I mainly wanted to see how using a rotating or tilted cursor was like. So I will not guarantee any future updates and bugfixes. The only useful feature, shake to find, was implemented more or less as an afterthought.
 
 ## installation
-Installation is supported via `hyprpm`. Supported hyprland versions are `v0.42.0` (yet unreleased) and upwards. The main branch generally tries to target `-git`.
+Installation is supported via `hyprpm`. Supported hyprland versions are `v0.41.2` and upwards. The main branch generally tries to target `-git`.
 
 ```sh
 hyprpm add https://github.com/virtcode/hypr-dynamic-cursors
@@ -124,7 +124,7 @@ To rotate the cursor smoothly, the cursor shape needs to be changed quite often.
 
 Note that if the cusor is currently *being* magnified, software cursors will be used, as hardware cursors have a hardware size limit.
 
-If you have any ideas to improve performance, don't hesitate to contribute!
+If you have any ideas to improve performance, let me know!
 
 ## development
 To work on this plugin, you can clone this repository and use the Makefile to build it. I suggest opening a nested Hyprland session, and loading the plugin there:
