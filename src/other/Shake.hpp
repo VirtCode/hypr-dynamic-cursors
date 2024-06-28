@@ -1,6 +1,10 @@
 #include <hyprutils/math/Vector2D.hpp>
 #include <vector>
 
+#define IPC_SHAKE_START "shakestart"
+#define IPC_SHAKE_UPDATE "shakeupdate"
+#define IPC_SHAKE_END "shakeend"
+
 using namespace Hyprutils::Math;
 
 class CShake {
@@ -9,8 +13,8 @@ class CShake {
     double update(Vector2D pos);
 
   private:
-    /* tracks the global software lock issued by cursor shaking */
-    bool software = false;
+    /* tracks whether the current shake has already been announced in the ipc */
+    bool ipc = false;
 
     /* ringbuffer for last samples */
     std::vector<Vector2D> samples;

@@ -10,6 +10,7 @@
 #define CONFIG_SHAKE_THRESHOLD  "plugin:dynamic-cursors:shake:threshold"
 #define CONFIG_SHAKE_FACTOR     "plugin:dynamic-cursors:shake:factor"
 #define CONFIG_SHAKE_EFFECTS    "plugin:dynamic-cursors:shake:effects"
+#define CONFIG_SHAKE_IPC        "plugin:dynamic-cursors:shake:ipc"
 #define CONFIG_LENGTH           "plugin:dynamic-cursors:rotate:length"
 #define CONFIG_MASS             "plugin:dynamic-cursors:tilt:limit"
 #define CONFIG_FUNCTION         "plugin:dynamic-cursors:tilt:function"

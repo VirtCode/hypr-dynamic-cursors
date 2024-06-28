@@ -146,6 +146,10 @@ plugin:dynamic-cursors {
         # use nearest-neighbour (pixelated) scaling when shaking
         # may look weird when effects are enabled
         nearest = true
+
+        # enable ipc events for shake
+        # see #3
+        ipc = false
     }
 }
 ```

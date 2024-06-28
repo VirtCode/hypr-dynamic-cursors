@@ -1,10 +1,12 @@
 #include "../globals.hpp"
+#include "src/managers/EventManager.hpp"
 #include "Shake.hpp"
 #include <hyprland/src/Compositor.hpp>
 
 double CShake::update(Vector2D pos) {
     static auto* const* PTHRESHOLD = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_THRESHOLD)->getDataStaticPtr();
     static auto* const* PFACTOR = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_FACTOR)->getDataStaticPtr();
+    static auto* const* PIPC = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_IPC)->getDataStaticPtr();
 
     int max = g_pHyprRenderer->m_pMostHzMonitor->refreshRate; // 1s worth of history
     samples.resize(max);
@@ -35,5 +37,24 @@ double CShake::update(Vector2D pos) {
     // discard when the diagonal is small, so we don't have issues with inaccuracies
     if (diagonal < 100) return 1.0;
 
-    return std::max(1.0, ((trail / diagonal) - **PTHRESHOLD) * **PFACTOR);
+    double zoom = ((trail / diagonal) - **PTHRESHOLD);
+
+    if (**PIPC) {
+        if (zoom > 1) {
+            if (!ipc) {
+                g_pEventManager->postEvent(SHyprIPCEvent { IPC_SHAKE_START });
+                ipc = true;
+            }
+
+            g_pEventManager->postEvent(SHyprIPCEvent { IPC_SHAKE_UPDATE, std::format("{},{},{},{}", (int) pos.x, (int) pos.y, trail, diagonal) });
+        } else {
+            if (ipc) {
+                g_pEventManager->postEvent(SHyprIPCEvent { IPC_SHAKE_END });
+                ipc = false;
+            }
+        }
+    }
+
+    // we want ipc to work with factor = 0, so we use it here
+    return std::max(1.0, zoom * **PFACTOR);
 }

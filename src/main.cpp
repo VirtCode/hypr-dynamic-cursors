@@ -112,6 +112,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE, Hyprlang::INT{1});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_NEAREST, Hyprlang::INT{1});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_EFFECTS, Hyprlang::INT{0});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_IPC, Hyprlang::INT{0});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_THRESHOLD, Hyprlang::FLOAT{4});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_FACTOR, Hyprlang::FLOAT{1.5});
 
