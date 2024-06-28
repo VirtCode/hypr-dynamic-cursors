@@ -1,10 +1,13 @@
 #include "globals.hpp"
+
 #define private public
 #include <hyprland/src/managers/PointerManager.hpp>
 #undef private
 #include <hyprutils/math/Vector2D.hpp>
 
-class CDynamicCursors;
+#include "mode/ModeRotate.hpp"
+#include "mode/ModeTilt.hpp"
+#include "other/Shake.hpp"
 
 class CDynamicCursors {
   public:
@@ -27,27 +30,21 @@ class CDynamicCursors {
     double angle;
     // current zoom value of the cursor
     double zoom = 1;
-    // whether we have already locked software
-    bool software = false;
+
+    // whether we have already locked software for cursor zoom
+    bool zoomSoftware = false;
+
+    // modes
+    CModeRotate rotate;
+    CModeTilt tilt;
+    /* returns the current mode, nullptr if none is selected */
+    IMode* currentMode();
+
+    // shake
+    CShake shake;
 
     // calculates the current angle of the cursor, and changes the cursor shape
-    void calculate(bool tick);
-
-    // calculate the angle of the cursor if stick
-    double calculateStick();
-    // this is the end of the virtual stick
-    Vector2D end;
-
-    // calculate the angle of the cursor if air
-    double calculateAir();
-    // ring buffer of last position samples
-    std::vector<Vector2D> samples;
-    int samples_index = 0;
-
-    double calculateShake();
-    std::vector<Vector2D> shake_samples;
-    std::vector<double> shake_samples_distance;
-    int shake_samples_index = 0;
+    void calculate(EModeUpdate type);
 };
 
 inline std::unique_ptr<CDynamicCursors> g_pDynamicCursors;

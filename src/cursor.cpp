@@ -222,62 +222,67 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
         m->output->impl->move_cursor(m->output, CURSORPOS.x, CURSORPOS.y);
     }
 
-    static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
-    if (!strcmp(*PMODE, "rotate")) calculate(false);
+    calculate(MOVE);
 }
 
 /*
 Handle cursor tick events.
 */
 void CDynamicCursors::onTick(CPointerManager* pointers) {
-    static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
-    static auto* const* PSHAKE = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE)->getDataStaticPtr();
-
-    if (!strcmp(*PMODE, "tilt") || **PSHAKE) calculate(true);
+    calculate(TICK);
 }
 
-void CDynamicCursors::calculate(bool tick) {
+IMode* CDynamicCursors::currentMode() {
     static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
+
+    if (!strcmp(*PMODE, "rotate")) return &rotate;
+    else if (!strcmp(*PMODE, "tilt")) return &tilt;
+    else return nullptr;
+}
+
+void CDynamicCursors::calculate(EModeUpdate type) {
     static auto* const* PTHRESHOLD = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_THRESHOLD)->getDataStaticPtr();
     static auto* const* PSHAKE = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE)->getDataStaticPtr();
     static auto* const* PSHAKE_EFFECTS = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_EFFECTS)->getDataStaticPtr();
 
-    // only calculate zoom on tick
-    // yes, a refactor of this whole file would be a godsent
-    double zoom = tick ? 1 : this->zoom;
-    if (**PSHAKE && tick)
-        zoom = calculateShake();
+    IMode* mode = currentMode();
 
+    // calculate angle and zoom
     double angle = 0;
-    if (!strcmp(*PMODE, "rotate"))
-        angle = calculateStick();
-    else if (!strcmp(*PMODE, "tilt"))
-        angle = calculateAir();
-    else if (strcmp(*PMODE, "none")) // if not none, print warning
-        Debug::log(WARN, "[dynamic-cursors] unknown mode specified");
-
-    if (zoom > 1) {
-        if (!**PSHAKE_EFFECTS) angle = 0;
-
-        if (!software) {
-            g_pPointerManager->lockSoftwareAll();
-            software = true;
-        }
-
-    } else {
-        if (software) {
-            // damage so it is cleared
-            g_pPointerManager->damageIfSoftware();
-
-            g_pPointerManager->unlockSoftwareAll();
-            software = false;
-        }
+    if (mode) {
+        if (mode->strategy() == type) angle = mode->update(g_pPointerManager->pointerPos);
+        else angle = this->angle;
     }
 
-    // we only consider the angle changed if it is larger than the threshold
-    if (abs(this->angle - angle) > ((PI / 180) * **PTHRESHOLD) || abs(this->zoom - zoom) > 0.1 || (zoom == 1 && this->zoom != 1)) {
-        this->angle = angle;
-        this->zoom = zoom;
+    double zoom = 1;
+    if (**PSHAKE) {
+        if (type == TICK) zoom = shake.update(g_pPointerManager->pointerPos);
+        else zoom = this->zoom;
+    }
+    if (zoom > 1 && !**PSHAKE_EFFECTS) angle = 0;
+
+    if (
+        std::abs(this->angle - angle) > ((PI / 180) * **PTHRESHOLD) ||
+        this->zoom - zoom != 0 // we don't have a threshold here as this will not happen that often
+    ) {
+       this->zoom = zoom;
+       this->angle = angle;
+
+        // lock software cursors if zooming
+        if (zoom > 1) {
+            if (!zoomSoftware) {
+                g_pPointerManager->lockSoftwareAll();
+                zoomSoftware = true;
+            }
+        } else {
+            if (zoomSoftware) {
+                // damage so it is cleared properly
+                g_pPointerManager->damageIfSoftware();
+
+                g_pPointerManager->unlockSoftwareAll();
+                zoomSoftware = false;
+            }
+        }
 
         // damage software and change hardware cursor shape
         g_pPointerManager->damageIfSoftware();
@@ -290,120 +295,4 @@ void CDynamicCursors::calculate(bool tick) {
             g_pPointerManager->attemptHardwareCursor(state);
         }
     }
-}
-
-double airFunction(double speed) {
-    static auto const* PFUNCTION = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_FUNCTION)->getDataStaticPtr();
-    static auto* const* PMASS = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MASS)->getDataStaticPtr();
-    double mass = **PMASS;
-
-    double result = 0;
-    if (!strcmp(*PFUNCTION, "linear")) {
-
-        result = speed / **PMASS;
-
-    } else if (!strcmp(*PFUNCTION, "quadratic")) {
-
-
-        // (1 / m²) * x², is a quadratic function which will reach 1 at m
-        result = (1.0 / (mass * mass)) * (speed * speed);
-        result *= (speed > 0 ? 1 : -1);
-
-    } else if (!strcmp(*PFUNCTION, "negative_quadratic")) {
-
-        float x = std::abs(speed);
-        // (-1 / m²) * (x - m)² + 1, is a quadratic function with the inverse curvature which will reach 1 at m
-        result = (-1.0 / (mass * mass)) * ((x - mass) * (x - mass)) + 1;
-        if (x > mass) result = 1; // need to clamp manually, as the function would decrease again
-
-        result *= (speed > 0 ? 1 : -1);
-    } else
-        Debug::log(WARN, "[dynamic-cursors] unknown air function specified");
-
-    return std::clamp(result, -1.0, 1.0);
-}
-
-double CDynamicCursors::calculateAir() {
-    // create samples array
-    int max = g_pHyprRenderer->m_pMostHzMonitor->refreshRate / 10; // 100ms worth of history
-    samples.resize(max);
-
-    // capture current sample
-    samples[samples_index] = Vector2D{g_pPointerManager->pointerPos};
-    int current = samples_index;
-    samples_index = (samples_index + 1) % max; // increase for next sample
-    int first = samples_index;
-
-    // calculate speed and tilt
-    double speed = (samples[current].x - samples[first].x) / 0.1;
-
-    return airFunction(speed) * (PI / 3); // 120° in both directions
-}
-
-double CDynamicCursors::calculateShake() {
-    static auto* const* PTHRESHOLD = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_THRESHOLD)->getDataStaticPtr();
-    static auto* const* PFACTOR = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_FACTOR)->getDataStaticPtr();
-
-    int max = g_pHyprRenderer->m_pMostHzMonitor->refreshRate; // 1s worth of history
-    shake_samples.resize(max);
-    shake_samples_distance.resize(max);
-
-    int previous = shake_samples_index == 0 ? max - 1 : shake_samples_index - 1;
-    shake_samples[shake_samples_index] = Vector2D{g_pPointerManager->pointerPos};
-    shake_samples_distance[shake_samples_index] = shake_samples[shake_samples_index].distance(shake_samples[previous]);
-    shake_samples_index = (shake_samples_index + 1) % max; // increase for next sample
-
-    /*
-    The idea for this algorith was largely inspired by KDE Plasma
-    https://invent.kde.org/plasma/kwin/-/blob/master/src/plugins/shakecursor/shakedetector.cpp
-    */
-
-    // calculate total distance travelled
-    double trail = 0;
-    for (double distance : shake_samples_distance) trail += distance;
-
-    // calculate diagonal of bounding box travelled within
-    double left = 1e100, right = 0, bottom = 0, top = 1e100;
-    for (Vector2D position : shake_samples) {
-        left = std::min(left, position.x);
-        right = std::max(right, position.x);
-        top = std::min(top, position.y);
-        bottom = std::max(bottom, position.y);
-    }
-    double diagonal = Vector2D{left, top}.distance(Vector2D(right, bottom));
-
-    // discard when the diagonal is small, so we don't have issues with inaccuracies
-    if (diagonal < 100) return 1.0;
-
-    return std::max(1.0, ((trail / diagonal) - **PTHRESHOLD) * **PFACTOR);
-}
-
-double CDynamicCursors::calculateStick() {
-    static auto* const* PLENGTH = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_LENGTH)->getDataStaticPtr();
-
-    auto pos = g_pPointerManager->pointerPos;
-
-    // translate to origin
-    end.x -= pos.x;
-    end.y -= pos.y;
-
-    // normalize
-    double size = end.size();
-    end.x /= size;
-    end.y /= size;
-
-    // scale to length
-    end.x *= **PLENGTH;
-    end.y *= **PLENGTH;
-
-    // calculate angle
-    double angle = -atan(end.x / end.y);
-    if (end.y > 0) angle += PI;
-    angle += PI;
-
-    // translate back
-    end.x += pos.x;
-    end.y += pos.y;
-
-    return angle;
 }
