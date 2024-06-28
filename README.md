@@ -40,6 +40,9 @@ If anything here sounds interesting to you, don't hesitate to contribute.
 Please note that this plugin was created more or less as a joke. I mainly wanted to see how using a rotating or tilted cursor was like. So I will not guarantee any future updates and bugfixes. The only useful feature, shake to find, was implemented more or less as an afterthought.
 
 ## installation
+
+### hyprpm
+
 Installation is supported via `hyprpm`. Supported hyprland versions are `v0.41.2` and upwards. The main branch generally tries to target `-git`.
 
 ```sh
@@ -48,6 +51,40 @@ hyprpm enable dynamic-cursors
 ```
 
 Compatibility with other plugins is not guaranteed. It probably should work with most plugins, unless they also change your cursor's behaviour. It will however work with any cursor theme.
+
+### NixOS
+
+Add this flake to your inputs, note that using a mismatched/unsupported Hyprland release will fail to build or load the plugin:
+
+```nix
+inputs = {
+    hyprland.url = "git+https://github.com/hyprwm/Hyprland?submodules=1"; # follows development branch of hyprland
+    hypr-dynamic-cursors = {
+        url = "github:VirtCode/hypr-dynamic-cursors";
+        inputs.hyprland.follows = "hyprland"; # to make sure that the plugin is built for the correct version of hyprland
+    };
+};
+```
+
+Then, in your home-manager config, add the plugin:
+
+```nix
+wayland.windowManager.hyprland = {
+    enable = true;
+    plugins = [ inputs.hypr-dynamic-cursors.packages.${pkgs.system}.hypr-dynamic-cursors ];
+};
+```
+
+or add it like this:
+
+```nix
+wayland.windowManager.hyprland = {
+    enable = true;
+    extraConfig = ''
+        plugin = ${inputs.hypr-dynamic-cursors.packages.${pkgs.system}.hypr-dynamic-cursors}/lib/libhypr-dynamic-cursors.so
+    '';
+};
+```
 
 ## configuration
 This plugin can be configured in its dedicated configuration section (`plugin:dynamic-cursors`). The default values are shown below.
