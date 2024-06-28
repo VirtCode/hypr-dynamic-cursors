@@ -44,6 +44,10 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
         box.y = overridePos->y;
     }
 
+    // poperly transform hotspot, this first has to undo the hotspot transform from getCursorBoxGlobal
+    box.x = box.x + pointers->currentCursorImage.hotspot.x - pointers->currentCursorImage.hotspot.x * zoom;
+    box.y = box.y + pointers->currentCursorImage.hotspot.y - pointers->currentCursorImage.hotspot.y * zoom;
+
     if (box.intersection(CBox{{}, {pMonitor->vecSize}}).empty())
         return;
 
