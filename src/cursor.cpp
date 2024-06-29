@@ -269,8 +269,13 @@ void CDynamicCursors::calculate(EModeUpdate type) {
         std::abs(this->angle - angle) > ((PI / 180) * **PTHRESHOLD) ||
         this->zoom - zoom != 0 // we don't have a threshold here as this will not happen that often
     ) {
-       this->zoom = zoom;
-       this->angle = angle;
+        this->zoom = zoom;
+        this->angle = angle;
+
+        // clamp to zero at low angles, so that the normal position in tilt looks fine (and actually is 0)
+        if (std::abs(this->angle) < ((PI / 180) * **PTHRESHOLD))
+            this->angle = 0;
+
 
         // lock software cursors if zooming
         if (zoom > 1) {
