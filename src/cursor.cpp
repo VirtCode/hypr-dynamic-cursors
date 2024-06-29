@@ -63,7 +63,7 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     box.rot = this->angle;
 
     // now pass the hotspot to rotate around
-    renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, pointers->currentCursorImage.hotspot * zoom, zoom > 1 && **PNEAREST);
+    renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST);
 }
 
 /*
@@ -164,7 +164,7 @@ wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPoint
     xbox.rot = this->angle;
 
     //  use our custom draw function
-    renderCursorTextureInternalWithDamage(texture, &xbox, &damage, 1.F, pointers->currentCursorImage.hotspot * zoom, zoom > 1 && **PNEAREST);
+    renderCursorTextureInternalWithDamage(texture, &xbox, &damage, 1.F, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST);
 
     g_pHyprOpenGL->end();
     glFlush();
@@ -187,7 +187,7 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
     if (!P_MONITOR->output->cursor_swapchain) return false;
 
     // we need to transform the hotspot manually as we need to indent it by the size
-    const auto HOTSPOT = CBox{(pointers->currentCursorImage.hotspot + pointers->currentCursorImage.size) * P_MONITOR->scale * zoom, {0, 0}}
+    const auto HOTSPOT = CBox{((pointers->currentCursorImage.hotspot * P_MONITOR->scale) + pointers->currentCursorImage.size) * zoom, {0, 0}}
         .transform(wlTransformToHyprutils(wlr_output_transform_invert(P_MONITOR->transform)), P_MONITOR->output->cursor_swapchain->width, P_MONITOR->output->cursor_swapchain->height)
         .pos();
 
