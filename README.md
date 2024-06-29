@@ -34,6 +34,8 @@ This plugin is still very early in its development. There are also multiple thin
 - [ ] per-shape length and starting angle (if possible)
 - [X] cursor shake to find
 - [ ] overdue refactoring (wait for aquamarine merge)
+- [ ] inverted cursor?
+- [ ] hyprcursor magified shape
 
 If anything here sounds interesting to you, don't hesitate to contribute.
 
@@ -110,6 +112,10 @@ plugin:dynamic-cursors {
         # length in px of the simulated stick used to rotate the cursor
         # most realistic if this is your actual cursor size
         length = 20
+
+        # clockwise offset applied to the angle in degrees
+        # this will apply to ALL shapes
+        offset = 0.0
     }
 
     # for mode = tilt

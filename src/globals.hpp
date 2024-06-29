@@ -12,6 +12,7 @@
 #define CONFIG_SHAKE_EFFECTS    "plugin:dynamic-cursors:shake:effects"
 #define CONFIG_SHAKE_IPC        "plugin:dynamic-cursors:shake:ipc"
 #define CONFIG_LENGTH           "plugin:dynamic-cursors:rotate:length"
+#define CONFIG_ROTATE_OFFSET    "plugin:dynamic-cursors:rotate:offset"
 #define CONFIG_MASS             "plugin:dynamic-cursors:tilt:limit"
 #define CONFIG_FUNCTION         "plugin:dynamic-cursors:tilt:function"
 
