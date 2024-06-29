@@ -5,7 +5,7 @@ all: $(PLUGIN_NAME).so
 
 $(PLUGIN_NAME).so: $(SOURCE_FILES)
 	mkdir -p out
-	g++ -shared -Wall -fPIC $(SOURCE_FILES) -g  -DWLR_USE_UNSTABLE `pkg-config --cflags pixman-1 libdrm hyprland` -std=c++23 -o out/$(PLUGIN_NAME).so
+	g++ -shared -Wall --no-gnu-unique -fPIC $(SOURCE_FILES) -g -DWLR_USE_UNSTABLE `pkg-config --cflags pixman-1 libdrm hyprland` -std=c++23 -o out/$(PLUGIN_NAME).so
 
 clean:
 	rm -f out/$(PLUGIN_NAME).so
