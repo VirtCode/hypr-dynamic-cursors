@@ -15,6 +15,8 @@ class CDynamicCursors {
     void onCursorMoved(CPointerManager* pointers);
     /* called on tick */
     void onTick(CPointerManager* pointers);
+    /* called before render */
+    void beforeRender(CPointerManager* pointers);
 
     /* hook on renderSoftwareCursorsFor */
     void renderSoftware(CPointerManager* pointers, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos);
@@ -33,6 +35,8 @@ class CDynamicCursors {
 
     // whether we have already locked software for cursor zoom
     bool zoomSoftware = false;
+    // whether we have already locked software for inverted cursors
+    bool invertSoftware = false;
 
     // modes
     CModeRotate rotate;

@@ -107,9 +107,15 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     tick = wl_event_loop_add_timer(g_pCompositor->m_sWLEventLoop, &onTick, nullptr);
     wl_event_source_timer_update(tick, 1);
 
+    static auto P_PRE_RENDER = HyprlandAPI::registerCallbackDynamic(PHANDLE, "preRender", [](void* self, SCallbackInfo& info, std::any data) {
+        static auto* const* PENABLED = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_ENABLED)->getDataStaticPtr();
+        if (**PENABLED) g_pDynamicCursors->beforeRender(g_pPointerManager.get());
+    });
+
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_ENABLED, Hyprlang::INT{1});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_MODE, Hyprlang::STRING{"tilt"});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_THRESHOLD, Hyprlang::INT{2});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_OPACITY, Hyprlang::FLOAT{1});
 
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE, Hyprlang::INT{1});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_NEAREST, Hyprlang::INT{1});
@@ -119,7 +125,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_FACTOR, Hyprlang::FLOAT{1.5});
 
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_INVERT, Hyprlang::INT{0});
-    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_INVERT_SHADER, Hyprlang::STRING{"normal"});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_INVERT_SHADER, Hyprlang::STRING{"invert"});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_INVERT_CHROMA, Hyprlang::INT{0});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_INVERT_CHROMA_COLOR, Hyprlang::INT{0xFF000000}); // opaque black
 

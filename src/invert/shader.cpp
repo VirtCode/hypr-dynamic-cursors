@@ -20,6 +20,10 @@ void CInversionShader::compile(std::string vertex, std::string fragment) {
     backgroundTex        = glGetUniformLocation(program, "backgroundTex");
     cursorTex            = glGetUniformLocation(program, "cursorTex");
     alpha                = glGetUniformLocation(program, "alpha");
+    chroma               = glGetUniformLocation(program, "chroma");
+    chromaColor          = glGetUniformLocation(program, "chromaColor");
+    mode                 = glGetUniformLocation(program, "mode");
+
     applyTint            = glGetUniformLocation(program, "applyTint");
     tint                 = glGetUniformLocation(program, "tint");
 }

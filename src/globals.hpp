@@ -5,6 +5,7 @@
 #define CONFIG_ENABLED              "plugin:dynamic-cursors:enabled"
 #define CONFIG_MODE                 "plugin:dynamic-cursors:mode"
 #define CONFIG_THRESHOLD            "plugin:dynamic-cursors:threshold"
+#define CONFIG_OPACITY              "plugin:dynamic-cursors:opacity"
 #define CONFIG_HW_DEBUG             "plugin:dynamic-cursors:hw_debug"
 
 #define CONFIG_LENGTH               "plugin:dynamic-cursors:rotate:length"

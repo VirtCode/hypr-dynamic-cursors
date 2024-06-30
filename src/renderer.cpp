@@ -138,7 +138,7 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, CRegion
     glBindTexture(tex->m_iTarget, 0);
 }
 
-void renderCursorTextureInternalWithDamageInverted(SP<CTexture> tex, CBox* pBox, CRegion* damage, float alpha, Vector2D hotspot, bool nearest) {
+void renderCursorTextureInternalWithDamageInverted(SP<CTexture> tex, CBox* pBox, CRegion* damage, float alpha, Vector2D hotspot, bool nearest, int mode, bool chroma, CColor chromaColor) {
     TRACY_GPU_ZONE("RenderDynamicCursor");
 
     alpha = std::clamp(alpha, 0.f, 1.f);
@@ -192,6 +192,10 @@ void renderCursorTextureInternalWithDamageInverted(SP<CTexture> tex, CBox* pBox,
     glUniform1i(shader->backgroundTex, 0);
     glUniform1i(shader->cursorTex, 1);
     glUniform1f(shader->alpha, alpha);
+
+    glUniform1i(shader->mode, mode);
+    glUniform1i(shader->chroma, chroma);
+    glUniform4f(shader->chromaColor, chromaColor.r, chromaColor.g, chromaColor.b, chromaColor.a);
 
     CBox transformedBox = newBox;
     transformedBox.transform(wlTransformToHyprutils(wlr_output_transform_invert(g_pHyprOpenGL->m_RenderData.pMonitor->transform)), g_pHyprOpenGL->m_RenderData.pMonitor->vecTransformedSize.x, g_pHyprOpenGL->m_RenderData.pMonitor->vecTransformedSize.y);
