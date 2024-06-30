@@ -8,6 +8,7 @@
 
 #include "globals.hpp"
 #include "cursor.hpp"
+#include "invert/shader.hpp"
 #include "src/managers/PointerManager.hpp"
 
 typedef void (*origRenderSofwareCursorsFor)(void*, SP<CMonitor>, timespec*, CRegion&, std::optional<Vector2D>);
@@ -78,6 +79,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     }
 
     g_pDynamicCursors = std::make_unique<CDynamicCursors>();
+    g_pShaders = std::make_unique<CShaders>();
 
     static const auto RENDER_SOFTWARE_CURSORS_FOR_METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "renderSoftwareCursorsFor");
     g_pRenderSoftwareCursorsForHook = HyprlandAPI::createFunctionHook(PHANDLE, RENDER_SOFTWARE_CURSORS_FOR_METHODS[0].address, (void*) &hkRenderSoftwareCursorsFor);
@@ -115,6 +117,11 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_IPC, Hyprlang::INT{0});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_THRESHOLD, Hyprlang::FLOAT{4});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_FACTOR, Hyprlang::FLOAT{1.5});
+
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_INVERT, Hyprlang::INT{0});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_INVERT_SHADER, Hyprlang::STRING{"normal"});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_INVERT_CHROMA, Hyprlang::INT{0});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_INVERT_CHROMA_COLOR, Hyprlang::INT{0xFF000000}); // opaque black
 
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_FUNCTION, Hyprlang::STRING{"negative_quadratic"});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_MASS, Hyprlang::INT{5000});
