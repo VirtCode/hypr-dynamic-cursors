@@ -49,17 +49,33 @@ CDynamicCursors::~CDynamicCursors() {
     }
 }
 
+void renderCursorBox(SP<CTexture> texture, CBox box, CRegion& damage, Vector2D hotspot, float zoom) {
+    static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_NEAREST);
+
+    static auto* const* PINVERT = (Hyprlang::INT* const*) getConfig(CONFIG_INVERT);
+    static auto const* PINVERT_MODE = (Hyprlang::INT* const*) getConfig(CONFIG_INVERT_SHADER);
+    static auto* const* PINVERT_CHROMA = (Hyprlang::STRING const*) getConfig(CONFIG_INVERT_CHROMA);
+    static auto* const* PINVERT_CHROMA_COLOR = (Hyprlang::INT* const*) getConfig(CONFIG_INVERT_CHROMA_COLOR);
+
+    bool nearest = zoom > 1 && **PNEAREST;
+
+    if (**PINVERT) {
+        int mode = 0;
+        if (!strcmp(*PINVERT_MODE, "invert_hue")) mode = 1;
+        else if (!strcmp(*PINVERT_MODE, "hue")) mode = 2;
+
+        renderCursorTextureInternalWithDamageInverted(texture, &box, &damage, 1.f, hotspot, nearest, mode, **PINVERT_CHROMA, CColor(**PINVERT_CHROMA_COLOR));
+    } else
+        renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.f, hotspot, nearest);
+}
+
 /*
 Reimplements rendering of the software cursor.
 Is also largely identical to hyprlands impl, but uses our custom rendering to rotate the cursor.
 */
 void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos) {
-<<<<<<< HEAD
     static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_NEAREST);
-=======
-    static auto* const* PNEAREST = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_NEAREST)->getDataStaticPtr();
-    static auto* const* PINVERT = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_INVERT)->getDataStaticPtr();
->>>>>>> c8ae8fe (feat: basic inverted rendering)
+    static auto* const* PINVERT = (Hyprlang::INT* const*) getConfig(CONFIG_INVERT);
 
     if (!pointers->hasCursor())
         return;
@@ -99,17 +115,10 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     box.rot = resultShown.rotation;
 
     // now pass the hotspot to rotate around
-<<<<<<< HEAD
-    renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, nullptr, 0, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
+    renderCursorBox(texture, box, damage, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom);
 
     if (pointers->currentCursorImage.surface)
             pointers->currentCursorImage.surface->resource()->frame(now);
-=======
-    if (**PINVERT)
-        renderCursorTextureInternalWithDamageInverted(texture, &box, &damage, 1.F, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST);
-    else
-        renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST);
->>>>>>> c8ae8fe (feat: basic inverted rendering)
 }
 
 /*
@@ -143,16 +152,9 @@ void CDynamicCursors::damageSoftware(CPointerManager* pointers) {
 This function reimplements the hardware cursor buffer drawing.
 It is largely copied from hyprland, but adjusted to allow the cursor to be rotated.
 */
-<<<<<<< HEAD
 SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<CTexture> texture) {
     static auto* const* PHW_DEBUG = (Hyprlang::INT* const*) getConfig(CONFIG_HW_DEBUG);
     static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_NEAREST);
-=======
-wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<CTexture> texture) {
-    static auto* const* PHW_DEBUG= (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_HW_DEBUG)->getDataStaticPtr();
-    static auto* const* PNEAREST = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_NEAREST)->getDataStaticPtr();
-    static auto* const* PINVERT = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_INVERT)->getDataStaticPtr();
->>>>>>> c8ae8fe (feat: basic inverted rendering)
 
     auto output = state->monitor->output;
 
@@ -262,14 +264,7 @@ wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPoint
     xbox.rot = resultShown.rotation;
 
     //  use our custom draw function
-<<<<<<< HEAD
-    renderCursorTextureInternalWithDamage(texture, &xbox, &damage, 1.F, pointers->currentCursorImage.waitTimeline, pointers->currentCursorImage.waitPoint, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
-=======
-    if (**PINVERT)
-        renderCursorTextureInternalWithDamageInverted(texture, &xbox, &damage, 1.F, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST);
-    else
-        renderCursorTextureInternalWithDamage(texture, &xbox, &damage, 1.F, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST);
->>>>>>> c8ae8fe (feat: basic inverted rendering)
+    renderCursorBox(texture, xbox, damage, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom);
 
     g_pHyprOpenGL->end();
     glFlush();
@@ -357,6 +352,25 @@ IMode* CDynamicCursors::currentMode() {
     else if (mode == "tilt") return &tilt;
     else if (mode == "stretch") return &stretch;
     else return nullptr;
+}
+
+void CDynamicCursors::beforeRender(CPointerManager* pointers) {
+    static auto* const* PINVERT = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_INVERT)->getDataStaticPtr();
+
+    if (**PINVERT) {
+        // we need introspection as we make use of the offloadFB
+        g_pHyprOpenGL->m_RenderData.forceIntrospection = true;
+
+        if (!invertSoftware) {
+            pointers->lockSoftwareAll();
+            invertSoftware = true;
+        }
+    } else {
+        if (invertSoftware) {
+            pointers->unlockSoftwareAll();
+            invertSoftware = false;
+        }
+    }
 }
 
 void CDynamicCursors::calculate(EModeUpdate type) {

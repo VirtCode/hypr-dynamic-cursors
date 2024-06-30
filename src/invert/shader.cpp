@@ -1,4 +1,5 @@
 #include "src/debug/Log.hpp"
+#include "src/render/Renderer.hpp"
 
 #define private public
 #include <hyprland/src/render/OpenGL.hpp>
@@ -20,6 +21,10 @@ void CInversionShader::compile(std::string vertex, std::string fragment) {
     backgroundTex        = glGetUniformLocation(program, "backgroundTex");
     cursorTex            = glGetUniformLocation(program, "cursorTex");
     alpha                = glGetUniformLocation(program, "alpha");
+    chroma               = glGetUniformLocation(program, "chroma");
+    chromaColor          = glGetUniformLocation(program, "chromaColor");
+    mode                 = glGetUniformLocation(program, "mode");
+
     applyTint            = glGetUniformLocation(program, "applyTint");
     tint                 = glGetUniformLocation(program, "tint");
 }
@@ -30,13 +35,11 @@ CInversionShader::~CInversionShader() {
 }
 
 CShaders::CShaders() {
-    RASSERT(eglMakeCurrent(wlr_egl_get_display(g_pCompositor->m_sWLREGL), EGL_NO_SURFACE, EGL_NO_SURFACE, wlr_egl_get_context(g_pCompositor->m_sWLREGL)),
-                "Couldn't set current EGL!");
+    g_pHyprRenderer->makeEGLCurrent();
 
     rgba.compile(VERTEX, RGBA);
     ext.compile(VERTEX, EXT);
     rgbx.compile(VERTEX, RGBX);
 
-    RASSERT(eglMakeCurrent(wlr_egl_get_display(g_pCompositor->m_sWLREGL), EGL_NO_SURFACE, EGL_NO_SURFACE, wlr_egl_get_context(g_pCompositor->m_sWLREGL)),
-            "Couldn't set current EGL!");
+    g_pHyprRenderer->unsetEGL();
 }

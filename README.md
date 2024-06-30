@@ -28,6 +28,13 @@ The plugin supports shake to find, akin to how KDE Plasma, MacOS, etc. do it. It
 
 https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/9ff64a9b-64e5-4595-b721-dcb4d62bee18
 
+### inverted cursor (experimental)
+You can also finally have an inverted cursor with this plugin. This is similar to the inverted cursor theme found in MS Windows.
+
+**Note:** Inverted cursors have about the same performance impact as a *basic* screen shader. They are also only supported as software cursors.
+
+INSERT VIDEO HERE
+
 ## state
 This plugin is still very early in its development. There are also multiple things which may or may not be implemented in the future:
 
@@ -39,7 +46,7 @@ This plugin is still very early in its development. There are also multiple thin
 - [X] per-shape length and starting angle (if possible)
 - [X] cursor shake to find
 - [X] overdue refactoring (wait for aquamarine merge)
-- [ ] ~~inverted cursor?~~ (i think out of scope here, but see the [inverted branch](https://github.com/VirtCode/hypr-dynamic-cursors/tree/inverted))
+- [X] inverted cursor!
 - [ ] hyprcursor magified shape
 
 If anything here sounds interesting to you, don't hesitate to contribute.
@@ -182,6 +189,29 @@ plugin:dynamic-cursors {
         # enable ipc events for shake
         # see #3
         ipc = false
+    }
+
+    # enables inverted cursor
+    # this replaces your cursor shape with the inverted colors of the background
+    # by default, this replaces the non transparent parts of your cursor
+    # WARNING: inverted cursors are experimental and have a high performance impact
+    invert = true
+
+    # for when invert = true
+    invert {
+
+        # shader function that is used on the background color, supports:
+        # invert      - take the negative of the color
+        # invert_hue  - take the negative of the color and shift hue by 180°
+        # hue         - only shift hue by 180°
+        shader = invert
+
+        # apply a chroma key algorithm to the cursor
+        # this allows for only replacing certain parts of the cursor texture
+        chroma = false
+
+        # color to replace when chroma = true
+        chroma:color = rgba(000000ff)
     }
 }
 ```

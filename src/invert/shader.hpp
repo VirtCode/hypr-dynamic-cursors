@@ -5,18 +5,17 @@
 class CInversionShader {
   public:
     GLuint  program           = 0;
+
+    GLint   posAttrib         = -1;
+    GLint   texAttrib         = -1;
+
     GLint   proj              = -1;
-    GLint   color             = -1;
-    GLint   alphaMatte        = -1;
     GLint   cursorTex         = -1;
     GLint   backgroundTex     = -1;
     GLint   alpha             = -1;
-    GLint   posAttrib         = -1;
-    GLint   texAttrib         = -1;
-    GLint   matteTexAttrib    = -1;
-    GLint   discardOpaque     = -1;
-    GLint   discardAlpha      = -1;
-    GLfloat discardAlphaValue = -1;
+    GLint   mode              = -1;
+    GLint   chroma            = -1;
+    GLint   chromaColor       = -1;
 
     GLint   applyTint = -1;
     GLint   tint      = -1;
@@ -66,25 +65,28 @@ inline const std::string RGBA = R"#(
     uniform int applyTint;
     uniform vec3 tint;
 
+    uniform int mode;
+    uniform int chroma;
+    uniform vec4 chromaColor;
+
     void main() {
-
         vec4 cursor = texture2D(cursorTex, v_texcoord);
-
-        // load and invert background
         vec4 background = texture2D(backgroundTex, v_screencord);
-        background.rgb = vec3(1.0, 1.0, 1.0) - background.rgb;
+
+        // invert based on mode
+        if (mode == 0 || mode == 1) // invert
+            background.rgb = vec3(1.0, 1.0, 1.0) - background.rgb;
+        if (mode == 1 || mode == 2) // hueshift
+            background.rgb = -background.rgb + dot(vec3(0.26312, 0.5283, 0.10488), background.rgb) * 2.0;
+
         background *= cursor[3]; // premultiplied alpha
+        vec4 pixColor = background;
 
-        // invert hue
-        //background.rgb = -background.rgb + dot(vec3(0.26312, 0.5283, 0.10488), background.rgb) * 2.0;
-
-        vec4 pixColor = cursor;
-        //if (cursor[3] != 1.0) pixColor = cursor;
-        //pixColor = vec4(v_screencord + vec2(1.0, 1.0) / 2.0, 0.0, 1.0);
-
-        vec4 chroma = vec4(0.0, 0.0, 0.0, 1.0);
-        float diff = (abs(chroma.x - cursor.x) + abs(chroma.y - cursor.y) + abs(chroma.z - cursor.z) + abs(chroma.w - cursor.w)) / 4.0;
-        pixColor = background * (1.0 - diff) + cursor * diff;
+        // this is a very crude "chroma algorithm", feel free to contribute a better one
+        if (chroma == 1) {
+            float diff = (abs(chromaColor.x - cursor.x) + abs(chromaColor.y - cursor.y) + abs(chromaColor.z - cursor.z) + abs(chromaColor.w - cursor.w)) / 4.0;
+            pixColor = background * (1.0 - diff) + cursor * diff;
+        }
 
         if (applyTint == 1) {
     	    pixColor[0] = pixColor[0] * tint[0];
