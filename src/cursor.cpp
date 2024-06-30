@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <hyprlang.hpp>
+#include <hyprutils/math/Vector2D.hpp>
 
 #define private public
 #include <hyprland/src/managers/PointerManager.hpp>
@@ -22,7 +23,7 @@
 #include "cursor.hpp"
 #include "renderer.hpp"
 
-void renderCursorBox(SP<CTexture> texture, CBox box, CRegion& damage, Vector2D hotspot, float zoom) {
+void renderCursorBox(SP<CTexture> texture, CBox box, CRegion& damage, Vector2D hotspot, float zoom, Vector2D offset) {
     static auto* const* PNEAREST = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_NEAREST)->getDataStaticPtr();
     static auto* const* POPACITY = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_OPACITY)->getDataStaticPtr();
 
@@ -39,7 +40,7 @@ void renderCursorBox(SP<CTexture> texture, CBox box, CRegion& damage, Vector2D h
         if (!strcmp(*PINVERT_MODE, "invert_hue")) mode = 1;
         else if (!strcmp(*PINVERT_MODE, "hue")) mode = 2;
 
-        renderCursorTextureInternalWithDamageInverted(texture, &box, &damage, alpha, hotspot, nearest, mode, **PINVERT_CHROMA, CColor(**PINVERT_CHROMA_COLOR));
+        renderCursorTextureInternalWithDamageInverted(texture, &box, &damage, alpha, hotspot, nearest, mode, **PINVERT_CHROMA, CColor(**PINVERT_CHROMA_COLOR), offset);
     } else
         renderCursorTextureInternalWithDamage(texture, &box, &damage, alpha, hotspot, nearest);
 }
@@ -83,7 +84,7 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     // we rotate the cursor by our calculated amount
     box.rot = this->angle;
 
-    renderCursorBox(texture, box, damage, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom);
+    renderCursorBox(texture, box, damage, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom, Vector2D());
 }
 
 /*
@@ -115,6 +116,7 @@ It is largely copied from hyprland, but adjusted to allow the cursor to be rotat
 */
 wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<CTexture> texture) {
     static auto* const* PHW_DEBUG= (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_HW_DEBUG)->getDataStaticPtr();
+    static auto* const* PINVERT = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_INVERT)->getDataStaticPtr();
 
     auto output = state->monitor->output;
 
@@ -182,7 +184,19 @@ wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPoint
     CBox xbox = {size, Vector2D{pointers->currentCursorImage.size / pointers->currentCursorImage.scale * state->monitor->scale * zoom}.round()};
     xbox.rot = this->angle;
 
-    renderCursorBox(texture, xbox, damage, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom);
+    // calculate correct offset of the offload buffer into the cursor buffer
+    auto offset = Vector2D();
+    if (**PINVERT) {
+        const auto HOTSPOT = CBox{((pointers->currentCursorImage.hotspot * state->monitor->scale) + pointers->currentCursorImage.size) * zoom, {0, 0}}
+                .transform(wlTransformToHyprutils(wlr_output_transform_invert(state->monitor->transform)), state->monitor->output->cursor_swapchain->width, state->monitor->output->cursor_swapchain->height)
+                .pos();
+
+        offset = pointers->getCursorPosForMonitor(state->monitor.lock()) - HOTSPOT;
+        offset.x /= xbox.x;
+        offset.y /= xbox.y;
+    }
+
+    renderCursorBox(texture, xbox, damage, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom, offset);
 
     g_pHyprOpenGL->end();
     glFlush();
@@ -268,16 +282,6 @@ void CDynamicCursors::beforeRender(CPointerManager* pointers) {
     if (**PINVERT) {
         // we need introspection as we make use of the offloadFB
         g_pHyprOpenGL->m_RenderData.forceIntrospection = true;
-
-        if (!invertSoftware) {
-            pointers->lockSoftwareAll();
-            invertSoftware = true;
-        }
-    } else {
-        if (invertSoftware) {
-            pointers->unlockSoftwareAll();
-            invertSoftware = false;
-        }
     }
 }
 
@@ -285,6 +289,7 @@ void CDynamicCursors::calculate(EModeUpdate type) {
     static auto* const* PTHRESHOLD = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_THRESHOLD)->getDataStaticPtr();
     static auto* const* PSHAKE = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE)->getDataStaticPtr();
     static auto* const* PSHAKE_EFFECTS = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_EFFECTS)->getDataStaticPtr();
+    static auto* const* PINVERT = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_INVERT)->getDataStaticPtr();
 
     IMode* mode = currentMode();
 
@@ -304,7 +309,8 @@ void CDynamicCursors::calculate(EModeUpdate type) {
 
     if (
         std::abs(this->angle - angle) > ((PI / 180) * **PTHRESHOLD) ||
-        this->zoom - zoom != 0 // we don't have a threshold here as this will not happen that often
+        this->zoom - zoom != 0 ||   // we don't have a threshold here as this will not happen that often
+        (**PINVERT && type == MOVE) // currently we only update inverted cursors on move
     ) {
         this->zoom = zoom;
         this->angle = angle;

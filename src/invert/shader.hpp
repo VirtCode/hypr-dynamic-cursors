@@ -1,7 +1,7 @@
 #include <string>
 #include <hyprland/src/render/Shader.hpp>
 
-// we need our own shader class as we have two textures
+// we need our own shader class as we have two textures, and custom uniforms
 class CInversionShader {
   public:
     GLuint  program           = 0;
@@ -10,6 +10,7 @@ class CInversionShader {
     GLint   texAttrib         = -1;
 
     GLint   proj              = -1;
+    GLint   screenOffset      = -1;
     GLint   cursorTex         = -1;
     GLint   backgroundTex     = -1;
     GLint   alpha             = -1;
@@ -44,10 +45,12 @@ inline const std::string VERTEX = R"#(
     varying vec2 v_texcoord;
     varying vec2 v_screencord;
 
+    uniform vec2 screenOffset;
+
     void main() {
         gl_Position = vec4(proj * vec3(pos, 1.0), 1.0);
 
-        v_screencord = gl_Position.xy / 2.0 + vec2(0.5, 0.5); // transform to texture coords
+        v_screencord = (proj * vec3(pos + screenOffset, 1.0)).xy / 2.0 + vec2(0.5, 0.5); // transform to texture coords
         v_texcoord = texcoord;
     }
 )#";

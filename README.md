@@ -26,9 +26,9 @@ https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/9ff64a9b-64e5-4
 ### inverted cursor (experimental)
 You can also finally have an inverted cursor with this plugin. This is similar to the inverted cursor theme found in MS Windows.
 
-**Note:** Inverted cursors have about the same performance impact as a *basic* screen shader. They are also only supported as software cursors.
+**Note:** Inverted cursors have about the same performance impact as a *basic* screen shader. They are also currently broken on nvidia.
 
-INSERT VIDEO HERE
+https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/b62698d8-d53f-45f2-b36f-2c9752b8f90d
 
 ## state
 This plugin is still very early in its development. There are also multiple things which may or may not be implemented in the future:

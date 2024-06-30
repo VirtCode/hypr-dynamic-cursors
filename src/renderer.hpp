@@ -2,5 +2,5 @@
 #include <hyprland/src/helpers/math/Math.hpp>
 
 void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, CRegion* damage, float alpha, Vector2D hotspot, bool nearest);
-void renderCursorTextureInternalWithDamageInverted(SP<CTexture> tex, CBox* pBox, CRegion* damage, float alpha, Vector2D hotspot, bool nearest, int mode, bool chroma, CColor chromaColor);
+void renderCursorTextureInternalWithDamageInverted(SP<CTexture> tex, CBox* pBox, CRegion* damage, float alpha, Vector2D hotspot, bool nearest, int mode, bool chroma, CColor chromaColor, Vector2D screenOffset);
 void projectCursorBox(float mat[9], CBox& box, eTransform transform, float rotation, const float projection[9], Vector2D hotspot);

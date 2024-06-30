@@ -17,6 +17,7 @@ void CInversionShader::compile(std::string vertex, std::string fragment) {
     posAttrib            = glGetAttribLocation(program, "pos");
 
     proj                 = glGetUniformLocation(program, "proj");
+    screenOffset         = glGetUniformLocation(program, "screenOffset");
     backgroundTex        = glGetUniformLocation(program, "backgroundTex");
     cursorTex            = glGetUniformLocation(program, "cursorTex");
     alpha                = glGetUniformLocation(program, "alpha");

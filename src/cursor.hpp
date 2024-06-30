@@ -35,8 +35,6 @@ class CDynamicCursors {
 
     // whether we have already locked software for cursor zoom
     bool zoomSoftware = false;
-    // whether we have already locked software for inverted cursors
-    bool invertSoftware = false;
 
     // modes
     CModeRotate rotate;
