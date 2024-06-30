@@ -116,7 +116,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     addConfig(CONFIG_INVERT, 0);
     addConfig(CONFIG_INVERT_SHADER, "normal");
     addConfig(CONFIG_INVERT_CHROMA, 0);
-    addConfig(CONFIG_INVERT_CHROMA_COLOR, 0xFF000000); // opaque black
+    addConfig(CONFIG_INVERT_CHROMA_COLOR, (int) 0xFF000000); // opaque black
 
     addShapeConfig(CONFIG_TILT_FUNCTION, "negative_quadratic");
     addShapeConfig(CONFIG_TILT_LIMIT, 5000);

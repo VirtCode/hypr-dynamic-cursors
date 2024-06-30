@@ -1,9 +1,10 @@
 #include "src/debug/Log.hpp"
-#include "src/render/Renderer.hpp"
 
 #define private public
 #include <hyprland/src/render/OpenGL.hpp>
 #undef private
+
+#include "src/render/Renderer.hpp"
 
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/render/Shaders.hpp>
@@ -18,6 +19,7 @@ void CInversionShader::compile(std::string vertex, std::string fragment) {
     posAttrib            = glGetAttribLocation(program, "pos");
 
     proj                 = glGetUniformLocation(program, "proj");
+    screenOffset         = glGetUniformLocation(program, "screenOffset");
     backgroundTex        = glGetUniformLocation(program, "backgroundTex");
     cursorTex            = glGetUniformLocation(program, "cursorTex");
     alpha                = glGetUniformLocation(program, "alpha");

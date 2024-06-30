@@ -5,6 +5,10 @@ Why did I implement this again?
 
 Inspired by KDE, it also supports shake to find, to enlarge the cursor when it is shaken so it is easier to find it. It can be enabled separately or together with one simulation mode.
 
+
+> [!WARNING]
+> This branch is experimental, poorly implemented, and not maintained. Use it at your own digression. Also, inverted hardware cursors are currently broken.
+
 ### simulation modes
 The plugin supports a few different modes. They can all be customized induvidually.
 
@@ -31,9 +35,9 @@ https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/9ff64a9b-64e5-4
 ### inverted cursor (experimental)
 You can also finally have an inverted cursor with this plugin. This is similar to the inverted cursor theme found in MS Windows.
 
-**Note:** Inverted cursors have about the same performance impact as a *basic* screen shader. They are also only supported as software cursors.
+**Note:** Inverted cursors have about the same performance impact as a *basic* screen shader. They are also currently broken on nvidia.
 
-INSERT VIDEO HERE
+https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/b62698d8-d53f-45f2-b36f-2c9752b8f90d
 
 ## state
 This plugin is still very early in its development. There are also multiple things which may or may not be implemented in the future:
@@ -191,14 +195,13 @@ plugin:dynamic-cursors {
         ipc = false
     }
 
-    # enables inverted cursor
     # this replaces your cursor shape with the inverted colors of the background
     # by default, this replaces the non transparent parts of your cursor
     # WARNING: inverted cursors are experimental and have a high performance impact
-    invert = true
-
-    # for when invert = true
     invert {
+
+        # enables inverted cursor
+        enabled = false
 
         # shader function that is used on the background color, supports:
         # invert      - take the negative of the color

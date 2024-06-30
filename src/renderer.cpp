@@ -194,6 +194,9 @@ void renderCursorTextureInternalWithDamageInverted(SP<CTexture> tex, CBox* pBox,
     }
 
     glActiveTexture(GL_TEXTURE0);
+    glBindTexture(g_pHyprOpenGL->m_RenderData.pCurrentMonData->offloadFB.m_cTex->m_iTarget, g_pHyprOpenGL->m_RenderData.pCurrentMonData->offloadFB.m_cTex->m_iTexID);
+
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(tex->m_iTarget, tex->m_iTexID);
 
     if (g_pHyprOpenGL->m_RenderData.useNearestNeighbor || nearest) {
