@@ -34,7 +34,7 @@ This plugin is still very early in its development. There are also multiple thin
 - [ ] per-shape length and starting angle (if possible)
 - [X] cursor shake to find
 - [ ] overdue refactoring (wait for aquamarine merge)
-- [ ] inverted cursor?
+- [ ] ~~inverted cursor?~~ (i think out of scope here, but see the [inverted branch](https://github.com/VirtCode/hypr-dynamic-cursors/tree/inverted))
 - [ ] hyprcursor magified shape
 
 If anything here sounds interesting to you, don't hesitate to contribute.
@@ -161,15 +161,15 @@ plugin:dynamic-cursors {
 ```
 
 ## performance
+> **TL;DR:** Hardware cursor performance is about the same as if an animated cursor shape was shown whenever you move your mouse. Sofware cursor performance is not impacted. When the cursor is magnified during a shake, the compositor will temporarily switch to software cursors.
+
 Depending on your hyprland configuration, this plugin can have a different performance impact. Different behaviours have a different impact, but it mainly depends on whether you are using software or hardware cursors:
 
 **Software Cursors**: No (additional) performance impact. <br>
 Rotating the cursor can be done in the same draw call that is used to draw the cursor anyways, so there is no additional performance impact. Note however that software cursors in of themselves are not really efficient.
 
 **Hardware Cursors**: Medium performance impact. <br>
-To rotate the cursor smoothly, the cursor shape needs to be changed quite often. This is not exactly compatible with how hardware cursors are intended to work. With this plugin, the overhead of changing the cursor shape can be noticed more often, making it use more resources. Compared to normal hardware cursors, there is a big performance hit, but it is still more efficient than using software cursor though.
-
-Note that if the cusor is currently *being* magnified, software cursors will be used, as hardware cursors have a hardware size limit.
+To rotate the cursor smoothly, the cursor shape needs to be changed quite often. This is not exactly compatible with how hardware cursors are intended to work. Thus performance can be compared to how an animated cursor shape would be rendered, every time the cursor is not stationary. It is however still more performant than software cursors. <br> Another limitation of hardware cursors are the size they are rendered at. This means that when the cursor is being magnified, software cursors will be used temporarily.
 
 If you have any ideas to improve performance, let me know!
 

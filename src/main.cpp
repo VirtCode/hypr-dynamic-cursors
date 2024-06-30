@@ -8,6 +8,7 @@
 
 #include "globals.hpp"
 #include "cursor.hpp"
+#include "src/debug/Log.hpp"
 #include "src/managers/PointerManager.hpp"
 
 typedef void (*origRenderSofwareCursorsFor)(void*, SP<CMonitor>, timespec*, CRegion&, std::optional<Vector2D>);
@@ -55,56 +56,30 @@ void hkOnCursorMoved(void* thisptr) {
     else return (*(origOnCursorMoved)g_pOnCursorMovedHook->m_pOriginal)(thisptr);
 }
 
-int onTick(void* data) {
-    static auto* const* PENABLED = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_ENABLED)->getDataStaticPtr();
+/* hooks a function hook */
+CFunctionHook* hook(std::string name, void* function) {
+    auto names = HyprlandAPI::findFunctionsByName(PHANDLE, name);
+    auto match = names.at(0);
 
-    if (**PENABLED) g_pDynamicCursors->onTick(g_pPointerManager.get());
+    Debug::log(LOG, "[dynamic-cursors] hooking on {} for {}", match.signature, name);
 
-    const int TIMEOUT = g_pHyprRenderer->m_pMostHzMonitor ? 1000.0 / g_pHyprRenderer->m_pMostHzMonitor->refreshRate : 16;
-    wl_event_source_timer_update(tick, TIMEOUT);
+    auto hook = HyprlandAPI::createFunctionHook(PHANDLE, match.address, function);
+    hook->hook();
 
-    return 0;
+    return hook;
 }
 
 APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     PHANDLE = handle;
 
-    const std::string HASH = __hyprland_api_get_hash();
-
     // check that header version aligns with running version
+    const std::string HASH = __hyprland_api_get_hash();
     if (HASH != GIT_COMMIT_HASH) {
-        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] Mismatched headers! Can't proceed.", CColor{1.0, 0.2, 0.2, 1.0}, 5000);
-        throw std::runtime_error("[dynamic-cursors] Version mismatch");
+        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] Failed to load, mismatched headers!", CColor{1.0, 0.2, 0.2, 1.0}, 5000);
+        throw std::runtime_error("version mismatch");
     }
 
-    g_pDynamicCursors = std::make_unique<CDynamicCursors>();
-
-    static const auto RENDER_SOFTWARE_CURSORS_FOR_METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "renderSoftwareCursorsFor");
-    g_pRenderSoftwareCursorsForHook = HyprlandAPI::createFunctionHook(PHANDLE, RENDER_SOFTWARE_CURSORS_FOR_METHODS[0].address, (void*) &hkRenderSoftwareCursorsFor);
-    g_pRenderSoftwareCursorsForHook->hook();
-
-    static const auto DAMAGE_IF_SOFTWARE_METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "damageIfSoftware");
-    g_pDamageIfSoftwareHook = HyprlandAPI::createFunctionHook(PHANDLE, DAMAGE_IF_SOFTWARE_METHODS[0].address, (void*) &hkDamageIfSoftware);
-    g_pDamageIfSoftwareHook->hook();
-
-    static const auto RENDER_HW_CURSOR_BUFFER_METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "renderHWCursorBuffer");
-    g_pRenderHWCursorBufferHook = HyprlandAPI::createFunctionHook(PHANDLE, RENDER_HW_CURSOR_BUFFER_METHODS[0].address, (void*) &hkRenderHWCursorBuffer);
-    g_pRenderHWCursorBufferHook->hook();
-
-    static const auto SET_HW_CURSOR_BUFFER_METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "setHWCursorBuffer");
-    g_pSetHWCursorBufferHook = HyprlandAPI::createFunctionHook(PHANDLE, SET_HW_CURSOR_BUFFER_METHODS[0].address, (void*) &hkSetHWCursorBuffer);
-    g_pSetHWCursorBufferHook->hook();
-
-    static const auto ON_CURSOR_MOVED_METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "onCursorMoved");
-    g_pOnCursorMovedHook = HyprlandAPI::createFunctionHook(PHANDLE, ON_CURSOR_MOVED_METHODS[0].address, (void*) &hkOnCursorMoved);
-    g_pOnCursorMovedHook->hook();
-
-    // for some damn reason this tick handler does not work
-    // static auto P_TICK = HyprlandAPI::registerCallbackDynamic(PHANDLE, "tick", [](void* self, SCallbackInfo& info, std::any data) { std::cout << "ticking?" << "\n"; });
-    // so we have to use this (stolen from hyprtrails)
-    tick = wl_event_loop_add_timer(g_pCompositor->m_sWLEventLoop, &onTick, nullptr);
-    wl_event_source_timer_update(tick, 1);
-
+    // setup config
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_ENABLED, Hyprlang::INT{1});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_MODE, Hyprlang::STRING{"tilt"});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_THRESHOLD, Hyprlang::INT{2});
@@ -126,12 +101,25 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     HyprlandAPI::reloadConfig();
 
-    return {"dynamic-cursors", "make your cursor more realistic", "Virt", "0.1"};
+    // init things
+    g_pDynamicCursors = std::make_unique<CDynamicCursors>();
+
+    // try hooking
+    try {
+        g_pRenderSoftwareCursorsForHook = hook("renderSoftwareCursorsFor", (void*) &hkRenderSoftwareCursorsFor);
+        g_pDamageIfSoftwareHook = hook("damageIfSoftware", (void*) &hkDamageIfSoftware);
+        g_pRenderHWCursorBufferHook = hook("renderHWCursorBuffer", (void*) &hkRenderHWCursorBuffer);
+        g_pSetHWCursorBufferHook = hook("setHWCursorBuffer", (void*) &hkSetHWCursorBuffer);
+        g_pOnCursorMovedHook = hook("onCursorMoved", (void*) &hkOnCursorMoved);
+    } catch (...) {
+        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] Failed to load, hooks could not be made!", CColor{1.0, 0.2, 0.2, 1.0}, 5000);
+        throw std::runtime_error("hooks failed");
+    }
+
+    return {"dynamic-cursors", "a plugin to make your hyprland cursor more realistic, also adds shake to find", "Virt", "0.1"};
 }
 
-APICALL EXPORT void PLUGIN_EXIT() {
-    // ...
-}
+APICALL EXPORT void PLUGIN_EXIT() { }
 
 // Do NOT change this function.
 APICALL EXPORT std::string PLUGIN_API_VERSION() {

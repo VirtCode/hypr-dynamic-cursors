@@ -1,5 +1,6 @@
 #include "globals.hpp"
 #include "src/debug/Log.hpp"
+#include "src/managers/eventLoop/EventLoopManager.hpp"
 
 #include <cmath>
 #include <cstdlib>
@@ -21,6 +22,33 @@
 
 #include "cursor.hpp"
 #include "renderer.hpp"
+
+void tickRaw(SP<CEventLoopTimer> self, void* data) {
+    static auto* const* PENABLED = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_ENABLED)->getDataStaticPtr();
+
+    if (**PENABLED && g_pDynamicCursors)
+        g_pDynamicCursors->onTick(g_pPointerManager.get());
+
+    const int TIMEOUT = g_pHyprRenderer->m_pMostHzMonitor ? 1000.0 / g_pHyprRenderer->m_pMostHzMonitor->refreshRate : 16;
+    self->updateTimeout(std::chrono::milliseconds(TIMEOUT));
+}
+
+CDynamicCursors::CDynamicCursors() {
+    this->tick = SP<CEventLoopTimer>(new CEventLoopTimer(std::chrono::microseconds(500), tickRaw, nullptr));
+    g_pEventLoopManager->addTimer(this->tick);
+}
+
+CDynamicCursors::~CDynamicCursors() {
+    // stop and deallocate timer
+    g_pEventLoopManager->removeTimer(this->tick);
+    this->tick.reset();
+
+    // release software lock
+    if (zoomSoftware) {
+        g_pPointerManager->unlockSoftwareAll();
+        zoomSoftware = false;
+    }
+}
 
 /*
 Reimplements rendering of the software cursor.

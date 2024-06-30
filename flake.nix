@@ -1,5 +1,5 @@
 {
-  description = "A plugin to make your hyprland cursor more realistic, also adds shake to find.";
+  description = "a plugin to make your hyprland cursor more realistic, also adds shake to find";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";

@@ -19,5 +19,3 @@
 #define CONFIG_HW_DEBUG         "plugin:dynamic-cursors:hw_debug"
 
 inline HANDLE PHANDLE = nullptr;
-
-inline wl_event_source* tick = nullptr;

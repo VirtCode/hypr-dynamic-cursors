@@ -4,6 +4,7 @@
 #include <hyprland/src/managers/PointerManager.hpp>
 #undef private
 #include <hyprutils/math/Vector2D.hpp>
+#include <hyprland/src/managers/eventLoop/EventLoopManager.hpp>
 
 #include "mode/ModeRotate.hpp"
 #include "mode/ModeTilt.hpp"
@@ -11,6 +12,9 @@
 
 class CDynamicCursors {
   public:
+    CDynamicCursors();
+    ~CDynamicCursors();
+
     /* hook on onCursorMoved */
     void onCursorMoved(CPointerManager* pointers);
     /* called on tick */
@@ -26,6 +30,8 @@ class CDynamicCursors {
     bool setHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, wlr_buffer* buf);
 
   private:
+    SP<CEventLoopTimer> tick;
+
     // current angle of the cursor in radiants
     double angle;
     // current zoom value of the cursor
