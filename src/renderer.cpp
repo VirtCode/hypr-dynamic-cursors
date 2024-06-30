@@ -11,6 +11,7 @@
 #include <hyprland/src/config/ConfigValue.hpp>
 
 #include "renderer.hpp"
+#include "invert/shader.hpp"
 
 /*
 This is the projectBox method from hyprland, but with support for rotation around a point, the hotspot.
@@ -125,6 +126,104 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, CRegion
     glUniform2f(shader->topLeft, TOPLEFT.x, TOPLEFT.y);
     glUniform2f(shader->fullSize, FULLSIZE.x, FULLSIZE.y);
     glUniform1f(shader->radius, 0);
+
+    glUniform1i(shader->applyTint, 0);
+
+    glVertexAttribPointer(shader->posAttrib, 2, GL_FLOAT, GL_FALSE, 0, fullVerts);
+    glVertexAttribPointer(shader->texAttrib, 2, GL_FLOAT, GL_FALSE, 0, fullVerts);
+
+    glEnableVertexAttribArray(shader->posAttrib);
+    glEnableVertexAttribArray(shader->texAttrib);
+
+    if (g_pHyprOpenGL->m_RenderData.clipBox.width != 0 && g_pHyprOpenGL->m_RenderData.clipBox.height != 0) {
+        CRegion damageClip{g_pHyprOpenGL->m_RenderData.clipBox.x, g_pHyprOpenGL->m_RenderData.clipBox.y, g_pHyprOpenGL->m_RenderData.clipBox.width, g_pHyprOpenGL->m_RenderData.clipBox.height};
+        damageClip.intersect(*damage);
+
+        if (!damageClip.empty()) {
+            for (auto& RECT : damageClip.getRects()) {
+                g_pHyprOpenGL->scissor(&RECT);
+                glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            }
+        }
+    } else {
+        for (auto& RECT : damage->getRects()) {
+            g_pHyprOpenGL->scissor(&RECT);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        }
+    }
+
+    glDisableVertexAttribArray(shader->posAttrib);
+    glDisableVertexAttribArray(shader->texAttrib);
+
+    glBindTexture(tex->m_iTarget, 0);
+}
+
+void renderCursorTextureInternalWithDamageInverted(SP<CTexture> tex, CBox* pBox, CRegion* damage, float alpha, SP<CSyncTimeline> waitTimeline, uint64_t waitPoint, Vector2D hotspot, bool nearest, float stretchAngle, Vector2D stretch, int mode, bool chroma, CColor chromaColor, Vector2D screenOffset) {
+    TRACY_GPU_ZONE("RenderDynamicCursor");
+
+    if (waitTimeline != nullptr) {
+        if (!g_pHyprOpenGL->waitForTimelinePoint(waitTimeline, waitPoint)) {
+            Debug::log(ERR, "renderTextureInternalWithDamage: failed to wait for explicit sync point {}", waitPoint);
+            return;
+        }
+    }
+
+    alpha = std::clamp(alpha, 0.f, 1.f);
+
+    if (damage->empty())
+        return;
+
+    CBox newBox = *pBox;
+    g_pHyprOpenGL->m_RenderData.renderModif.applyToBox(newBox);
+
+    // get transform
+    const auto TRANSFORM = wlTransformToHyprutils(invertTransform(!g_pHyprOpenGL->m_bEndFrame ? WL_OUTPUT_TRANSFORM_NORMAL : g_pHyprOpenGL->m_RenderData.pMonitor->transform));
+    float      matrix[9];
+    projectCursorBox(matrix, newBox, TRANSFORM, newBox.rot, g_pHyprOpenGL->m_RenderData.monitorProjection.data(), hotspot, stretchAngle, stretch);
+
+    float glMatrix[9];
+    matrixMultiply(glMatrix, g_pHyprOpenGL->m_RenderData.projection, matrix);
+
+    CInversionShader*   shader = nullptr;
+
+    switch (tex->m_iType) {
+        case TEXTURE_RGBA:  shader = &g_pShaders->rgba; break;
+        case TEXTURE_RGBX: shader = &g_pShaders->rgbx; break;
+        case TEXTURE_EXTERNAL: shader = &g_pShaders->ext; break;
+        default: RASSERT(false, "tex->m_iTarget unsupported!");
+    }
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(tex->m_iTarget, tex->m_iTexID);
+
+    if (g_pHyprOpenGL->m_RenderData.useNearestNeighbor || nearest) {
+        glTexParameteri(tex->m_iTarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(tex->m_iTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    } else {
+        glTexParameteri(tex->m_iTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(tex->m_iTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    }
+
+    glUseProgram(shader->program);
+
+#ifndef GLES2
+    glUniformMatrix3fv(shader->proj, 1, GL_TRUE, glMatrix);
+#else
+    matrixTranspose(glMatrix, glMatrix);
+    glUniformMatrix3fv(shader->proj, 1, GL_FALSE, glMatrix);
+#endif
+
+    glUniform2f(shader->screenOffset, screenOffset.x, screenOffset.y);
+    glUniform1i(shader->backgroundTex, 0);
+    glUniform1i(shader->cursorTex, 1);
+    glUniform1f(shader->alpha, alpha);
+
+    glUniform1i(shader->mode, mode);
+    glUniform1i(shader->chroma, chroma);
+    glUniform4f(shader->chromaColor, chromaColor.r, chromaColor.g, chromaColor.b, chromaColor.a);
+
+    CBox transformedBox = newBox;
+    transformedBox.transform(wlTransformToHyprutils(invertTransform(g_pHyprOpenGL->m_RenderData.pMonitor->transform)), g_pHyprOpenGL->m_RenderData.pMonitor->vecTransformedSize.x, g_pHyprOpenGL->m_RenderData.pMonitor->vecTransformedSize.y);
 
     glUniform1i(shader->applyTint, 0);
 

@@ -10,6 +10,7 @@
 #include "cursor.hpp"
 #include "config/config.hpp"
 #include "src/debug/Log.hpp"
+#include "invert/shader.hpp"
 #include "src/managers/PointerManager.hpp"
 #include "src/version.h"
 
@@ -112,6 +113,11 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     addConfig(CONFIG_SHAKE_THRESHOLD, 4.0f);
     addConfig(CONFIG_SHAKE_FACTOR, 1.5f);
 
+    addConfig(CONFIG_INVERT, 0);
+    addConfig(CONFIG_INVERT_SHADER, "normal");
+    addConfig(CONFIG_INVERT_CHROMA, 0);
+    addConfig(CONFIG_INVERT_CHROMA_COLOR, 0xFF000000); // opaque black
+
     addShapeConfig(CONFIG_TILT_FUNCTION, "negative_quadratic");
     addShapeConfig(CONFIG_TILT_LIMIT, 5000);
 
@@ -128,6 +134,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     // init things
     g_pDynamicCursors = std::make_unique<CDynamicCursors>();
+    g_pShaders = std::make_unique<CShaders>();
 
     // try hooking
     try {
@@ -145,7 +152,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     }
 
     return {"dynamic-cursors", "a plugin to make your hyprland cursor more realistic, also adds shake to find", "Virt", "0.1"};
-}
+    }
 
 APICALL EXPORT void PLUGIN_EXIT() { }
 

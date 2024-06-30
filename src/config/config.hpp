@@ -10,6 +10,11 @@
 #define CONFIG_THRESHOLD        "threshold"
 #define CONFIG_HW_DEBUG         "hw_debug"
 
+#define CONFIG_INVERT               "plugin:dynamic-cursors:invert"
+#define CONFIG_INVERT_SHADER        "plugin:dynamic-cursors:invert:shader"
+#define CONFIG_INVERT_CHROMA        "plugin:dynamic-cursors:invert:chroma"
+#define CONFIG_INVERT_CHROMA_COLOR  "plugin:dynamic-cursors:invert:chroma:color"
+
 #define CONFIG_SHAKE            "shake:enabled"
 #define CONFIG_SHAKE_NEAREST    "shake:nearest"
 #define CONFIG_SHAKE_THRESHOLD  "shake:threshold"
