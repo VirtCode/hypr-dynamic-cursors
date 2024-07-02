@@ -2,7 +2,7 @@
 #include <hyprutils/math/Vector2D.hpp>
 #include <vector>
 
-class CModeTilt : public IMode {
+class CModeStretch : public IMode {
   public:
     virtual EModeUpdate strategy();
     virtual SModeResult update(Vector2D pos);

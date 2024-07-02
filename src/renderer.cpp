@@ -1,4 +1,5 @@
 #include "globals.hpp"
+#include "src/debug/Log.hpp"
 #include <GLES2/gl2.h>
 
 #define private public
@@ -15,7 +16,7 @@
 /*
 This is the projectBox method from hyprland, but with support for rotation around a point, the hotspot.
 */
-void projectCursorBox(float mat[9], CBox& box, eTransform transform, float rotation, const float projection[9], Vector2D hotspot) {
+void projectCursorBox(float mat[9], CBox& box, eTransform transform, float rotation, const float projection[9], Vector2D hotspot, float stretchAngle, Vector2D stretch) {
     double x      = box.x;
     double y      = box.y;
     double width  = box.width;
@@ -23,6 +24,19 @@ void projectCursorBox(float mat[9], CBox& box, eTransform transform, float rotat
 
     matrixIdentity(mat);
     matrixTranslate(mat, x, y);
+
+    if (stretch != Vector2D{1,1}) {
+        // center to origin, rotate, shift up, scale, undo
+        // we do the shifting up so the stretch is "only to one side"
+
+        matrixTranslate(mat, box.w / 2, box.h / 2);
+        matrixRotate(mat, stretchAngle);
+        matrixTranslate(mat, 0, box.h / 2);
+        matrixScale(mat, stretch.x, stretch.y);
+        matrixTranslate(mat, 0, box.h / -2);
+        matrixRotate(mat, -stretchAngle);
+        matrixTranslate(mat, box.w / -2, box.h / -2);
+    }
 
     if (rotation != 0) {
         matrixTranslate(mat, hotspot.x, hotspot.y);
@@ -44,7 +58,7 @@ void projectCursorBox(float mat[9], CBox& box, eTransform transform, float rotat
 /*
 This renders a texture with damage but rotates the texture around a given hotspot.
 */
-void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, CRegion* damage, float alpha, Vector2D hotspot, bool nearest) {
+void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, CRegion* damage, float alpha, Vector2D hotspot, bool nearest, float stretchAngle, Vector2D stretch) {
     TRACY_GPU_ZONE("RenderDynamicCursor");
 
     alpha = std::clamp(alpha, 0.f, 1.f);
@@ -58,7 +72,7 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, CRegion
     // get transform
     const auto TRANSFORM = wlTransformToHyprutils(wlr_output_transform_invert(!g_pHyprOpenGL->m_bEndFrame ? WL_OUTPUT_TRANSFORM_NORMAL : g_pHyprOpenGL->m_RenderData.pMonitor->transform));
     float      matrix[9];
-    projectCursorBox(matrix, newBox, TRANSFORM, newBox.rot, g_pHyprOpenGL->m_RenderData.monitorProjection.data(), hotspot);
+    projectCursorBox(matrix, newBox, TRANSFORM, newBox.rot, g_pHyprOpenGL->m_RenderData.monitorProjection.data(), hotspot, stretchAngle, stretch);
 
     float glMatrix[9];
     wlr_matrix_multiply(glMatrix, g_pHyprOpenGL->m_RenderData.projection, matrix);

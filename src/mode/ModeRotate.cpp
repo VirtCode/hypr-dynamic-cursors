@@ -5,7 +5,7 @@ EModeUpdate CModeRotate::strategy() {
     return MOVE;
 }
 
-double CModeRotate::update(Vector2D pos) {
+SModeResult CModeRotate::update(Vector2D pos) {
     static auto* const* PLENGTH = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_LENGTH)->getDataStaticPtr();
     static auto* const* POFFSET = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_ROTATE_OFFSET)->getDataStaticPtr();
 
@@ -32,5 +32,8 @@ double CModeRotate::update(Vector2D pos) {
     end.x += pos.x;
     end.y += pos.y;
 
-    return angle;
+    auto result = SModeResult();
+    result.rotation = angle;
+
+    return result;
 }

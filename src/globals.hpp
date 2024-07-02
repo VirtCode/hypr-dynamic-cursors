@@ -15,6 +15,8 @@
 #define CONFIG_ROTATE_OFFSET    "plugin:dynamic-cursors:rotate:offset"
 #define CONFIG_MASS             "plugin:dynamic-cursors:tilt:limit"
 #define CONFIG_FUNCTION         "plugin:dynamic-cursors:tilt:function"
+#define CONFIG_STRETCH_LIMIT    "plugin:dynamic-cursors:stretch:limit"
+#define CONFIG_STRETCH_FUNCTION "plugin:dynamic-cursors:stretch:function"
 
 #define CONFIG_HW_DEBUG         "plugin:dynamic-cursors:hw_debug"
 

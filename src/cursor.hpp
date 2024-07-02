@@ -8,6 +8,7 @@
 
 #include "mode/ModeRotate.hpp"
 #include "mode/ModeTilt.hpp"
+#include "mode/ModeStretch.hpp"
 #include "other/Shake.hpp"
 
 class CDynamicCursors {
@@ -32,10 +33,11 @@ class CDynamicCursors {
   private:
     SP<CEventLoopTimer> tick;
 
-    // current angle of the cursor in radiants
-    double angle;
-    // current zoom value of the cursor
-    double zoom = 1;
+    // current state of the cursor
+    SModeResult resultMode;
+    double resultShake;
+
+    SModeResult resultShown;
 
     // whether we have already locked software for cursor zoom
     bool zoomSoftware = false;
@@ -43,6 +45,7 @@ class CDynamicCursors {
     // modes
     CModeRotate rotate;
     CModeTilt tilt;
+    CModeStretch stretch;
     /* returns the current mode, nullptr if none is selected */
     IMode* currentMode();
 

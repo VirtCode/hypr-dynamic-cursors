@@ -8,6 +8,7 @@ This is nessecary because we cannot use functions which are not declared in any 
 
 void matrixTransform(float mat[9], eTransform transform);
 void matrixTranslate(float mat[9], float x, float y);
+void matrixScale(float mat[9], float x, float y);
 void matrixMultiply(float mat[9], const float a[9], const float b[9]);
 void matrixIdentity(float mat[9]);
 void matrixRotate(float mat[9], float rad);

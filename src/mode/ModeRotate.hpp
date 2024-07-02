@@ -8,7 +8,7 @@ this results in a rotating mouse cursor
 class CModeRotate : public IMode {
   public:
     virtual EModeUpdate strategy();
-    virtual double update(Vector2D pos);
+    virtual SModeResult update(Vector2D pos);
 
   private:
 

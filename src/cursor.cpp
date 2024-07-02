@@ -1,4 +1,5 @@
 #include "globals.hpp"
+#include "mode/Mode.hpp"
 #include "src/debug/Log.hpp"
 #include "src/managers/eventLoop/EventLoopManager.hpp"
 
@@ -61,6 +62,7 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
         return;
 
     auto state = pointers->stateFor(pMonitor);
+    auto zoom = resultShown.scale;
 
     if ((!state->hardwareFailed && state->softwareLocks == 0)) {
         return;
@@ -88,10 +90,10 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     box.h *= zoom;
 
     // we rotate the cursor by our calculated amount
-    box.rot = this->angle;
+    box.rot = resultShown.rotation;
 
     // now pass the hotspot to rotate around
-    renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST);
+    renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
 }
 
 /*
@@ -101,6 +103,7 @@ It is largely identical to hyprlands implementation, but expands the damage reag
 void CDynamicCursors::damageSoftware(CPointerManager* pointers) {
 
     // we damage a 3x3 area around the cursor, to accomodate for all possible hotspots and rotations
+    auto zoom = resultShown.scale;
     Vector2D size = pointers->currentCursorImage.size / pointers->currentCursorImage.scale * zoom;
     CBox b = CBox{pointers->pointerPos, size * 3}.translate(-(pointers->currentCursorImage.hotspot * zoom + size));
 
@@ -126,6 +129,7 @@ wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPoint
     static auto* const* PNEAREST = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_NEAREST)->getDataStaticPtr();
 
     auto output = state->monitor->output;
+    auto zoom = resultShown.scale;
 
     auto size = pointers->currentCursorImage.size * zoom;
     // we try to allocate a buffer that is thrice as big, see software rendering
@@ -189,10 +193,10 @@ wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPoint
 
     // the box should start in the middle portion, rotate by our calculated amount
     CBox xbox = {size, Vector2D{pointers->currentCursorImage.size / pointers->currentCursorImage.scale * state->monitor->scale * zoom}.round()};
-    xbox.rot = this->angle;
+    xbox.rot = resultShown.rotation;
 
     //  use our custom draw function
-    renderCursorTextureInternalWithDamage(texture, &xbox, &damage, 1.F, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST);
+    renderCursorTextureInternalWithDamage(texture, &xbox, &damage, 1.F, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
 
     g_pHyprOpenGL->end();
     glFlush();
@@ -215,7 +219,7 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
     if (!P_MONITOR->output->cursor_swapchain) return false;
 
     // we need to transform the hotspot manually as we need to indent it by the size
-    const auto HOTSPOT = CBox{((pointers->currentCursorImage.hotspot * P_MONITOR->scale) + pointers->currentCursorImage.size) * zoom, {0, 0}}
+    const auto HOTSPOT = CBox{((pointers->currentCursorImage.hotspot * P_MONITOR->scale) + pointers->currentCursorImage.size) * resultShown.scale, {0, 0}}
         .transform(wlTransformToHyprutils(wlr_output_transform_invert(P_MONITOR->transform)), P_MONITOR->output->cursor_swapchain->width, P_MONITOR->output->cursor_swapchain->height)
         .pos();
 
@@ -269,6 +273,7 @@ IMode* CDynamicCursors::currentMode() {
 
     if (!strcmp(*PMODE, "rotate")) return &rotate;
     else if (!strcmp(*PMODE, "tilt")) return &tilt;
+    else if (!strcmp(*PMODE, "stretch")) return &stretch;
     else return nullptr;
 }
 
@@ -280,33 +285,26 @@ void CDynamicCursors::calculate(EModeUpdate type) {
     IMode* mode = currentMode();
 
     // calculate angle and zoom
-    double angle = 0;
     if (mode) {
-        if (mode->strategy() == type) angle = mode->update(g_pPointerManager->pointerPos);
-        else angle = this->angle;
-    }
+        if (mode->strategy() == type) resultMode = mode->update(g_pPointerManager->pointerPos);
+    } else resultMode = SModeResult();
 
-    double zoom = 1;
     if (**PSHAKE) {
-        if (type == TICK) zoom = shake.update(g_pPointerManager->pointerPos);
-        else zoom = this->zoom;
-    }
-    if (zoom > 1 && !**PSHAKE_EFFECTS) angle = 0;
+        if (type == TICK) resultShake = shake.update(g_pPointerManager->pointerPos);
 
-    if (
-        std::abs(this->angle - angle) > ((PI / 180) * **PTHRESHOLD) ||
-        this->zoom - zoom != 0 // we don't have a threshold here as this will not happen that often
-    ) {
-        this->zoom = zoom;
-        this->angle = angle;
+        // reset mode results if shaking
+        if (resultShake > 1 && !**PSHAKE_EFFECTS) resultMode = SModeResult();
+    } else resultShake = 1;
 
-        // clamp to zero at low angles, so that the normal position in tilt looks fine (and actually is 0)
-        if (std::abs(this->angle) < ((PI / 180) * **PTHRESHOLD))
-            this->angle = 0;
+    auto result = resultMode;
+    result.scale *= resultShake;
 
+    if (resultShown.hasDifference(&result, **PTHRESHOLD * (PI / 180.0), 0.01, 0.01)) {
+        resultShown = result;
+        resultShown.clamp(**PTHRESHOLD * (PI / 180.0), 0.01, 0.01); // clamp low values so it is rendered pixel-perfectly when no effect
 
         // lock software cursors if zooming
-        if (zoom > 1) {
+        if (resultShown.scale > 1) {
             if (!zoomSoftware) {
                 g_pPointerManager->lockSoftwareAll();
                 zoomSoftware = true;

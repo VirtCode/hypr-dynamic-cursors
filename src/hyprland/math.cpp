@@ -37,6 +37,13 @@ void matrixTranslate(float mat[9], float x, float y) {
     wlr_matrix_multiply(mat, mat, translate);
 }
 
+void matrixScale(float mat[9], float x, float y) {
+    float scale[9] = {
+        x, 0.0f, 0.0f, 0.0f, y, 0.0f, 0.0f, 0.0f, 1.0f,
+    };
+    matrixMultiply(mat, mat, scale);
+}
+
 void matrixRotate(float mat[9], float rad) {
     float rotate[9] = {
         cos(rad), -sin(rad), 0.0f, sin(rad), cos(rad), 0.0f, 0.0f, 0.0f, 1.0f,

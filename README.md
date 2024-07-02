@@ -6,7 +6,7 @@ Why did I implement this again?
 Inspired by KDE, it also supports shake to find, to enlarge the cursor when it is shaken so it is easier to find it. It can be enabled separately or together with one simulation mode.
 
 ### simulation modes
-The plugin supports two different modes, `rotate` and `tilt`. They both are customizable and have a different base behaviour.
+The plugin supports a few different modes. They can all be customized induvidually.
 
 #### `rotate`
 In this mode, the cursor is simulated as a stick which is dragged across the screen on one end. This means it will rotate towards the movement direction, and feels really realistic.
@@ -17,6 +17,11 @@ https://github.com/VirtCode/hypr-dynamic-cursor/assets/41426325/ccd6d742-8e2b-40
 In this mode, the cursor is tilted based on the `x` direction and speed it is moving at. It was intended to simulate how an object would be affected by air drag, but implemented is only a rough approximation. This mode can also be customized extensively with different activation functions, and is enabled by default.
 
 https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/ae25415c-e77f-4c85-864c-2eedbfe432e3
+
+#### `stretch`
+This mode tries recreating the stretching and squishing that is done to moving object in comic animations. It stretches your cursor in the direction you are moving based on the speed. Yes, this is not at all realistic.
+
+https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/7b8289e7-9dd2-4b57-b406-4fa28779a260
 
 ### shake to find
 The plugin supports shake to find, akin to how KDE Plasma, MacOS, etc. do it. It can also be extensively configured and is enabled by default. If you only want shake to find, and no weird cursor behaviour, you can disable the above modes with the mode `none`.
@@ -99,6 +104,7 @@ plugin:dynamic-cursors {
     # sets the cursor behaviour, supports these values:
     # tilt   - tilt the cursor based on x-velocity
     # rotate - rotate the cursor based on movement direction
+    # stretch - stretch the cursor shape based on direction and velocity
     # none   - do not change the cursors behaviour
     mode = tilt
 
@@ -132,6 +138,20 @@ plugin:dynamic-cursors {
         function = negative_quadratic
     }
 
+    # for mode = stretch
+    stretch {
+
+        # controls how much the cursor is stretched
+        # this value controls at which speed (px/s) the full stretch
+        limit = 3000
+
+        # relationship between speed and tilt, supports these vaules:
+        # linear             - a linear function is used
+        # quadratic          - a quadratic function is used
+        # negative_quadratic - negative version of the quadratic one, feels more aggressive
+        function = quadratic
+    }
+
     # enable shake to find
     # magnifies the cursor if its is being shaken
     shake = true
@@ -163,7 +183,7 @@ plugin:dynamic-cursors {
 ## performance
 > **TL;DR:** Hardware cursor performance is about the same as if an animated cursor shape was shown whenever you move your mouse. Sofware cursor performance is not impacted. When the cursor is magnified during a shake, the compositor will temporarily switch to software cursors.
 
-Depending on your hyprland configuration, this plugin can have a different performance impact. Different behaviours have a different impact, but it mainly depends on whether you are using software or hardware cursors:
+Depending on your hyprland configuration, this plugin can have a different performance impact, mainly depending on whether you are using software or hardware cursors:
 
 **Software Cursors**: No (additional) performance impact. <br>
 Rotating the cursor can be done in the same draw call that is used to draw the cursor anyways, so there is no additional performance impact. Note however that software cursors in of themselves are not really efficient.
