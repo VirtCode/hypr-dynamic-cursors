@@ -1,12 +1,13 @@
 #include "../globals.hpp"
+#include "../config/config.hpp"
 #include "src/managers/EventManager.hpp"
 #include "Shake.hpp"
 #include <hyprland/src/Compositor.hpp>
 
 double CShake::update(Vector2D pos) {
-    static auto* const* PTHRESHOLD = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_THRESHOLD)->getDataStaticPtr();
-    static auto* const* PFACTOR = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_FACTOR)->getDataStaticPtr();
-    static auto* const* PIPC = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_IPC)->getDataStaticPtr();
+    static auto* const* PTHRESHOLD = (Hyprlang::FLOAT* const*) getConfig(CONFIG_SHAKE_THRESHOLD);
+    static auto* const* PFACTOR = (Hyprlang::FLOAT* const*) getConfig(CONFIG_SHAKE_FACTOR);
+    static auto* const* PIPC = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_IPC);
 
     int max = g_pHyprRenderer->m_pMostHzMonitor->refreshRate; // 1s worth of history
     samples.resize(max);

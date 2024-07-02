@@ -1,4 +1,4 @@
-#include "globals.hpp"
+#include "config/config.hpp"
 #include "mode/Mode.hpp"
 #include "src/debug/Log.hpp"
 #include "src/managers/eventLoop/EventLoopManager.hpp"
@@ -25,7 +25,7 @@
 #include "renderer.hpp"
 
 void tickRaw(SP<CEventLoopTimer> self, void* data) {
-    static auto* const* PENABLED = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_ENABLED)->getDataStaticPtr();
+    static auto* const* PENABLED = (Hyprlang::INT* const*) getConfig(CONFIG_ENABLED);
 
     if (**PENABLED && g_pDynamicCursors)
         g_pDynamicCursors->onTick(g_pPointerManager.get());
@@ -56,7 +56,7 @@ Reimplements rendering of the software cursor.
 Is also largely identical to hyprlands impl, but uses our custom rendering to rotate the cursor.
 */
 void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos) {
-    static auto* const* PNEAREST = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_NEAREST)->getDataStaticPtr();
+    static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_NEAREST);
 
     if (!pointers->hasCursor())
         return;
@@ -125,8 +125,8 @@ This function reimplements the hardware cursor buffer drawing.
 It is largely copied from hyprland, but adjusted to allow the cursor to be rotated.
 */
 wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<CTexture> texture) {
-    static auto* const* PHW_DEBUG= (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_HW_DEBUG)->getDataStaticPtr();
-    static auto* const* PNEAREST = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_NEAREST)->getDataStaticPtr();
+    static auto* const* PHW_DEBUG= (Hyprlang::INT* const*) getConfig(CONFIG_HW_DEBUG);
+    static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_NEAREST);
 
     auto output = state->monitor->output;
     auto zoom = resultShown.scale;
@@ -261,6 +261,14 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
     calculate(MOVE);
 }
 
+void CDynamicCursors::setShape(const std::string& shape) {
+    g_pShapeRuleHandler->activate(shape);
+}
+
+void CDynamicCursors::unsetShape() {
+    g_pShapeRuleHandler->activate("clientside");
+}
+
 /*
 Handle cursor tick events.
 */
@@ -269,18 +277,19 @@ void CDynamicCursors::onTick(CPointerManager* pointers) {
 }
 
 IMode* CDynamicCursors::currentMode() {
-    static auto const* PMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MODE)->getDataStaticPtr();
+    static auto const* PMODE = (Hyprlang::STRING const*) getConfig(CONFIG_MODE);
+    auto mode = g_pShapeRuleHandler->getModeOr(*PMODE);
 
-    if (!strcmp(*PMODE, "rotate")) return &rotate;
-    else if (!strcmp(*PMODE, "tilt")) return &tilt;
-    else if (!strcmp(*PMODE, "stretch")) return &stretch;
+    if (mode == "rotate") return &rotate;
+    else if (mode == "tilt") return &tilt;
+    else if (mode == "stretch") return &stretch;
     else return nullptr;
 }
 
 void CDynamicCursors::calculate(EModeUpdate type) {
-    static auto* const* PTHRESHOLD = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_THRESHOLD)->getDataStaticPtr();
-    static auto* const* PSHAKE = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE)->getDataStaticPtr();
-    static auto* const* PSHAKE_EFFECTS = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_SHAKE_EFFECTS)->getDataStaticPtr();
+    static auto* const* PTHRESHOLD = (Hyprlang::INT* const*) getConfig(CONFIG_THRESHOLD);
+    static auto* const* PSHAKE = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE);
+    static auto* const* PSHAKE_EFFECTS = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_EFFECTS);
 
     IMode* mode = currentMode();
 
@@ -322,12 +331,24 @@ void CDynamicCursors::calculate(EModeUpdate type) {
         // damage software and change hardware cursor shape
         g_pPointerManager->damageIfSoftware();
 
+        bool entered = false;
+
         for (auto& m : g_pCompositor->m_vMonitors) {
             auto state = g_pPointerManager->stateFor(m);
+
+            if (state->entered) entered = true;
             if (state->hardwareFailed || !state->entered)
                 continue;
 
             g_pPointerManager->attemptHardwareCursor(state);
+        }
+
+        // there should always be one monitor entered
+        // this fixes an issue wheter the cursor shape would not properly update after change
+        if (!entered) {
+            Debug::log(LOG, "[dynamic-cursors] updating because none entered");
+            g_pPointerManager->recheckEnteredOutputs();
+            g_pPointerManager->updateCursorBackend();
         }
     }
 }

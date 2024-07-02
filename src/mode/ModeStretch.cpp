@@ -1,6 +1,6 @@
 #include "ModeStretch.hpp"
 #include "utils.hpp"
-#include "../globals.hpp"
+#include "../config/config.hpp"
 #include <hyprland/src/Compositor.hpp>
 
 EModeUpdate CModeStretch::strategy() {
@@ -8,8 +8,10 @@ EModeUpdate CModeStretch::strategy() {
 }
 
 SModeResult CModeStretch::update(Vector2D pos) {
-    static auto const* PFUNCTION = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_STRETCH_FUNCTION)->getDataStaticPtr();
-    static auto* const* PLIMIT = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_STRETCH_LIMIT)->getDataStaticPtr();
+    static auto const* PFUNCTION = (Hyprlang::STRING const*) getConfig(CONFIG_STRETCH_FUNCTION);
+    static auto* const* PLIMIT = (Hyprlang::INT* const*) getConfig(CONFIG_STRETCH_LIMIT);
+    auto function = g_pShapeRuleHandler->getStringOr(CONFIG_STRETCH_FUNCTION, *PFUNCTION);
+    auto limit = g_pShapeRuleHandler->getIntOr(CONFIG_STRETCH_LIMIT, **PLIMIT);
 
     // create samples array
     int max = g_pHyprRenderer->m_pMostHzMonitor->refreshRate / 10; // 100ms worth of history
@@ -29,7 +31,7 @@ SModeResult CModeStretch::update(Vector2D pos) {
     if (speed.y > 0) angle += PI;
     if (mag == 0) angle = 0;
 
-    double scale = activation(*PFUNCTION, **PLIMIT, mag);
+    double scale = activation(function, limit, mag);
 
     auto result = SModeResult();
     result.stretch.angle = angle;

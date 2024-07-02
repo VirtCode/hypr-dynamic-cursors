@@ -1,4 +1,6 @@
-#include "../globals.hpp"
+#include "../config/config.hpp"
+#include "src/macros.hpp"
+#include <cmath>
 #include "ModeRotate.hpp"
 
 EModeUpdate CModeRotate::strategy() {
@@ -6,8 +8,10 @@ EModeUpdate CModeRotate::strategy() {
 }
 
 SModeResult CModeRotate::update(Vector2D pos) {
-    static auto* const* PLENGTH = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_ROTATE_LENGTH)->getDataStaticPtr();
-    static auto* const* POFFSET = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_ROTATE_OFFSET)->getDataStaticPtr();
+    static auto* const* PLENGTH = (Hyprlang::INT* const*) getConfig(CONFIG_ROTATE_LENGTH);
+    static auto* const* POFFSET = (Hyprlang::FLOAT* const*) getConfig(CONFIG_ROTATE_OFFSET);
+    auto length = g_pShapeRuleHandler->getIntOr(CONFIG_ROTATE_LENGTH, **PLENGTH);
+    auto offset = g_pShapeRuleHandler->getFloatOr(CONFIG_ROTATE_OFFSET, **POFFSET);
 
     // translate to origin
     end.x -= pos.x;
@@ -19,14 +23,14 @@ SModeResult CModeRotate::update(Vector2D pos) {
     end.y /= size;
 
     // scale to length
-    end.x *= **PLENGTH;
-    end.y *= **PLENGTH;
+    end.x *= length;
+    end.y *= length;
 
     // calculate angle
     double angle = -std::atan(end.x / end.y);
     if (end.y > 0) angle += PI;
     angle += PI;
-    angle += **POFFSET * ((2 * PI) / 360); // convert to radiants
+    angle += offset * ((2 * PI) / 360); // convert to radiants
 
     // translate back
     end.x += pos.x;

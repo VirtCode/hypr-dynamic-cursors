@@ -30,6 +30,11 @@ class CDynamicCursors {
     /* hook on setHWCursorBuffer */
     bool setHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, wlr_buffer* buf);
 
+    /* hook on setCursorFromName */
+    void setShape(const std::string& name);
+    /* hook on setCursorSoftware */
+    void unsetShape();
+
   private:
     SP<CEventLoopTimer> tick;
 

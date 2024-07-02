@@ -36,7 +36,7 @@ This plugin is still very early in its development. There are also multiple thin
 - [X] stick simulation
 - [X] air drag simulation
 - [ ] pendulum simulation
-- [ ] per-shape length and starting angle (if possible)
+- [X] per-shape length and starting angle (if possible)
 - [X] cursor shake to find
 - [ ] overdue refactoring (wait for aquamarine merge)
 - [ ] ~~inverted cursor?~~ (i think out of scope here, but see the [inverted branch](https://github.com/VirtCode/hypr-dynamic-cursors/tree/inverted))
@@ -112,6 +112,14 @@ plugin:dynamic-cursors {
     # smaller values are smoother, but more expensive for hw cursors
     threshold = 2
 
+    # override the mode behaviour per shape
+    # this is a keyword and can be repeated many times
+    # by default, there are no rules added
+    # see the dedicated `shape rules` section below!
+    shaperule = <shape-name>, <mode> (optional), <property>: <value>, ...
+    shaperule = <shape-name>, <mode> (optional), <property>: <value>, ...
+    ...
+
     # for mode = rotate
     rotate {
 
@@ -153,10 +161,10 @@ plugin:dynamic-cursors {
     }
 
     # configure shake to find
+    # magnifies the cursor if its is being shaken
     shake {
 
         # enables shake to find
-        # magnifies the cursor if its is being shaken
         enabled = true
 
         # controls how soon a shake is detected
@@ -177,6 +185,33 @@ plugin:dynamic-cursors {
         # see #3
         ipc = false
     }
+}
+```
+
+### shape rules
+Shape Rules can be used to override the mode or its behaviour on a per-shape basis. They can be defined with the keyword `shaperule` in the config file, perferrably in the `plugin:dynamic-cursors` section.
+
+**Note:** Shape rules only apply to server side cursor shapes. Sadly, not everyone supports server side cursors yet, which means shape rules won't work with apps using toolkits like e.g. GTK.
+
+A shape rule usually consists of three parts:
+```
+shaperule = shape-name, mode (optional), property: value, property: value, ...
+```
+- `shape-name`: This is the name of the shape, this rule will apply to. Should be one of [those specified in the protocol](https://wayland.app/protocols/cursor-shape-v1#wp_cursor_shape_device_v1:enum:shape). You can use the special shape `clientside` to apply your rule to **ALL** client side cursors.
+- `mode` (optional): Can override the mode used by this shape, see `mode` in the config. This argument is optional and can be left out.
+- `property: value`: At the end of the rule follow zero or more property-value pairs. These are config values that will be overridden if this rule is active. Only config values from the sections `rotate`, `tilt`, `stretch` as seen above can be used.
+
+Here are a few example rules to get you started:
+```
+plugin:dynamic-cursors {
+    # apply a 90° offset in rotate mode to the text shape
+    shaperule = text, rotate:offset: 90
+
+    # use stretch mode when grabbing, and set the limit low
+    shaperule = grab, stretch, stretch:limit: 2000
+
+    # do not show any effects on clientside cursors
+    shaperule = clientside, none
 }
 ```
 
