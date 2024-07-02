@@ -8,8 +8,8 @@ EModeUpdate CModeTilt::strategy() {
 }
 
 SModeResult CModeTilt::update(Vector2D pos) {
-    static auto const* PFUNCTION = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_FUNCTION)->getDataStaticPtr();
-    static auto* const* PMASS = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_MASS)->getDataStaticPtr();
+    static auto const* PFUNCTION = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_TILT_FUNCTION)->getDataStaticPtr();
+    static auto* const* PMASS = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CONFIG_TILT_LIMIT)->getDataStaticPtr();
 
     // create samples array
     int max = g_pHyprRenderer->m_pMostHzMonitor->refreshRate / 10; // 100ms worth of history

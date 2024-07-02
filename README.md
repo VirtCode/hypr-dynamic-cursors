@@ -142,22 +142,22 @@ plugin:dynamic-cursors {
     stretch {
 
         # controls how much the cursor is stretched
-        # this value controls at which speed (px/s) the full stretch
+        # this value controls at which speed (px/s) the full stretch is reached
         limit = 3000
 
-        # relationship between speed and tilt, supports these vaules:
+        # relationship between speed and stretch amount, supports these vaules:
         # linear             - a linear function is used
         # quadratic          - a quadratic function is used
         # negative_quadratic - negative version of the quadratic one, feels more aggressive
         function = quadratic
     }
 
-    # enable shake to find
-    # magnifies the cursor if its is being shaken
-    shake = true
-
-    # for when shake = true
+    # configure shake to find
     shake {
+
+        # enables shake to find
+        # magnifies the cursor if its is being shaken
+        enabled = true
 
         # controls how soon a shake is detected
         # lower values mean sooner

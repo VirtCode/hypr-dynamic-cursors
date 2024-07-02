@@ -91,13 +91,13 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_THRESHOLD, Hyprlang::FLOAT{4});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_SHAKE_FACTOR, Hyprlang::FLOAT{1.5});
 
-    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_FUNCTION, Hyprlang::STRING{"negative_quadratic"});
-    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_MASS, Hyprlang::INT{5000});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_TILT_FUNCTION, Hyprlang::STRING{"negative_quadratic"});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_TILT_LIMIT, Hyprlang::INT{5000});
 
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_STRETCH_FUNCTION, Hyprlang::STRING{"negative_quadratic"});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_STRETCH_LIMIT, Hyprlang::INT{3000});
 
-    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_LENGTH, Hyprlang::INT{20});
+    HyprlandAPI::addConfigValue(PHANDLE, CONFIG_ROTATE_LENGTH, Hyprlang::INT{20});
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_ROTATE_OFFSET, Hyprlang::FLOAT{0});
 
     HyprlandAPI::addConfigValue(PHANDLE, CONFIG_HW_DEBUG, Hyprlang::INT{0});
