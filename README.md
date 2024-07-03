@@ -197,7 +197,7 @@ A shape rule usually consists of three parts:
 ```
 shaperule = shape-name, mode (optional), property: value, property: value, ...
 ```
-- `shape-name`: This is the name of the shape, this rule will apply to. Should be one of [those specified in the protocol](https://wayland.app/protocols/cursor-shape-v1#wp_cursor_shape_device_v1:enum:shape). You can use the special shape `clientside` to apply your rule to **ALL** client side cursors.
+- `shape-name`: This is the name of the shape, this rule will apply to. Should be one of [those specified in the protocol](https://wayland.app/protocols/cursor-shape-v1#wp_cursor_shape_device_v1:enum:shape). You can use the special shape `clientside` to apply your rule to **ALL** client side cursors. Also note that the compositor will set the shape to `left_ptr` if you are on the wallpaper.
 - `mode` (optional): Can override the mode used by this shape, see `mode` in the config. This argument is optional and can be left out.
 - `property: value`: At the end of the rule follow zero or more property-value pairs. These are config values that will be overridden if this rule is active. Only config values from the sections `rotate`, `tilt`, `stretch` as seen above can be used.
 
@@ -238,6 +238,12 @@ make load
 If you want to debug hardware cursors, this plugin also has an additional configuration option, `plugin:dynamic-cursors:hw_debug` which when true will show where the whole cursor buffer is, and also shows when it is updated.
 
 Also make sure you disable the plugin on your host session, otherwise your cursor will be rotated twice.
+
+With some distributions of hyprland (notably the hyprland packages on Arch), your system headers are not complete? In this case the build will fail with something like `wayland.hpp: No such file or directory`. In these cases you have to resort back to using `hyprpm`'s headers. To do so, make sure to update hyprpm (`hyprpm update`), and set the following env in your shell before using the makefile:
+
+```sh
+export PKG_CONFIG_PATH="$HOME/.local/share/hyprpm/headersRoot/share/pkgconfig"
+```
 
 ## license
 This plugin is licensed under the MIT License. Have a look at the `LICENSE.md` file for more information.

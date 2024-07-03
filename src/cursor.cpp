@@ -16,6 +16,7 @@
 
 #include <hyprland/src/config/ConfigValue.hpp>
 #include "hyprland/cursor.hpp"
+#include <hyprland/src/protocols/core/Compositor.hpp>
 
 #include <hyprland/wlr/interfaces/wlr_output.h>
 #include <hyprland/wlr/render/interface.h>
@@ -65,6 +66,9 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     auto zoom = resultShown.scale;
 
     if ((!state->hardwareFailed && state->softwareLocks == 0)) {
+        if (pointers->currentCursorImage.surface)
+                pointers->currentCursorImage.surface->resource()->frame(now);
+
         return;
     }
 
@@ -94,6 +98,9 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
 
     // now pass the hotspot to rotate around
     renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
+
+    if (pointers->currentCursorImage.surface)
+            pointers->currentCursorImage.surface->resource()->frame(now);
 }
 
 /*
@@ -262,10 +269,12 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
 }
 
 void CDynamicCursors::setShape(const std::string& shape) {
+    Debug::log(WARN, "[dynamic-cursors] setting shape {}", shape);
     g_pShapeRuleHandler->activate(shape);
 }
 
 void CDynamicCursors::unsetShape() {
+    Debug::log(WARN, "[dynamic-cursors] setting shape to clientside");
     g_pShapeRuleHandler->activate("clientside");
 }
 
