@@ -16,6 +16,9 @@ class CShake {
     /* tracks whether the current shake has already been announced in the ipc */
     bool ipc = false;
 
+    /* stores last measured diagonal */
+    float diagonal = 0;
+
     /* ringbuffer for last samples */
     std::vector<Vector2D> samples;
     /* we also store the distance for each sample to the last, so we do only compute this once */

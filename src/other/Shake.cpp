@@ -3,6 +3,7 @@
 #include "src/managers/EventManager.hpp"
 #include "Shake.hpp"
 #include <hyprland/src/Compositor.hpp>
+#include <hyprland/src/debug/Log.hpp>
 
 double CShake::update(Vector2D pos) {
     static auto* const* PTHRESHOLD = (Hyprlang::FLOAT* const*) getConfig(CONFIG_SHAKE_THRESHOLD);
@@ -35,7 +36,7 @@ double CShake::update(Vector2D pos) {
     }
     double diagonal = Vector2D{left, top}.distance(Vector2D(right, bottom));
 
-    // discard when the diagonal is small, so we don't have issues with inaccuracies
+    // discard when the diagonal is small, return so we don't have issues with inaccuracies
     if (diagonal < 100) return 1.0;
 
     double zoom = ((trail / diagonal) - **PTHRESHOLD);
@@ -55,6 +56,14 @@ double CShake::update(Vector2D pos) {
             }
         }
     }
+
+    // fix jitter by allowing the diagonal to only grow, until we are below the threshold again
+    if (zoom > 0) { // larger than 0 because of factor
+        if (diagonal > this->diagonal)
+            this->diagonal = diagonal;
+
+        zoom = ((trail / this->diagonal) - **PTHRESHOLD);
+    } else this->diagonal = 0;
 
     // we want ipc to work with factor = 0, so we use it here
     return std::max(1.0, zoom * **PFACTOR);
