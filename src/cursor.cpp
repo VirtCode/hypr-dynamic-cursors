@@ -109,10 +109,13 @@ It is largely identical to hyprlands implementation, but expands the damage reag
 */
 void CDynamicCursors::damageSoftware(CPointerManager* pointers) {
 
-    // we damage a 3x3 area around the cursor, to accomodate for all possible hotspots and rotations
+    // we damage a padding of the diagonal around the hotspot, to accomodate for all possible hotspots and rotations
     auto zoom = resultShown.scale;
     Vector2D size = pointers->currentCursorImage.size / pointers->currentCursorImage.scale * zoom;
-    CBox b = CBox{pointers->pointerPos, size * 3}.translate(-(pointers->currentCursorImage.hotspot * zoom + size));
+    float diagonal = size.size();
+    Vector2D padding = {diagonal, diagonal};
+
+    CBox b = CBox{pointers->pointerPos, size + (padding * 2)}.translate(-(pointers->currentCursorImage.hotspot * zoom + padding));
 
     static auto PNOHW = CConfigValue<Hyprlang::INT>("cursor:no_hardware_cursors");
 
@@ -139,8 +142,11 @@ wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPoint
     auto zoom = resultShown.scale;
 
     auto size = pointers->currentCursorImage.size * zoom;
-    // we try to allocate a buffer that is thrice as big, see software rendering
-    auto target = size * 3;
+    float diagonal = size.size();
+    Vector2D padding = {diagonal, diagonal};
+
+    // we try to allocate a buffer with padding, see software damage
+    auto target = size + padding * 2;
 
     if (output->impl->get_cursor_size) {
         int w, h;
@@ -199,7 +205,7 @@ wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPoint
         g_pHyprOpenGL->clear(CColor{0.F, 0.F, 0.F, 0.F});
 
     // the box should start in the middle portion, rotate by our calculated amount
-    CBox xbox = {size, Vector2D{pointers->currentCursorImage.size / pointers->currentCursorImage.scale * state->monitor->scale * zoom}.round()};
+    CBox xbox = {padding, Vector2D{pointers->currentCursorImage.size / pointers->currentCursorImage.scale * state->monitor->scale * zoom}.round()};
     xbox.rot = resultShown.rotation;
 
     //  use our custom draw function
@@ -225,8 +231,11 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
     auto P_MONITOR = state->monitor.lock();
     if (!P_MONITOR->output->cursor_swapchain) return false;
 
-    // we need to transform the hotspot manually as we need to indent it by the size
-    const auto HOTSPOT = CBox{((pointers->currentCursorImage.hotspot * P_MONITOR->scale) + pointers->currentCursorImage.size) * resultShown.scale, {0, 0}}
+    // we need to transform the hotspot manually as we need to indent it by the padding
+    float diagonal = pointers->currentCursorImage.size.size();
+    Vector2D padding = {diagonal, diagonal};
+
+    const auto HOTSPOT = CBox{((pointers->currentCursorImage.hotspot * P_MONITOR->scale) + padding) * resultShown.scale, {0, 0}}
         .transform(wlTransformToHyprutils(wlr_output_transform_invert(P_MONITOR->transform)), P_MONITOR->output->cursor_swapchain->width, P_MONITOR->output->cursor_swapchain->height)
         .pos();
 
@@ -269,12 +278,10 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
 }
 
 void CDynamicCursors::setShape(const std::string& shape) {
-    Debug::log(WARN, "[dynamic-cursors] setting shape {}", shape);
     g_pShapeRuleHandler->activate(shape);
 }
 
 void CDynamicCursors::unsetShape() {
-    Debug::log(WARN, "[dynamic-cursors] setting shape to clientside");
     g_pShapeRuleHandler->activate("clientside");
 }
 
