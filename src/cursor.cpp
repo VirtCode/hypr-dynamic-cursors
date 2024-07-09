@@ -321,6 +321,9 @@ void CDynamicCursors::calculate(EModeUpdate type) {
         if (resultShake > 1 && !**PSHAKE_EFFECTS) resultMode = SModeResult();
     } else resultShake = 1;
 
+    // skip move updates
+    if (type == MOVE) return;
+
     auto result = resultMode;
     result.scale *= resultShake;
 
