@@ -1,4 +1,5 @@
 #include "../config/config.hpp"
+#include "src/debug/Log.hpp"
 #include "src/macros.hpp"
 #include <cmath>
 #include "ModeRotate.hpp"
@@ -12,6 +13,8 @@ SModeResult CModeRotate::update(Vector2D pos) {
     static auto* const* POFFSET = (Hyprlang::FLOAT* const*) getConfig(CONFIG_ROTATE_OFFSET);
     auto length = g_pShapeRuleHandler->getIntOr(CONFIG_ROTATE_LENGTH, **PLENGTH);
     auto offset = g_pShapeRuleHandler->getFloatOr(CONFIG_ROTATE_OFFSET, **POFFSET);
+
+    Debug::log(LOG, "[dynamic-cursors] rotate: pos.x = {}, pos.y = {}", pos.x, pos.y);
 
     // translate to origin
     end.x -= pos.x;
@@ -31,6 +34,8 @@ SModeResult CModeRotate::update(Vector2D pos) {
     if (end.y > 0) angle += PI;
     angle += PI;
     angle += offset * ((2 * PI) / 360); // convert to radiants
+
+    Debug::log(LOG, "[dynamic-cursors] this is it: angle = {}, end.x = {}, end.y = {}, offset = {}", angle, end.x, end.y, offset);
 
     // translate back
     end.x += pos.x;
