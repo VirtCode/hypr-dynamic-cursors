@@ -19,6 +19,8 @@ SModeResult CModeRotate::update(Vector2D pos) {
 
     // normalize
     double size = end.size();
+    if (size == 0) size = 1; // do not divide by 0
+
     end.x /= size;
     end.y /= size;
 
