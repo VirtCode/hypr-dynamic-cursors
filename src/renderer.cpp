@@ -59,6 +59,7 @@ void projectCursorBox(float mat[9], CBox& box, eTransform transform, float rotat
 This renders a texture with damage but rotates the texture around a given hotspot.
 */
 void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, CRegion* damage, float alpha, Vector2D hotspot, bool nearest, float stretchAngle, Vector2D stretch) {
+    Debug::log(LOG, "[dynamic-cursors] rendering: pBox.x = {}, pBox.y = {}, pBox.w = {}, pBox.h = {}, bBox.rotation = {}, stretchAngle = {}, stretch.x = {}, stretch.y = {}", pBox->x, pBox->y, pBox->w, pBox->h, pBox->rot, stretchAngle, stretch.x, stretch.y);
     TRACY_GPU_ZONE("RenderDynamicCursor");
 
     alpha = std::clamp(alpha, 0.f, 1.f);

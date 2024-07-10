@@ -58,6 +58,7 @@ Is also largely identical to hyprlands impl, but uses our custom rendering to ro
 */
 void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos) {
     static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_NEAREST);
+    Debug::log(LOG, "[dynamic-cursors] rendering sw cursors with: rotation = {}, scale = {}, stretch.angle = {}, stretch.x = {}, stretch.y = {}", resultShown.rotation, resultShown.scale, resultShown.stretch.angle, resultShown.stretch.magnitude.x, resultShown.stretch.magnitude.y);
 
     if (!pointers->hasCursor())
         return;
@@ -69,6 +70,8 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
         if (pointers->currentCursorImage.surface)
                 pointers->currentCursorImage.surface->resource()->frame(now);
 
+        Debug::log(LOG, "[dynamic-cursors] rendering sw cursors: hw cursors are active, not continuing");
+
         return;
     }
 
@@ -77,6 +80,8 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
         box.x = overridePos->x;
         box.y = overridePos->y;
     }
+
+    Debug::log(LOG, "[dynamic-cursors] rendering sw cursors at: x = {}, y = {}", box.x, box.y);
 
     // poperly transform hotspot, this first has to undo the hotspot transform from getCursorBoxGlobal
     box.x = box.x + pointers->currentCursorImage.hotspot.x - pointers->currentCursorImage.hotspot.x * zoom;
@@ -138,6 +143,8 @@ wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPoint
     static auto* const* PHW_DEBUG= (Hyprlang::INT* const*) getConfig(CONFIG_HW_DEBUG);
     static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_NEAREST);
 
+    Debug::log(LOG, "[dynamic-cursors] rendering hw cursors with: rotation = {}, scale = {}, stretch.angle = {}, stretch.x = {}, stretch.y = {}", resultShown.rotation, resultShown.scale, resultShown.stretch.angle, resultShown.stretch.magnitude.x, resultShown.stretch.magnitude.y);
+
     auto output = state->monitor->output;
     auto zoom = resultShown.scale;
 
@@ -153,7 +160,7 @@ wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPoint
         output->impl->get_cursor_size(output, &w, &h);
 
         if (w < target.x || h < target.y) {
-            Debug::log(TRACE, "hardware cursor too big! {} > {}x{}", pointers->currentCursorImage.size, w, h);
+            Debug::log(LOG, "[dynamic-cursors] hardware cursor too big! {} > {}x{}", pointers->currentCursorImage.size, w, h);
             return nullptr;
         }
 
@@ -162,14 +169,14 @@ wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPoint
     }
 
     if (target.x <= 0 || target.y <= 0) {
-        Debug::log(TRACE, "hw cursor for output {} failed the size checks ({}x{} is invalid)", state->monitor->szName, target.x, target.y);
+        Debug::log(LOG, "[dynamic-cursors] hw cursor for output {} failed the size checks ({}x{} is invalid)", state->monitor->szName, target.x, target.y);
         return nullptr;
     }
 
     if (!output->cursor_swapchain || target != Vector2D{output->cursor_swapchain->width, output->cursor_swapchain->height}) {
         wlr_drm_format fmt = {0};
         if (!output_pick_cursor_format(output, &fmt)) {
-            Debug::log(TRACE, "Failed to pick cursor format");
+            Debug::log(LOG, "[dynamic-cursors] Failed to pick cursor format");
             return nullptr;
         }
 
@@ -178,14 +185,14 @@ wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPoint
         wlr_drm_format_finish(&fmt);
 
         if (!output->cursor_swapchain) {
-            Debug::log(TRACE, "Failed to create cursor swapchain");
+            Debug::log(LOG, "[dynamic-cursors] Failed to create cursor swapchain");
             return nullptr;
         }
     }
 
     wlr_buffer* buf = wlr_swapchain_acquire(output->cursor_swapchain, nullptr);
     if (!buf) {
-        Debug::log(TRACE, "Failed to acquire a buffer from the cursor swapchain");
+        Debug::log(LOG, "[dynamic-cursors] Failed to acquire a buffer from the cursor swapchain");
         return nullptr;
     }
 
@@ -225,6 +232,7 @@ Implements the hardware cursor setting.
 It is also mostly the same as stock hyprland, but with the hotspot translated more into the middle.
 */
 bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, wlr_buffer* buf) {
+    Debug::log(LOG, "[dynamic-cursors] attempt at setting hw cursors");
     if (!state->monitor->output->impl->set_cursor)
         return false;
 
@@ -238,6 +246,8 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
     const auto HOTSPOT = CBox{((pointers->currentCursorImage.hotspot * P_MONITOR->scale) + padding) * resultShown.scale, {0, 0}}
         .transform(wlTransformToHyprutils(wlr_output_transform_invert(P_MONITOR->transform)), P_MONITOR->output->cursor_swapchain->width, P_MONITOR->output->cursor_swapchain->height)
         .pos();
+
+    Debug::log(LOG, "[dynamic-cursors] setting hw cursors: hotspot.x = {}, hotspot.y = {}", HOTSPOT.x, HOTSPOT.y);
 
     Debug::log(TRACE, "[pointer] hw transformed hotspot for {}: {}", state->monitor->szName, HOTSPOT);
 
@@ -259,6 +269,8 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
 Handles cursor move events.
 */
 void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
+    Debug::log(LOG, "[dynamic-cursors] cursor is moving");
+
     if (!pointers->hasCursor())
         return;
 
@@ -271,6 +283,7 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
             continue;
 
         const auto CURSORPOS = pointers->getCursorPosForMonitor(m);
+        Debug::log(LOG, "[dynamic-cursors] moving hw cursors to : x = {}, y = {}", CURSORPOS.x, CURSORPOS.y);
         m->output->impl->move_cursor(m->output, CURSORPOS.x, CURSORPOS.y);
     }
 
@@ -307,6 +320,8 @@ void CDynamicCursors::calculate(EModeUpdate type) {
     static auto* const* PSHAKE = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE);
     static auto* const* PSHAKE_EFFECTS = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_EFFECTS);
 
+    Debug::log(LOG, "[dynamic-cursors] calculate before: type = {} ########################################################", (int) type);
+
     IMode* mode = currentMode();
 
     // calculate angle and zoom
@@ -321,15 +336,17 @@ void CDynamicCursors::calculate(EModeUpdate type) {
         if (resultShake > 1 && !**PSHAKE_EFFECTS) resultMode = SModeResult();
     } else resultShake = 1;
 
-    // skip move updates
-    if (type == MOVE) return;
-
     auto result = resultMode;
     result.scale *= resultShake;
 
+    Debug::log(LOG, "[dynamic-cursors] calculate after: rotation = {}, scale = {}, stretch.angle = {}, stretch.x = {}, stretch.y = {}", result.rotation, result.scale, result.stretch.angle, result.stretch.magnitude.x, result.stretch.magnitude.y);
+
     if (resultShown.hasDifference(&result, **PTHRESHOLD * (PI / 180.0), 0.01, 0.01)) {
+        Debug::log(LOG, "[dynamic-cursors] calculate has difference!");
         resultShown = result;
         resultShown.clamp(**PTHRESHOLD * (PI / 180.0), 0.01, 0.01); // clamp low values so it is rendered pixel-perfectly when no effect
+
+        Debug::log(LOG, "[dynamic-cursors] calculate clamped: rotation = {}, scale = {}, stretch.angle = {}, stretch.x = {}, stretch.y = {}", resultShown.rotation, resultShown.scale, resultShown.stretch.angle, resultShown.stretch.magnitude.x, resultShown.stretch.magnitude.y);
 
         // lock software cursors if zooming
         if (resultShown.scale > 1) {
@@ -354,6 +371,8 @@ void CDynamicCursors::calculate(EModeUpdate type) {
 
         for (auto& m : g_pCompositor->m_vMonitors) {
             auto state = g_pPointerManager->stateFor(m);
+
+            Debug::log(LOG, "[dynamic-cursors] calculate output ({}): entered = {}, failed = {}", m.get()->szName, state->entered, state->hardwareFailed);
 
             if (state->entered) entered = true;
             if (state->hardwareFailed || !state->entered)
