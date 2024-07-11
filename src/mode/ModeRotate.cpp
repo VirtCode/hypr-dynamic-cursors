@@ -1,4 +1,5 @@
 #include "../config/config.hpp"
+#include "src/debug/Log.hpp"
 #include "src/macros.hpp"
 #include <cmath>
 #include "ModeRotate.hpp"
@@ -33,6 +34,9 @@ SModeResult CModeRotate::update(Vector2D pos) {
     if (end.y > 0) angle += PI;
     angle += PI;
     angle += offset * ((2 * PI) / 360); // convert to radiants
+
+    Debug::log(LOG, "[dynamic-cursors] this is it: pos.x = {}, pos.y = {}, angle = {}, end.x = {}, end.y = {}, offset = {}", pos.x, pos.y, angle, end.x, end.y, offset);
+    if (end.y == 0) angle = 0; // do not divide by 0 above, leave untransformed in these cases
 
     // translate back
     end.x += pos.x;
