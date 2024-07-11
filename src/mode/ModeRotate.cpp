@@ -34,6 +34,8 @@ SModeResult CModeRotate::update(Vector2D pos) {
     angle += PI;
     angle += offset * ((2 * PI) / 360); // convert to radiants
 
+    if (end.y == 0) angle = 0; // do not divide by 0 above, leave untransformed in these cases
+
     // translate back
     end.x += pos.x;
     end.y += pos.y;
