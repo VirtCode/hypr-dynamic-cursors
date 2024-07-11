@@ -324,9 +324,13 @@ void CDynamicCursors::calculate(EModeUpdate type) {
     auto result = resultMode;
     result.scale *= resultShake;
 
+    Debug::log(LOG, "[dynamic-cursors] calculate after: rotation = {}, scale = {}, stretch.angle = {}, stretch.x = {}, stretch.y = {}", result.rotation, result.scale, result.stretch.angle, result.stretch.magnitude.x, result.stretch.magnitude.y);
+
     if (resultShown.hasDifference(&result, **PTHRESHOLD * (PI / 180.0), 0.01, 0.01)) {
         resultShown = result;
         resultShown.clamp(**PTHRESHOLD * (PI / 180.0), 0.01, 0.01); // clamp low values so it is rendered pixel-perfectly when no effect
+
+        Debug::log(LOG, "[dynamic-cursors] calculate clamped: rotation = {}, scale = {}, stretch.angle = {}, stretch.x = {}, stretch.y = {}", resultShown.rotation, resultShown.scale, resultShown.stretch.angle, resultShown.stretch.magnitude.x, resultShown.stretch.magnitude.y);
 
         // lock software cursors if zooming
         if (resultShown.scale > 1) {
