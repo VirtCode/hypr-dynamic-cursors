@@ -112,7 +112,7 @@ void CDynamicCursors::damageSoftware(CPointerManager* pointers) {
     // we damage a padding of the diagonal around the hotspot, to accomodate for all possible hotspots and rotations
     auto zoom = resultShown.scale;
     Vector2D size = pointers->currentCursorImage.size / pointers->currentCursorImage.scale * zoom;
-    float diagonal = size.size();
+    int diagonal = size.size();
     Vector2D padding = {diagonal, diagonal};
 
     CBox b = CBox{pointers->pointerPos, size + (padding * 2)}.translate(-(pointers->currentCursorImage.hotspot * zoom + padding));
@@ -142,7 +142,7 @@ wlr_buffer* CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPoint
     auto zoom = resultShown.scale;
 
     auto size = pointers->currentCursorImage.size * zoom;
-    float diagonal = size.size();
+    int diagonal = size.size();
     Vector2D padding = {diagonal, diagonal};
 
     // we try to allocate a buffer with padding, see software damage
@@ -232,7 +232,7 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
     if (!P_MONITOR->output->cursor_swapchain) return false;
 
     // we need to transform the hotspot manually as we need to indent it by the padding
-    float diagonal = pointers->currentCursorImage.size.size();
+    int diagonal = pointers->currentCursorImage.size.size();
     Vector2D padding = {diagonal, diagonal};
 
     const auto HOTSPOT = CBox{((pointers->currentCursorImage.hotspot * P_MONITOR->scale) + padding) * resultShown.scale, {0, 0}}
