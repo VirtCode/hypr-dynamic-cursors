@@ -93,6 +93,7 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     // we rotate the cursor by our calculated amount
     box.rot = resultShown.rotation;
 
+    Debug::log(LOG, "[dynamic-cursors] rendering software cursors");
     // now pass the hotspot to rotate around
     renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, nullptr, 0, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
 
@@ -221,6 +222,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
 
     RBO->bind();
 
+    Debug::log(LOG, "[dynamic-cursors] rendering hardware cursors");
     g_pHyprOpenGL->beginSimple(state->monitor.get(), damage, RBO);
 
     if (**PHW_DEBUG)
@@ -350,6 +352,8 @@ void CDynamicCursors::calculate(EModeUpdate type) {
         resultShown = result;
         resultShown.clamp(**PTHRESHOLD * (PI / 180.0), 0.01, 0.01); // clamp low values so it is rendered pixel-perfectly when no effect
 
+        Debug::log(LOG, "[dynamic-cursors] updating with rotation: {}, scale: {}, stretch: {},{}", resultShown.rotation, resultShown.scale, resultShown.stretch.magnitude.x, resultShown.stretch.magnitude.y);
+
         // lock software cursors if zooming
         if (resultShown.scale > 1) {
             if (!zoomSoftware) {
@@ -371,8 +375,12 @@ void CDynamicCursors::calculate(EModeUpdate type) {
 
         bool entered = false;
 
+
         for (auto& m : g_pCompositor->m_vMonitors) {
             auto state = g_pPointerManager->stateFor(m);
+
+            if (g_pPointerManager->softwareLockedFor(m))
+                Debug::log(LOG, "[dynamic-cursors] monitor {} has software lock", m->szName);
 
             if (state->entered) entered = true;
             if (state->hardwareFailed || !state->entered)
