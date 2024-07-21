@@ -7,5 +7,5 @@ build = [
 ]
 commit_pins = [
     # v Hyprland                                  v hypr-dynamic-cursors
-    ["918d8340afd652b011b937d29d5eea0be08467f5", "359a66967c631e53a233628d85aa6f08be4d9269"], # v0.41.2
+    ["918d8340afd652b011b937d29d5eea0be08467f5", "f0409be76564171a97a792deabab3bd0528fe40c"], # v0.41.2
 ]

@@ -38,7 +38,7 @@ This plugin is still very early in its development. There are also multiple thin
 - [ ] pendulum simulation
 - [X] per-shape length and starting angle (if possible)
 - [X] cursor shake to find
-- [ ] overdue refactoring (wait for aquamarine merge)
+- [X] overdue refactoring (wait for aquamarine merge)
 - [ ] ~~inverted cursor?~~ (i think out of scope here, but see the [inverted branch](https://github.com/VirtCode/hypr-dynamic-cursors/tree/inverted))
 - [ ] hyprcursor magified shape
 
@@ -56,8 +56,6 @@ Installation is supported via `hyprpm`. Supported hyprland versions are `v0.41.2
 hyprpm add https://github.com/virtcode/hypr-dynamic-cursors
 hyprpm enable dynamic-cursors
 ```
-
-Compatibility with other plugins is not guaranteed. It probably should work with most plugins, unless they also change your cursor's behaviour. It will however work with any cursor theme.
 
 ### NixOS
 
@@ -227,6 +225,11 @@ Rotating the cursor can be done in the same draw call that is used to draw the c
 To rotate the cursor smoothly, the cursor shape needs to be changed quite often. This is not exactly compatible with how hardware cursors are intended to work. Thus performance can be compared to how an animated cursor shape would be rendered, every time the cursor is not stationary. It is however still more performant than software cursors. <br> Another limitation of hardware cursors are the size they are rendered at. This means that when the cursor is being magnified, software cursors will be used temporarily.
 
 If you have any ideas to improve performance, let me know!
+
+## compatibility
+Compatibility with other plugins is not guaranteed. It probably should work with most plugins, unless they also change your cursor's behaviour. It will however work with any cursor theme.
+
+Also, this plugin won't work if your hardware cusors rely on `cursor:allow_dumb_copy = true`, which is probably the case if you are on nvidia. You'll probably have to wait until hardware cursors are correctly supported on Hyprland.
 
 ## development
 To work on this plugin, you can clone this repository and use the Makefile to build it. I suggest opening a nested Hyprland session, and loading the plugin there:
