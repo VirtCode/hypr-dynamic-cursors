@@ -254,6 +254,8 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
         return false;
 
     auto PMONITOR = state->monitor.lock();
+    if (!PMONITOR->cursorSwapchain)
+        return false;
 
     // we need to transform the hotspot manually as we need to indent it by the padding
     int diagonal = pointers->currentCursorImage.size.size();
