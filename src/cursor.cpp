@@ -62,7 +62,7 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     auto state = pointers->stateFor(pMonitor);
     auto zoom = resultShown.scale;
 
-    if ((!state->hardwareFailed && state->softwareLocks == 0)) {
+    if ((!state->hardwareFailed && state->softwareLocks <= 0)) {
         if (pointers->currentCursorImage.surface)
                 pointers->currentCursorImage.surface->resource()->frame(now);
 
