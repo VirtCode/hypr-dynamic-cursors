@@ -62,6 +62,7 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     auto state = pointers->stateFor(pMonitor);
     auto zoom = resultShown.scale;
 
+    Debug::log(LOG, "[dynamic-cursors] current sw cursor status: hw failure = {}, locks = {}", state->hardwareFailed, state->softwareLocks);
     if ((!state->hardwareFailed && state->softwareLocks == 0)) {
         if (pointers->currentCursorImage.surface)
                 pointers->currentCursorImage.surface->resource()->frame(now);
@@ -357,6 +358,7 @@ void CDynamicCursors::calculate(EModeUpdate type) {
         // lock software cursors if zooming
         if (resultShown.scale > 1) {
             if (!zoomSoftware) {
+                Debug::log(LOG, "[dynamic-cursors] locking sw cursors for zoom");
                 g_pPointerManager->lockSoftwareAll();
                 zoomSoftware = true;
             }
@@ -365,6 +367,7 @@ void CDynamicCursors::calculate(EModeUpdate type) {
                 // damage so it is cleared properly
                 g_pPointerManager->damageIfSoftware();
 
+                Debug::log(LOG, "[dynamic-cursors] unlocking sw cursors for zoom");
                 g_pPointerManager->unlockSoftwareAll();
                 zoomSoftware = false;
             }
