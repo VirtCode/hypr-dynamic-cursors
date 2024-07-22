@@ -176,6 +176,15 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
         }
     }
 
+    // if we already rendered the cursor, revert the swapchain to avoid rendering the cursor over
+    // the current front buffer
+    // this flag will be reset in the preRender hook, so when we commit this buffer to KMS
+    // see https://github.com/hyprwm/Hyprland/commit/4c3b03516209a49244a8f044143c1162752b8a7a
+    if (state->cursorRendered)
+        state->monitor->cursorSwapchain->rollback();
+
+    state->cursorRendered = true;
+
     auto buf = state->monitor->cursorSwapchain->next(nullptr);
     if (!buf) {
         Debug::log(TRACE, "Failed to acquire a buffer from the cursor swapchain");
