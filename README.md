@@ -39,7 +39,6 @@ This plugin is still very early in its development. There are also multiple thin
 - [X] per-shape length and starting angle (if possible)
 - [X] cursor shake to find
 - [X] overdue refactoring (wait for aquamarine merge)
-- [ ] ~~inverted cursor?~~ (i think out of scope here, but see the [inverted branch](https://github.com/VirtCode/hypr-dynamic-cursors/tree/inverted))
 - [ ] hyprcursor magified shape
 
 If anything here sounds interesting to you, don't hesitate to contribute.
@@ -229,7 +228,7 @@ If you have any ideas to improve performance, let me know!
 ## compatibility
 Compatibility with other plugins is not guaranteed. It probably should work with most plugins, unless they also change your cursor's behaviour. It will however work with any cursor theme.
 
-Also, this plugin won't work if your hardware cusors rely on `cursor:allow_dumb_copy = true`, which is probably the case if you are on nvidia. You'll probably have to wait until hardware cursors are correctly supported on Hyprland.
+Also, this plugin won't work if your hardware cusors rely on `cursor:allow_dumb_copy = true`, which is probably the case if you are on nvidia. You'll probably have to wait until hardware cursors are correctly supported on Hyprland, and use software cursors in the meantime.
 
 ## development
 To work on this plugin, you can clone this repository and use the Makefile to build it. I suggest opening a nested Hyprland session, and loading the plugin there:
@@ -241,12 +240,6 @@ make load
 If you want to debug hardware cursors, this plugin also has an additional configuration option, `plugin:dynamic-cursors:hw_debug` which when true will show where the whole cursor buffer is, and also shows when it is updated.
 
 Also make sure you disable the plugin on your host session, otherwise your cursor will be rotated twice.
-
-With some distributions of hyprland (notably the hyprland packages on Arch), your system headers are not complete? In this case the build will fail with something like `wayland.hpp: No such file or directory`. In these cases you have to resort back to using `hyprpm`'s headers. To do so, make sure to update hyprpm (`hyprpm update`), and set the following env in your shell before using the makefile:
-
-```sh
-export PKG_CONFIG_PATH="$HOME/.local/share/hyprpm/headersRoot/share/pkgconfig"
-```
 
 ## license
 This plugin is licensed under the MIT License. Have a look at the `LICENSE.md` file for more information.
