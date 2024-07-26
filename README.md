@@ -32,7 +32,7 @@ https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/9ff64a9b-64e5-4
 This plugin is still very early in its development. There are also multiple things which may or may not be implemented in the future:
 
 - [X] software cursor rendering
-- [X] hardware cursor rendering (as far as possible with wlroots)
+- [X] hardware cursor rendering
 - [X] stick simulation
 - [X] air drag simulation
 - [ ] pendulum simulation
