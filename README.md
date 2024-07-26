@@ -3,10 +3,9 @@ This plugin makes your cursor more realistic by simulating how it would behave i
 
 Why did I implement this again?
 
-Inspired by KDE, it also supports shake to find, to enlarge the cursor when it is shaken so it is easier to find it. It can be enabled separately or together with one simulation mode.
+Inspired by KDE, it also supports shake to find, to enlarge the cursor when it is shaken, so it is easier to find it. It can be enabled separately or together with one simulation mode.
 
 ### simulation modes
-The plugin supports a few different modes. They can all be customized induvidually.
 
 #### `rotate`
 In this mode, the cursor is simulated as a stick which is dragged across the screen on one end. This means it will rotate towards the movement direction, and feels really realistic.
@@ -39,7 +38,7 @@ This plugin is still very early in its development. There are also multiple thin
 - [X] per-shape length and starting angle (if possible)
 - [X] cursor shake to find
 - [X] overdue refactoring (wait for aquamarine merge)
-- [ ] hyprcursor magified shape
+- [ ] hyprcursor magnified shape
 
 If anything here sounds interesting to you, don't hesitate to contribute.
 
@@ -132,11 +131,11 @@ plugin:dynamic-cursors {
     # for mode = tilt
     tilt {
 
-        # controls how powerful the tilt is, the lower the more power
+        # controls how powerful the tilt is, the lower, the more power
         # this value controls at which speed (px/s) the full tilt is reached
         limit = 5000
 
-        # relationship between speed and tilt, supports these vaules:
+        # relationship between speed and tilt, supports these values:
         # linear             - a linear function is used
         # quadratic          - a quadratic function is used (most realistic to actual air drag)
         # negative_quadratic - negative version of the quadratic one, feels more aggressive
@@ -150,7 +149,7 @@ plugin:dynamic-cursors {
         # this value controls at which speed (px/s) the full stretch is reached
         limit = 3000
 
-        # relationship between speed and stretch amount, supports these vaules:
+        # relationship between speed and stretch amount, supports these values:
         # linear             - a linear function is used
         # quadratic          - a quadratic function is used
         # negative_quadratic - negative version of the quadratic one, feels more aggressive
@@ -186,7 +185,7 @@ plugin:dynamic-cursors {
 ```
 
 ### shape rules
-Shape Rules can be used to override the mode or its behaviour on a per-shape basis. They can be defined with the keyword `shaperule` in the config file, perferrably in the `plugin:dynamic-cursors` section.
+Shape Rules can be used to override the mode or its behaviour on a per-shape basis. They can be defined with the keyword `shaperule` in the config file, preferably in the `plugin:dynamic-cursors` section.
 
 **Note:** Shape rules only apply to server side cursor shapes. Sadly, not everyone supports server side cursors yet, which means shape rules won't work with apps using toolkits like e.g. GTK.
 
@@ -215,20 +214,20 @@ plugin:dynamic-cursors {
 ## performance
 > **TL;DR:** Hardware cursor performance is about the same as if an animated cursor shape was shown whenever you move your mouse. Sofware cursor performance is not impacted. When the cursor is magnified during a shake, the compositor will temporarily switch to software cursors.
 
-Depending on your hyprland configuration, this plugin can have a different performance impact, mainly depending on whether you are using software or hardware cursors:
+Depending on your Hyprland configuration, this plugin can have a different performance impact, mainly depending on whether you are using software or hardware cursors:
 
 **Software Cursors**: No (additional) performance impact. <br>
-Rotating the cursor can be done in the same draw call that is used to draw the cursor anyways, so there is no additional performance impact. Note however that software cursors in of themselves are not really efficient.
+Transforming the cursor can be done in the same draw call that is used to draw the cursor anyway, so there is no additional performance impact. Note however that software cursors in of themselves are not really efficient.
 
 **Hardware Cursors**: Medium performance impact. <br>
-To rotate the cursor smoothly, the cursor shape needs to be changed quite often. This is not exactly compatible with how hardware cursors are intended to work. Thus performance can be compared to how an animated cursor shape would be rendered, every time the cursor is not stationary. It is however still more performant than software cursors. <br> Another limitation of hardware cursors are the size they are rendered at. This means that when the cursor is being magnified, software cursors will be used temporarily.
+To transform the cursor smoothly, the cursor shape needs to be changed quite often. This is not exactly compatible with how hardware cursors are intended to work. Thus, performance can be compared to how an animated cursor shape would be rendered, every time the cursor is not stationary. It is however still more performant than software cursors. <br> Another limitation of hardware cursors are the size they are rendered at. This means that when the cursor is being magnified, software cursors will be used temporarily.
 
 If you have any ideas to improve performance, let me know!
 
 ## compatibility
 Compatibility with other plugins is not guaranteed. It probably should work with most plugins, unless they also change your cursor's behaviour. It will however work with any cursor theme.
 
-Also, this plugin won't work if your hardware cusors rely on `cursor:allow_dumb_copy = true`, which is probably the case if you are on nvidia. You'll probably have to wait until hardware cursors are correctly supported on Hyprland, and use software cursors in the meantime.
+Also, this plugin won't work if your hardware cursors rely on `cursor:allow_dumb_copy = true`, which is probably the case if you are on nvidia. You'll probably have to wait until hardware cursors are correctly supported on Hyprland, and use software cursors in the meantime.
 
 ## development
 To work on this plugin, you can clone this repository and use the Makefile to build it. I suggest opening a nested Hyprland session, and loading the plugin there:
