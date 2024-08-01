@@ -18,6 +18,7 @@
 
 #include <hyprland/src/config/ConfigValue.hpp>
 #include <hyprland/src/protocols/core/Compositor.hpp>
+#include <hyprland/src/protocols/core/Seat.hpp>
 
 #include "cursor.hpp"
 #include "renderer.hpp"
@@ -211,16 +212,39 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
         // clear buffer
         memset(bufPtr, 0, std::get<2>(bufData));
 
-        auto texBuffer = pointers->currentCursorImage.pBuffer ? pointers->currentCursorImage.pBuffer : pointers->currentCursorImage.surface->resource()->current.buffer;
+        if (pointers->currentCursorImage.pBuffer) {
+            auto texAttrs = pointers->currentCursorImage.pBuffer->shm();
 
-        if (texBuffer) {
-            auto textAttrs = texBuffer->shm();
-            auto texData   = texBuffer->beginDataPtr(GBM_BO_TRANSFER_WRITE);
-            auto texPtr    = std::get<0>(texData);
-            Debug::log(TRACE, "cursor texture {}x{} {} {} {}", textAttrs.size.x, textAttrs.size.y, (void*)texPtr, textAttrs.format, textAttrs.stride);
+            if (!texAttrs.success) {
+                Debug::log(TRACE, "Cannot use dumb copy on dmabuf cursor buffers");
+                return nullptr;
+            }
+
+            auto texData = pointers->currentCursorImage.pBuffer->beginDataPtr(GBM_BO_TRANSFER_WRITE);
+            auto texPtr  = std::get<0>(texData);
+            Debug::log(TRACE, "cursor texture {}x{} {} {} {}", texAttrs.size.x, texAttrs.size.y, (void*)texPtr, texAttrs.format, texAttrs.stride);
             // copy cursor texture
-            for (int i = 0; i < texBuffer->shm().size.y; i++)
-                memcpy(bufPtr + i * buf->dmabuf().strides[0], texPtr + i * textAttrs.stride, textAttrs.stride);
+            for (int i = 0; i < texAttrs.size.y; i++)
+                memcpy(bufPtr + i * buf->dmabuf().strides[0], texPtr + i * texAttrs.stride, texAttrs.stride);
+        } else if (pointers->currentCursorImage.surface && pointers->currentCursorImage.surface->resource()->role->role() == SURFACE_ROLE_CURSOR) {
+            const auto SURFACE   = pointers->currentCursorImage.surface->resource();
+            auto&      shmBuffer = CCursorSurfaceRole::cursorPixelData(SURFACE);
+            Debug::log(TRACE, "cursor texture pixel data length: {}B", shmBuffer.size());
+
+            if (shmBuffer.data()) {
+                // copy cursor texture
+                // assume format is 32bpp
+                size_t STRIDE = 4 * SURFACE->current.bufferSize.x;
+                for (int i = 0; i < SURFACE->current.bufferSize.y; i++)
+                    memcpy(bufPtr + i * buf->dmabuf().strides[0], shmBuffer.data() + i * STRIDE, STRIDE);
+            } else {
+                // if there is no data, hide the cursor
+                memset(bufPtr, '\0', buf->size.x * buf->size.y * 4 /* assume 32bpp */);
+            }
+
+        } else {
+            Debug::log(TRACE, "Unsupported cursor buffer/surface, falling back to sw (can't dumb copy)");
+            return nullptr;
         }
 
         buf->endDataPtr();
