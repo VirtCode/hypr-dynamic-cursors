@@ -1,11 +1,15 @@
+[repository]
+name = "dynamic-cursors"
+authors = "Virt"
+commit_pins = [
+    # v Hyprland                                  v hypr-dynamic-cursors
+    ["918d8340afd652b011b937d29d5eea0be08467f5", "f0409be76564171a97a792deabab3bd0528fe40c"], # v0.41.2
+]
+
 [dynamic-cursors]
 description = "make your cursors more realistic"
 authors = ["Virt"]
 output = "out/dynamic-cursors.so"
 build = [
     "make all",
-]
-commit_pins = [
-    # v Hyprland                                  v hypr-dynamic-cursors
-    ["918d8340afd652b011b937d29d5eea0be08467f5", "f0409be76564171a97a792deabab3bd0528fe40c"], # v0.41.2
 ]
