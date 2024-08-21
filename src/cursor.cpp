@@ -157,14 +157,16 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
     } else
         maxSize = targetSize;
 
-    if (!state->monitor->cursorSwapchain || maxSize != state->monitor->cursorSwapchain->currentOptions().size) {
+    if (!state->monitor->cursorSwapchain || maxSize != state->monitor->cursorSwapchain->currentOptions().size || state->monitor->cursorSwapchain->currentOptions().length != 3) {
 
         if (!state->monitor->cursorSwapchain)
             state->monitor->cursorSwapchain = Aquamarine::CSwapchain::create(state->monitor->output->getBackend()->preferredAllocator(), state->monitor->output->getBackend());
 
         auto options     = state->monitor->cursorSwapchain->currentOptions();
         options.size     = maxSize;
-        options.length   = 2;
+        // we still have to create a triple buffering swapchain, as we seem to be running into some sort of race condition
+        // or something. I'll continue debugging this when I find some energy again, I've spent too much time here already.
+        options.length   = 3;
         options.scanout  = true;
         options.cursor   = true;
         options.multigpu = state->monitor->output->getBackend()->preferredAllocator()->drmFD() != g_pCompositor->m_iDRMFD;
@@ -181,6 +183,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
     // the current front buffer
     // this flag will be reset in the preRender hook, so when we commit this buffer to KMS
     // see https://github.com/hyprwm/Hyprland/commit/4c3b03516209a49244a8f044143c1162752b8a7a
+    // this is however still not enough, see above
     if (state->cursorRendered)
         state->monitor->cursorSwapchain->rollback();
 
