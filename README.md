@@ -25,7 +25,7 @@ https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/7b8289e7-9dd2-4
 ### shake to find
 The plugin supports shake to find, akin to how KDE Plasma, MacOS, etc. do it. It can also be extensively configured and is enabled by default. If you only want shake to find, and no weird cursor behaviour, you can disable the above modes with the mode `none`.
 
-https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/9ff64a9b-64e5-4595-b721-dcb4d62bee18
+https://github.com/user-attachments/assets/f23669ac-b9c9-4667-993b-5133eb0a7f01
 
 ## state
 This plugin is still very early in its development. There are also multiple things which may or may not be implemented in the future:
@@ -163,22 +163,33 @@ plugin:dynamic-cursors {
         # enables shake to find
         enabled = true
 
-        # controls how soon a shake is detected
-        # lower values mean sooner
-        threshold = 4.0
-
-        # controls how fast the cursor gets larger
-        factor = 1.5
-
-        # show cursor behaviour `tilt`, `rotate`, etc. while shaking
-        effects = false
-
         # use nearest-neighbour (pixelated) scaling when shaking
         # may look weird when effects are enabled
         nearest = true
 
+        # controls how soon a shake is detected
+        # lower values mean sooner
+        threshold = 6.0
+
+        # magnification level immediately after shake start
+        base = 4.0
+        # magnification increase per second when continuing to shake
+        speed = 4.0
+        # factor the speed is influenced by the current shake intensitiy
+        influence = 0.0
+
+        # maximal magnification the cursor can reach
+        # values below 1 disable the limit (e.g. 0)
+        limit = 0.0
+
+        # time in millseconds the cursor will stay magnified after a shake has ended
+        timeout = 2000
+
+        # show cursor behaviour `tilt`, `rotate`, etc. while shaking
+        effects = false
+
         # enable ipc events for shake
-        # see #3
+        # see the `ipc` section below
         ipc = false
     }
 }
@@ -210,6 +221,19 @@ plugin:dynamic-cursors {
     shaperule = clientside, none
 }
 ```
+
+### ipc
+This plugin can expose cursor shake events via IPC. This behaviour must be explicitly enabled via the `plugin:dynamic-cursors:shake:ipc` option, as it will spam the socket quite a bit during a shake. These events will appear on [Hyprland's event socket](https://wiki.hyprland.org/IPC/#xdg_runtime_dirhyprhissocket2sock).
+
+The following events with the described arguments are available, when ipc is enabled:
+- `shakestart`: fired when a shake is detected.
+- `shakeupdate`: fired on frame during the shake, has arguments `x,y,trail,diagonal,zoom`:
+  - `x`, `y` are the current cursor position.
+  - `trail` and `diagonal` are two values indicating the distance the mouse travelled, and the diagonal this movement was within for the last second. Their quotient `trail / diagonal` indicates how intense the shaking is.
+  - `zoom` is the current cursor magnification level, as currently shown by this plugin, as customized in the shake configuration.
+- `shakeend`: fired when a shake has ended (after the `timeout`)
+
+If you only want the IPC events and not the plugin actually changing the cursor size, you can set the properties `base` to `1`, `speed`, `influence` and `timeout` to `0` in the `plugin:dynamic-cursors:shake` section such that the cursor is not magified during the shake.
 
 ## performance
 > **TL;DR:** Hardware cursor performance is about the same as if an animated cursor shape was shown whenever you move your mouse. Sofware cursor performance is not impacted. When the cursor is magnified during a shake, the compositor will temporarily switch to software cursors.

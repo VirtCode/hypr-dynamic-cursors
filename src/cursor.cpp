@@ -80,9 +80,6 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     box.x = box.x + pointers->currentCursorImage.hotspot.x - pointers->currentCursorImage.hotspot.x * zoom;
     box.y = box.y + pointers->currentCursorImage.hotspot.y - pointers->currentCursorImage.hotspot.y * zoom;
 
-    if (box.intersection(CBox{{}, {pMonitor->vecSize}}).empty())
-        return;
-
     auto texture = pointers->getCurrentCursorTexture();
     if (!texture)
         return;
@@ -90,6 +87,9 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     box.scale(pMonitor->scale);
     box.w *= zoom;
     box.h *= zoom;
+
+    if (box.intersection(CBox{{}, {pMonitor->vecSize}}).empty())
+        return;
 
     // we rotate the cursor by our calculated amount
     box.rot = resultShown.rotation;

@@ -109,8 +109,12 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     addConfig(CONFIG_SHAKE_NEAREST, true);
     addConfig(CONFIG_SHAKE_EFFECTS, false);
     addConfig(CONFIG_SHAKE_IPC, false);
-    addConfig(CONFIG_SHAKE_THRESHOLD, 4.0f);
-    addConfig(CONFIG_SHAKE_FACTOR, 1.5f);
+    addConfig(CONFIG_SHAKE_THRESHOLD, 6.0f);
+    addConfig(CONFIG_SHAKE_BASE, 4.0F);
+    addConfig(CONFIG_SHAKE_SPEED, 4.0F);
+    addConfig(CONFIG_SHAKE_INFLUENCE, 0.0F);
+    addConfig(CONFIG_SHAKE_LIMIT, 0.0F);
+    addConfig(CONFIG_SHAKE_TIMEOUT, 2000);
 
     addShapeConfig(CONFIG_TILT_FUNCTION, "negative_quadratic");
     addShapeConfig(CONFIG_TILT_LIMIT, 5000);

@@ -12,10 +12,14 @@
 
 #define CONFIG_SHAKE            "shake:enabled"
 #define CONFIG_SHAKE_NEAREST    "shake:nearest"
-#define CONFIG_SHAKE_THRESHOLD  "shake:threshold"
-#define CONFIG_SHAKE_FACTOR     "shake:factor"
 #define CONFIG_SHAKE_EFFECTS    "shake:effects"
 #define CONFIG_SHAKE_IPC        "shake:ipc"
+#define CONFIG_SHAKE_THRESHOLD  "shake:threshold"
+#define CONFIG_SHAKE_SPEED      "shake:speed"
+#define CONFIG_SHAKE_INFLUENCE  "shake:influence"
+#define CONFIG_SHAKE_BASE       "shake:base"
+#define CONFIG_SHAKE_LIMIT      "shake:limit"
+#define CONFIG_SHAKE_TIMEOUT    "shake:timeout"
 
 #define CONFIG_ROTATE_LENGTH    "rotate:length"
 #define CONFIG_ROTATE_OFFSET    "rotate:offset"
