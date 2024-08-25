@@ -40,3 +40,10 @@ SModeResult CModeStretch::update(Vector2D pos) {
 
     return result;
 }
+
+void CModeStretch::warp(Vector2D old, Vector2D pos) {
+    auto delta = pos - old;
+
+    for (auto& sample : samples)
+        sample += delta;
+}

@@ -67,6 +67,13 @@ void hkSetCursorSurface(void* thisptr, SP<CWLSurface> surf, const Vector2D& hots
     (*(origSetCursorSurface)g_pSetCursorSurfaceHook->m_pOriginal)(thisptr, surf, hotspot);
 }
 
+typedef void (*origMove)(void*, const Vector2D&);
+inline CFunctionHook* g_pMoveHook = nullptr;
+void hkMove(void* thisptr, const Vector2D& deltaLogical) {
+    if (isEnabled()) g_pDynamicCursors->setMove();
+    (*(origMove)g_pMoveHook->m_pOriginal)(thisptr, deltaLogical);
+}
+
 /* hooks a function hook */
 CFunctionHook* hook(std::string name, std::string object, void* function) {
     auto names = HyprlandAPI::findFunctionsByName(PHANDLE, name);
@@ -126,6 +133,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     addShapeConfig(CONFIG_ROTATE_OFFSET, 0.0f);
 
     addConfig(CONFIG_HW_DEBUG, false);
+    addConfig(CONFIG_IGNORE_WARPS, true);
 
     addRulesConfig();
     finishConfig();
@@ -140,6 +148,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
         g_pRenderHWCursorBufferHook = hook("renderHWCursorBuffer", "CPointerManager", (void*) &hkRenderHWCursorBuffer);
         g_pSetHWCursorBufferHook = hook("setHWCursorBuffer", "CPointerManager", (void*) &hkSetHWCursorBuffer);
         g_pOnCursorMovedHook = hook("onCursorMoved", "CPointerManager", (void*) &hkOnCursorMoved);
+        g_pMoveHook = hook("moveER", "CPointerManager", (void*) &hkMove); // this `ER` makes it faster because `move` is very generic
 
         g_pSetCursorFromNameHook = hook("setCursorFromName", "CCursorManager", (void*) &hkSetCursorFromName);
         g_pSetCursorSurfaceHook = hook("setCursorSurface", "CCursorManager", (void*) &hkSetCursorSurface);

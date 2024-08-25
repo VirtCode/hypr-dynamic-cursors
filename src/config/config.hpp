@@ -9,6 +9,7 @@
 #define CONFIG_MODE             "mode"
 #define CONFIG_THRESHOLD        "threshold"
 #define CONFIG_HW_DEBUG         "hw_debug"
+#define CONFIG_IGNORE_WARPS     "ignore_warps"
 
 #define CONFIG_SHAKE            "shake:enabled"
 #define CONFIG_SHAKE_NEAREST    "shake:nearest"

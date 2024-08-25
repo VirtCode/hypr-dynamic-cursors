@@ -154,8 +154,10 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
             Debug::log(TRACE, "hardware cursor too big! {} > {}", pointers->currentCursorImage.size, maxSize);
             return nullptr;
         }
-    } else
+    } else {
         maxSize = targetSize;
+        if (maxSize.x < 16 || maxSize.y < 16) maxSize = {16, 16}; // fix some annoying crashes in nest
+    }
 
     if (!state->monitor->cursorSwapchain || maxSize != state->monitor->cursorSwapchain->currentOptions().size || state->monitor->cursorSwapchain->currentOptions().length != 3) {
 
@@ -317,6 +319,9 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
 Handles cursor move events.
 */
 void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
+    static auto* const* PSHAKE = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE);
+    static auto* const* PIGNORE_WARPS = (Hyprlang::INT* const*) getConfig(CONFIG_IGNORE_WARPS);
+
     if (!pointers->hasCursor())
         return;
 
@@ -332,7 +337,18 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
         m->output->moveCursor(CURSORPOS);
     }
 
+    // ignore warp
+    if (!isMove && **PIGNORE_WARPS) {
+        auto mode = this->currentMode();
+        if (mode) mode->warp(lastPos, pointers->pointerPos);
+
+        if (**PSHAKE) shake.warp(lastPos, pointers->pointerPos);
+    }
+
     calculate(MOVE);
+
+    isMove = false;
+    lastPos = pointers->pointerPos;
 }
 
 void CDynamicCursors::setShape(const std::string& shape) {
@@ -425,4 +441,8 @@ void CDynamicCursors::calculate(EModeUpdate type) {
             g_pPointerManager->updateCursorBackend();
         }
     }
+}
+
+void CDynamicCursors::setMove() {
+    isMove = true;
 }

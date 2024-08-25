@@ -45,3 +45,7 @@ SModeResult CModeRotate::update(Vector2D pos) {
 
     return result;
 }
+
+void CModeRotate::warp(Vector2D old, Vector2D pos) {
+    end += (pos - old);
+}

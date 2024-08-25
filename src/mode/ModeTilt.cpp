@@ -30,3 +30,10 @@ SModeResult CModeTilt::update(Vector2D pos) {
     result.rotation = activation(function, limit, speed) * (PI / 3); // 120° in both directions
     return result;
 }
+
+void CModeTilt::warp(Vector2D old, Vector2D pos) {
+    auto delta = pos - old;
+
+    for (auto& sample : samples)
+        sample += delta;
+}

@@ -111,3 +111,10 @@ double CShake::update(Vector2D pos) {
 
     return this->zoom.value();
 }
+
+void CShake::warp(Vector2D old, Vector2D pos) {
+    auto delta = pos - old;
+
+    for (auto& sample : samples)
+        sample += delta;
+}

@@ -35,12 +35,16 @@ class CDynamicCursors {
     /* hook on setCursorSoftware */
     void unsetShape();
 
+    /* hook on move, indicate that next onCursorMoved is actual move */
+    void setMove();
+
   private:
     SP<CEventLoopTimer> tick;
 
     // current state of the cursor
     SModeResult resultMode;
     double resultShake;
+    Vector2D lastPos; // used for warp compensation
 
     SModeResult resultShown;
 
@@ -56,6 +60,9 @@ class CDynamicCursors {
 
     // shake
     CShake shake;
+
+    /* is set true if a genuine move is being performed, and will be reset to false after onCursorMoved */
+    bool isMove = false;
 
     // calculates the current angle of the cursor, and changes the cursor shape
     void calculate(EModeUpdate type);

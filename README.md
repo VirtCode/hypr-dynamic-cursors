@@ -98,10 +98,10 @@ plugin:dynamic-cursors {
     enabled = true
 
     # sets the cursor behaviour, supports these values:
-    # tilt   - tilt the cursor based on x-velocity
-    # rotate - rotate the cursor based on movement direction
+    # tilt    - tilt the cursor based on x-velocity
+    # rotate  - rotate the cursor based on movement direction
     # stretch - stretch the cursor shape based on direction and velocity
-    # none   - do not change the cursors behaviour
+    # none    - do not change the cursors behaviour
     mode = tilt
 
     # minimum angle difference in degrees after which the shape is changed
@@ -175,7 +175,7 @@ plugin:dynamic-cursors {
         base = 4.0
         # magnification increase per second when continuing to shake
         speed = 4.0
-        # factor the speed is influenced by the current shake intensitiy
+        # how much the speed is influenced by the current shake intensitiy
         influence = 0.0
 
         # maximal magnification the cursor can reach
@@ -209,7 +209,7 @@ shaperule = shape-name, mode (optional), property: value, property: value, ...
 - `property: value`: At the end of the rule follow zero or more property-value pairs. These are config values that will be overridden if this rule is active. Only config values from the sections `rotate`, `tilt`, `stretch` as seen above can be used.
 
 Here are a few example rules to get you started:
-```
+```ini
 plugin:dynamic-cursors {
     # apply a 90° offset in rotate mode to the text shape
     shaperule = text, rotate:offset: 90
@@ -225,12 +225,12 @@ plugin:dynamic-cursors {
 ### ipc
 This plugin can expose cursor shake events via IPC. This behaviour must be explicitly enabled via the `plugin:dynamic-cursors:shake:ipc` option, as it will spam the socket quite a bit during a shake. These events will appear on [Hyprland's event socket](https://wiki.hyprland.org/IPC/#xdg_runtime_dirhyprhissocket2sock).
 
-The following events with the described arguments are available, when ipc is enabled:
+The following events with the described arguments are available, when IPC is enabled:
 - `shakestart`: fired when a shake is detected.
 - `shakeupdate`: fired on frame during the shake, has arguments `x,y,trail,diagonal,zoom`:
   - `x`, `y` are the current cursor position.
-  - `trail` and `diagonal` are two values indicating the distance the mouse travelled, and the diagonal this movement was within for the last second. Their quotient `trail / diagonal` indicates how intense the shaking is.
-  - `zoom` is the current cursor magnification level, as currently shown by this plugin, as customized in the shake configuration.
+  - `trail` and `diagonal` are two floats, the first indicating the distance the mouse travelled, and second the diagonal this movement was within. Their quotient `trail / diagonal` indicates how intense the shaking is.
+  - `zoom` is the current cursor magnification level, as currently shown by this plugin, depending on the shake configuration. It is also interpolated smoothly.
 - `shakeend`: fired when a shake has ended (after the `timeout`)
 
 If you only want the IPC events and not the plugin actually changing the cursor size, you can set the properties `base` to `1`, `speed`, `influence` and `timeout` to `0` in the `plugin:dynamic-cursors:shake` section such that the cursor is not magified during the shake.
@@ -259,6 +259,8 @@ To work on this plugin, you can clone this repository and use the Makefile to bu
 ```sh
 make load
 ```
+
+In some cases when working in a nest, nothing will happen with the plugin loaded. This is because the mouse input is handled differently in a wayland nest. In these cases, set `plugin:dynamic-cursors:ignore_warps` to `false`, to disable warp ignoring, which should fix the issue.
 
 If you want to debug hardware cursors, this plugin also has an additional configuration option, `plugin:dynamic-cursors:hw_debug` which when true will show where the whole cursor buffer is, and also shows when it is updated.
 

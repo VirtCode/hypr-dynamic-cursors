@@ -16,6 +16,8 @@ class CShake {
 
     /* calculates the new zoom factor for the current pos */
     double update(Vector2D pos);
+    /* called when a cursor warp has happened (to avoid magnifying on warps) */
+    void warp(Vector2D old, Vector2D pos);
 
   private:
     /* tracks whether the current shake has already been announced in the ipc */
