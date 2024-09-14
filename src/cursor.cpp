@@ -84,12 +84,15 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     if (!texture)
         return;
 
-    box.scale(pMonitor->scale);
     box.w *= zoom;
     box.h *= zoom;
 
     if (box.intersection(CBox{{}, {pMonitor->vecSize}}).empty())
         return;
+
+    box.scale(pMonitor->scale);
+    box.x = std::round(box.x);
+    box.y = std::round(box.y);
 
     // we rotate the cursor by our calculated amount
     box.rot = resultShown.rotation;
