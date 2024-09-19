@@ -328,10 +328,24 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
     if (!pointers->hasCursor())
         return;
 
+    const auto CURSORBOX = pointers->getCursorBoxGlobal();
+    bool       recalc    = false;
+
     for (auto& m : g_pCompositor->m_vMonitors) {
         auto state = pointers->stateFor(m);
 
         state->box = pointers->getCursorBoxLogicalForMonitor(state->monitor.lock());
+
+        auto CROSSES = !m->logicalBox().intersection(CURSORBOX).empty();
+
+        if (!CROSSES && state->cursorFrontBuffer) {
+            Debug::log(TRACE, "onCursorMoved for output {}: cursor left the viewport, removing it from the backend", m->szName);
+            pointers->setHWCursorBuffer(state, nullptr);
+            continue;
+        } else if (CROSSES && !state->cursorFrontBuffer) {
+            Debug::log(TRACE, "onCursorMoved for output {}: cursor entered the output, but no front buffer, forcing recalc", m->szName);
+            recalc = true;
+        }
 
         if (state->hardwareFailed || !state->entered)
             continue;
@@ -339,6 +353,9 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
         const auto CURSORPOS = pointers->getCursorPosForMonitor(m);
         m->output->moveCursor(CURSORPOS);
     }
+
+    if (recalc)
+        pointers->updateCursorBackend();
 
     // ignore warp
     if (!isMove && **PIGNORE_WARPS) {
