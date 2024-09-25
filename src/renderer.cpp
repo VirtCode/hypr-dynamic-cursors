@@ -15,43 +15,38 @@
 /*
 This is the projectBox method from hyprland, but with support for rotation around a point, the hotspot.
 */
-void projectCursorBox(float mat[9], CBox& box, eTransform transform, float rotation, const float projection[9], Vector2D hotspot, float stretchAngle, Vector2D stretch) {
-    double x      = box.x;
-    double y      = box.y;
-    double width  = box.width;
-    double height = box.height;
-
-    matrixIdentity(mat);
-    matrixTranslate(mat, x, y);
+Mat3x3 projectCursorBox(CBox& box, eTransform transform, float rotation, const Mat3x3& projection, Vector2D hotspot, float stretchAngle, Vector2D stretch) {
+    auto mat = Mat3x3::identity();
+    mat.translate(box.pos());
 
     if (stretch != Vector2D{1,1}) {
         // center to origin, rotate, shift up, scale, undo
         // we do the shifting up so the stretch is "only to one side"
 
-        matrixTranslate(mat, box.w / 2, box.h / 2);
-        matrixRotate(mat, stretchAngle);
-        matrixTranslate(mat, 0, box.h / 2);
-        matrixScale(mat, stretch.x, stretch.y);
-        matrixTranslate(mat, 0, box.h / -2);
-        matrixRotate(mat, -stretchAngle);
-        matrixTranslate(mat, box.w / -2, box.h / -2);
+        mat.translate({box.w / 2, box.h / 2});
+        mat.rotate(stretchAngle);
+        mat.translate({0.f, box.h / 2});
+        mat.scale(stretch);
+        mat.translate({0.f, box.h / -2});
+        mat.rotate(-stretchAngle);
+        mat.translate({box.w / -2, box.h / -2});
     }
 
     if (rotation != 0) {
-        matrixTranslate(mat, hotspot.x, hotspot.y);
-        matrixRotate(mat, rotation);
-        matrixTranslate(mat, -hotspot.x, -hotspot.y);
+        mat.translate(hotspot);
+        mat.rotate(rotation);
+        mat.translate(-hotspot);
     }
 
-    matrixScale(mat, width, height);
+    mat.scale(box.size());
 
     if (transform != HYPRUTILS_TRANSFORM_NORMAL) {
-        matrixTranslate(mat, 0.5, 0.5);
-        matrixTransform(mat, transform);
-        matrixTranslate(mat, -0.5, -0.5);
+        mat.translate({0.5, 0.5});
+        mat.transform(transform);
+        mat.translate({-0.5, -0.5});
     }
 
-    matrixMultiply(mat, projection, mat);
+    return projection.copy().multiply(mat);
 }
 
 /*
@@ -77,11 +72,9 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, CRegion
 
     // get transform
     const auto TRANSFORM = wlTransformToHyprutils(invertTransform(!g_pHyprOpenGL->m_bEndFrame ? WL_OUTPUT_TRANSFORM_NORMAL : g_pHyprOpenGL->m_RenderData.pMonitor->transform));
-    float      matrix[9];
-    projectCursorBox(matrix, newBox, TRANSFORM, newBox.rot, g_pHyprOpenGL->m_RenderData.monitorProjection.data(), hotspot, stretchAngle, stretch);
+    Mat3x3 matrix = projectCursorBox(newBox, TRANSFORM, newBox.rot, g_pHyprOpenGL->m_RenderData.monitorProjection, hotspot, stretchAngle, stretch);
 
-    float glMatrix[9];
-    matrixMultiply(glMatrix, g_pHyprOpenGL->m_RenderData.projection, matrix);
+    Mat3x3 glMatrix = g_pHyprOpenGL->m_RenderData.projection.copy().multiply(matrix);
 
     CShader*   shader = nullptr;
 
@@ -106,11 +99,11 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, CRegion
     glUseProgram(shader->program);
 
 #ifndef GLES2
-    glUniformMatrix3fv(shader->proj, 1, GL_TRUE, glMatrix);
+    glUniformMatrix3fv(shader->proj, 1, GL_TRUE, glMatrix.getMatrix().data());
 #else
-    matrixTranspose(glMatrix, glMatrix);
-    glUniformMatrix3fv(shader->proj, 1, GL_FALSE, glMatrix);
+    glUniformMatrix3fv(shader->proj, 1, GL_FALSE, glMatrix.transpose().getMatrix().data());
 #endif
+
     glUniform1i(shader->tex, 0);
     glUniform1f(shader->alpha, alpha);
     glUniform1i(shader->discardOpaque, 0);
