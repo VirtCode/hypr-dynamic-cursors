@@ -6,6 +6,7 @@ class CModeStretch : public IMode {
   public:
     virtual EModeUpdate strategy();
     virtual SModeResult update(Vector2D pos);
+    virtual void reset();
     virtual void warp(Vector2D old, Vector2D pos);
 
   private:

@@ -15,10 +15,10 @@ SModeResult CModeTilt::update(Vector2D pos) {
 
     // create samples array
     int max = g_pHyprRenderer->m_pMostHzMonitor->refreshRate / 10; // 100ms worth of history
-    samples.resize(max);
+    samples.resize(max, pos);
 
     // capture current sample
-    samples[samples_index] = Vector2D{pos};
+    samples[samples_index] = pos;
     int current = samples_index;
     samples_index = (samples_index + 1) % max; // increase for next sample
     int first = samples_index;
@@ -36,4 +36,9 @@ void CModeTilt::warp(Vector2D old, Vector2D pos) {
 
     for (auto& sample : samples)
         sample += delta;
+}
+
+void CModeTilt::reset() {
+    samples.clear();
+    samples_index = 0;
 }

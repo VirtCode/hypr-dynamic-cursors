@@ -13,6 +13,12 @@ SModeResult CModeRotate::update(Vector2D pos) {
     auto length = g_pShapeRuleHandler->getIntOr(CONFIG_ROTATE_LENGTH, **PLENGTH);
     auto offset = g_pShapeRuleHandler->getFloatOr(CONFIG_ROTATE_OFFSET, **POFFSET);
 
+    // this mode has just started, start at upright orientation
+    if (end.y == 0 && end.x == 0) {
+        end.x = pos.x;
+        end.y = pos.y + length;
+    }
+
     // translate to origin
     end.x -= pos.x;
     end.y -= pos.y;
@@ -48,4 +54,8 @@ SModeResult CModeRotate::update(Vector2D pos) {
 
 void CModeRotate::warp(Vector2D old, Vector2D pos) {
     end += (pos - old);
+}
+
+void CModeRotate::reset() {
+    end = {0, 0};
 }

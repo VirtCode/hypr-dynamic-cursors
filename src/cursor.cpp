@@ -405,8 +405,13 @@ void CDynamicCursors::calculate(EModeUpdate type) {
 
     // calculate angle and zoom
     if (mode) {
+        // reset mode if it has changed
+        if (mode != lastMode) mode->reset();
+
         if (mode->strategy() == type) resultMode = mode->update(g_pPointerManager->pointerPos);
     } else resultMode = SModeResult();
+
+    lastMode = mode;
 
     if (**PSHAKE) {
         if (type == TICK) resultShake = shake.update(g_pPointerManager->pointerPos);

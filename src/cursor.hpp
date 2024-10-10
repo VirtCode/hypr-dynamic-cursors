@@ -55,8 +55,10 @@ class CDynamicCursors {
     CModeRotate rotate;
     CModeTilt tilt;
     CModeStretch stretch;
+
     /* returns the current mode, nullptr if none is selected */
     IMode* currentMode();
+    IMode* lastMode; // used to reset the mode if it was switched (to prune stale data)
 
     // shake
     CShake shake;
