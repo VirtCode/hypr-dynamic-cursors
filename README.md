@@ -51,7 +51,7 @@ Please note that this plugin was created more or less as a joke. I mainly wanted
 Installation is supported via `hyprpm`. Supported hyprland versions are `v0.41.2` and upwards. The main branch generally tries to target `-git`.
 
 ```sh
-hyprpm add https://github.com/virtcode/hypr-dynamic-cursors
+hyprpm add https://github.com/virtcode/hypr-dynamic-cursors.git
 hyprpm enable dynamic-cursors
 ```
 
