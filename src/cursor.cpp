@@ -203,7 +203,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
     CRegion damage = {0, 0, INT16_MAX, INT16_MAX};
 
     g_pHyprRenderer->makeEGLCurrent();
-    g_pHyprOpenGL->m_RenderData.pMonitor = state->monitor.get();
+    g_pHyprOpenGL->m_RenderData.pMonitor = state->monitor;
 
     auto RBO = g_pHyprRenderer->getOrCreateRenderbuffer(buf, state->monitor->cursorSwapchain->currentOptions().format);
     if (!RBO) {
@@ -262,7 +262,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
 
     RBO->bind();
 
-    g_pHyprOpenGL->beginSimple(state->monitor.get(), damage, RBO);
+    g_pHyprOpenGL->beginSimple(state->monitor.lock(), damage, RBO);
 
     if (**PHW_DEBUG)
         g_pHyprOpenGL->clear(CColor{rand() / float(RAND_MAX), rand() / float(RAND_MAX), rand() / float(RAND_MAX), 1.F});
@@ -279,7 +279,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
 
     g_pHyprOpenGL->end();
     glFlush();
-    g_pHyprOpenGL->m_RenderData.pMonitor = nullptr;
+    g_pHyprOpenGL->m_RenderData.pMonitor.reset();
 
     g_pHyprRenderer->onRenderbufferDestroy(RBO.get());
 
@@ -313,7 +313,7 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
 
     state->cursorFrontBuffer = buf;
 
-    g_pCompositor->scheduleFrameForMonitor(state->monitor.get(), Aquamarine::IOutput::AQ_SCHEDULE_CURSOR_SHAPE);
+    g_pCompositor->scheduleFrameForMonitor(state->monitor.lock(), Aquamarine::IOutput::AQ_SCHEDULE_CURSOR_SHAPE);
 
     return true;
 }
