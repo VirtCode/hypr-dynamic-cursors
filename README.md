@@ -37,7 +37,7 @@ This plugin is still very early in its development. There are also multiple thin
 - [ ] pendulum simulation
 - [X] per-shape length and starting angle (if possible)
 - [X] cursor shake to find
-- [X] overdue refactoring (wait for aquamarine merge)
+- [X] overdue refactoring
 - [ ] hyprcursor magnified shape
 
 If anything here sounds interesting to you, don't hesitate to contribute.
