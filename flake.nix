@@ -1,9 +1,9 @@
 {
-  description = "a plugin to make your hyprland cursor more realistic, also adds shake to find";
+  description = "A plugin to make your hyprland cursor more realistic, also adds shake to find";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    hyprland.url = "git+https://github.com/hyprwm/Hyprland?submodules=1";
+    hyprland.url = "github:hyprwm/Hyprland";
   };
 
   outputs = {
@@ -11,14 +11,16 @@
     nixpkgs,
     ...
   } @ inputs: let
-    forAllSystems = function:
-      nixpkgs.lib.genAttrs [
-        "x86_64-linux"
-      ] (system: function nixpkgs.legacyPackages.${system});
+    systems = ["x86_64-linux"];
+    forAllSystems = nixpkgs.lib.genAttrs systems;
+    packagesForEach = nixpkgs.legacyPackages;
   in {
-    packages = forAllSystems (pkgs: {
-      default = self.packages.${pkgs.system}.hypr-dynamic-cursors;
-      hypr-dynamic-cursors = pkgs.callPackage ./nix/package.nix {inherit inputs pkgs;};
+    packages = forAllSystems (system: rec {
+      default = hypr-dynamic-cursors;
+      hypr-dynamic-cursors = packagesForEach.${system}.callPackage ./nix/package.nix {
+        inherit inputs;
+        pkgs = packagesForEach.${system};
+      };
     });
   };
 }
