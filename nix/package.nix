@@ -1,25 +1,29 @@
 {
   inputs,
   pkgs,
-}:
-pkgs.stdenvNoCC.mkDerivation rec {
+}: let
+  inherit (inputs.hyprland.packages.${pkgs.system}) hyprland;
+  inherit (hyprland) buildInputs nativeBuildInputs;
+  inherit (pkgs) stdenvNoCC gcc13;
+
   name = "hypr-dynamic-cursors";
-  pname = name;
-  src = ./..;
-  nativeBuildInputs = inputs.hyprland.packages.${pkgs.system}.hyprland.nativeBuildInputs ++ [inputs.hyprland.packages.${pkgs.system}.hyprland pkgs.gcc13];
-  buildInputs = inputs.hyprland.packages.${pkgs.system}.hyprland.buildInputs;
+in
+  stdenvNoCC.mkDerivation {
+    inherit name buildInputs;
+    src = ./..;
+    nativeBuildInputs = nativeBuildInputs ++ [hyprland gcc13];
 
-  dontUseCmakeConfigure = true;
-  dontUseMesonConfigure = true;
-  dontUseNinjaBuild = true;
-  dontUseNinjaInstall = true;
+    dontUseCmakeConfigure = true;
+    dontUseMesonConfigure = true;
+    dontUseNinjaBuild = true;
+    dontUseNinjaInstall = true;
 
-  installPhase = ''
-    runHook preInstall
+    installPhase = ''
+      runHook preInstall
 
-    mkdir -p "$out/lib"
-    cp -r out/* "$out/lib/lib${name}.so"
+      mkdir -p "$out/lib"
+      cp -r out/* "$out/lib/lib${name}.so"
 
-    runHook postInstall
-  '';
-}
+      runHook postInstall
+    '';
+  }

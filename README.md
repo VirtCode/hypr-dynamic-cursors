@@ -61,7 +61,7 @@ Add this flake to your inputs, note that using a mismatched/unsupported Hyprland
 
 ```nix
 inputs = {
-    hyprland.url = "git+https://github.com/hyprwm/Hyprland?submodules=1"; # follows development branch of hyprland
+    hyprland.url = "github:hyprwm/Hyprland"; # follows development branch of hyprland
     hypr-dynamic-cursors = {
         url = "github:VirtCode/hypr-dynamic-cursors";
         inputs.hyprland.follows = "hyprland"; # to make sure that the plugin is built for the correct version of hyprland
