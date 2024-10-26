@@ -12,15 +12,38 @@
     ...
   } @ inputs: let
     systems = ["x86_64-linux"];
-    forAllSystems = nixpkgs.lib.genAttrs systems;
-    packagesForEach = nixpkgs.legacyPackages;
+    eachSystem = nixpkgs.lib.genAttrs systems;
+    pkgsFor = nixpkgs.legacyPackages;
   in {
-    packages = forAllSystems (system: rec {
-      default = hypr-dynamic-cursors;
-      hypr-dynamic-cursors = packagesForEach.${system}.callPackage ./nix/package.nix {
-        inherit inputs;
-        pkgs = packagesForEach.${system};
-      };
+    packages = eachSystem (system: {
+      default = self.packages.${system}.hypr-dynamic-cursors;
+      hypr-dynamic-cursors = let
+        inherit (inputs.hyprland.packages.${system}) hyprland;
+        inherit (pkgsFor.${system}) stdenvNoCC gcc13;
+
+        name = "hypr-dynamic-cursors";
+      in
+        stdenvNoCC.mkDerivation {
+          inherit name;
+          src = ./.;
+
+          inherit (hyprland) buildInputs;
+          nativeBuildInputs = hyprland.nativeBuildInputs ++ [hyprland gcc13];
+
+          dontUseCmakeConfigure = true;
+          dontUseMesonConfigure = true;
+          dontUseNinjaBuild = true;
+          dontUseNinjaInstall = true;
+
+          installPhase = ''
+            runHook preInstall
+
+            mkdir -p "$out/lib"
+            cp -r out/* "$out/lib/lib${name}.so"
+
+            runHook postInstall
+          '';
+        };
     });
   };
 }
