@@ -25,6 +25,7 @@
       in
         stdenvNoCC.mkDerivation {
           inherit name;
+          pname = name;
           src = ./.;
 
           inherit (hyprland) buildInputs;
