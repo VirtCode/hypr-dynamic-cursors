@@ -24,9 +24,7 @@
 #include "renderer.hpp"
 
 void tickRaw(SP<CEventLoopTimer> self, void* data) {
-    static auto* const* PENABLED = (Hyprlang::INT* const*) getConfig(CONFIG_ENABLED);
-
-    if (**PENABLED && g_pDynamicCursors)
+    if (isEnabled())
         g_pDynamicCursors->onTick(g_pPointerManager.get());
 
     const int TIMEOUT = g_pHyprRenderer->m_pMostHzMonitor ? 1000.0 / g_pHyprRenderer->m_pMostHzMonitor->refreshRate : 16;

@@ -13,11 +13,6 @@
 #include "src/managers/PointerManager.hpp"
 #include "src/version.h"
 
-bool isEnabled() {
-    static auto* const* PENABLED = (Hyprlang::INT* const*) getConfig(CONFIG_ENABLED);
-    return **PENABLED;
-}
-
 typedef void (*origRenderSofwareCursorsFor)(void*, SP<CMonitor>, timespec*, CRegion&, std::optional<Vector2D>);
 inline CFunctionHook* g_pRenderSoftwareCursorsForHook = nullptr;
 void hkRenderSoftwareCursorsFor(void* thisptr, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos) {

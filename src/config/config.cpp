@@ -1,9 +1,16 @@
 #include "../globals.hpp"
+#include "../cursor.hpp"
+#include "src/render/Renderer.hpp"
 #include "config.hpp"
 #include <hyprland/src/plugins/PluginAPI.hpp>
 #include <hyprlang.hpp>
 #include <stdexcept>
 #include <variant>
+
+bool isEnabled() {
+    static auto* const* PENABLED = (Hyprlang::INT* const*) getConfig(CONFIG_ENABLED);
+    return **PENABLED && g_pHyprRenderer->m_pMostHzMonitor && g_pDynamicCursors; // make sure the compositor is properly initialized
+}
 
 Hyprlang::CConfigValue toHyprlang(std::variant<std::string, float, int> value) {
 
