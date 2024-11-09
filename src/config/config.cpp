@@ -58,6 +58,10 @@ void* const* getConfig(std::string name) {
     return HyprlandAPI::getConfigValue(PHANDLE, NAMESPACE + name)->getDataStaticPtr();
 }
 
+void* const* getHyprlandConfig(std::string name) {
+    return HyprlandAPI::getConfigValue(PHANDLE, name)->getDataStaticPtr();
+}
+
 void addRulesConfig() {
     HyprlandAPI::addConfigKeyword(PHANDLE, CONFIG_SHAPERULE, onShapeRuleKeyword, Hyprlang::SHandlerOptions {});
 

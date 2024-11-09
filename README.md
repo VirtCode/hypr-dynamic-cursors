@@ -38,7 +38,7 @@ This plugin is still very early in its development. There are also multiple thin
 - [X] per-shape length and starting angle (if possible)
 - [X] cursor shake to find
 - [X] overdue refactoring (wait for aquamarine merge)
-- [ ] hyprcursor magnified shape
+- [X] hyprcursor magnified shape
 
 If anything here sounds interesting to you, don't hesitate to contribute.
 
@@ -192,6 +192,31 @@ plugin:dynamic-cursors {
         # see the `ipc` section below
         ipc = false
     }
+
+    # use hyprcursor to get a higher resolution texture when the cursor is magnified
+    # see the `hyprcursor` section below
+    hyprcursor {
+
+        # use nearest-neighbour (pixelated) scaling when magnifing beyond texture size
+        # this will also have effect without hyprcursor support being enabled
+        # 0 / false - never use pixelated scaling
+        # 1 / true  - use pixelated when no highres image
+        # 2         - always use pixleated scaling
+        nearest = true
+
+        # enable dedicated hyprcursor support
+        enabled = true
+
+        # resolution in pixels to load the magnified shapes at
+        # be warned that loading a very high-resolution image will take a long time and might impact memory consumption
+        # -1 means we use [normal cursor size] * [shake:base option]
+        resolution = -1
+
+        # shape to use when clientside cursors are being magnified
+        # see the shape-name property of shape rules for possible names
+        # specifying clientside will use the actual shape, but will be pixelated
+        fallback = clientside
+    }
 }
 ```
 
@@ -234,6 +259,20 @@ The following events with the described arguments are available, when IPC is ena
 - `shakeend`: fired when a shake has ended (after the `timeout`)
 
 If you only want the IPC events and not the plugin actually changing the cursor size, you can set the properties `base` to `1`, `speed`, `influence` and `timeout` to `0` in the `plugin:dynamic-cursors:shake` section such that the cursor is not magified during the shake.
+
+### hyprcursor
+This plugin supports using hyprcursor to get higher-resolution images for when the cursor is magnified, i.e. when using shake to find. Due to the nature of cursors on wayland, there are some caveats to it. All configuration for it is located in the `plugin:dynamic-cursors:hyprcursor` section.
+
+To use hyprcursor for magnified shapes, the following must be met:
+- `plugin:dynamic-cursors:hyprcursor:enabled` must be true (is by default)
+- `cursor:enable_hyprcursor` must be true (is by default)
+- you must be using a hyprcursor theme
+- the hyprcursor theme should be **SVG-based**
+
+As mentioned, there are some caveats to it. Here are the most common ones:
+- **Still pixelated on GTK apps and xwayland** - These apps are using clientside cursors, so the program itself is specifying the cursor shape, hence we cannot load a higher resolution for it. You can set a specific shape to show in these cases with the `fallback` option (see config).
+- **Hyprland lags when loading the plugin** - Loading a set of high resolution cursor shapes takes some time. This means your session will freeze while the theme is being loaded. You can try setting a custom / lower `resolution` option (see config).
+- **Blurred at very large sizes** - The high resolution cursors are preloaded at a fixed size. If you magnify your cursor beyond this size, your cursors will look blurry. You can increase the preload size with the `resolution` option (see config), at the expense of some memory and higher loading times.
 
 ## performance
 > **TL;DR:** Hardware cursor performance is about the same as if an animated cursor shape was shown whenever you move your mouse. Sofware cursor performance is not impacted. When the cursor is magnified during a shake, the compositor will temporarily switch to software cursors.

@@ -12,7 +12,6 @@
 #define CONFIG_IGNORE_WARPS     "ignore_warps"
 
 #define CONFIG_SHAKE            "shake:enabled"
-#define CONFIG_SHAKE_NEAREST    "shake:nearest"
 #define CONFIG_SHAKE_EFFECTS    "shake:effects"
 #define CONFIG_SHAKE_IPC        "shake:ipc"
 #define CONFIG_SHAKE_THRESHOLD  "shake:threshold"
@@ -30,6 +29,11 @@
 
 #define CONFIG_STRETCH_LIMIT    "stretch:limit"
 #define CONFIG_STRETCH_FUNCTION "stretch:function"
+
+#define CONFIG_HIGHRES_ENABLED  "hyprcursor:enabled"
+#define CONFIG_HIGHRES_NEAREST  "hyprcursor:nearest"
+#define CONFIG_HIGHRES_SIZE     "hyprcursor:resolution"
+#define CONFIG_HIGHRES_FALLBACK "hyprcursor:fallback"
 
 #define CONFIG_SHAPERULE         "shaperule"
 
@@ -52,3 +56,6 @@ void addShapeConfig(std::string name, std::variant<std::string, float, int> valu
 
 /* get static pointer to config value */
 void* const* getConfig(std::string name);
+
+/* get static pointer a hyprland config value */
+void* const* getHyprlandConfig(std::string name);

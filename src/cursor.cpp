@@ -2,15 +2,16 @@
 #include "mode/Mode.hpp"
 #include "src/debug/Log.hpp"
 #include "src/helpers/math/Math.hpp"
-#include "src/managers/eventLoop/EventLoopManager.hpp"
 
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <hyprcursor/hyprcursor.hpp>
 #include <hyprlang.hpp>
 #include <gbm.h>
 
 #define private public
+#include <hyprland/src/managers/CursorManager.hpp>
 #include <hyprland/src/managers/PointerManager.hpp>
 #include <hyprland/src/render/OpenGL.hpp>
 #include <hyprland/src/Compositor.hpp>
@@ -53,7 +54,7 @@ Reimplements rendering of the software cursor.
 Is also largely identical to hyprlands impl, but uses our custom rendering to rotate the cursor.
 */
 void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos) {
-    static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_NEAREST);
+    static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_HIGHRES_NEAREST);
 
     if (!pointers->hasCursor())
         return;
@@ -74,11 +75,35 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
         box.y = overridePos->y;
     }
 
-    // poperly transform hotspot, this first has to undo the hotspot transform from getCursorBoxGlobal
-    box.x = box.x + pointers->currentCursorImage.hotspot.x - pointers->currentCursorImage.hotspot.x * zoom;
-    box.y = box.y + pointers->currentCursorImage.hotspot.y - pointers->currentCursorImage.hotspot.y * zoom;
-
     auto texture = pointers->getCurrentCursorTexture();
+    bool nearest = false;
+
+    if (zoom > 1) {
+        // this first has to undo the hotspot transform from getCursorBoxGlobal
+        box.x += pointers->currentCursorImage.hotspot.x;
+        box.y += pointers->currentCursorImage.hotspot.y;
+
+        auto high = highres.getTexture();
+
+        if (high) {
+            texture = high;
+            auto buf = highres.getBuffer();
+
+            // we calculate a more accurate hotspot location if we have bigger shapes
+            box.x -= (buf->hotspot.x / buf->size.x) * pointers->currentCursorImage.size.x * zoom;
+            box.y -= (buf->hotspot.y / buf->size.y) * pointers->currentCursorImage.size.y * zoom;
+
+            // only use nearest-neighbour if magnifying over size
+            nearest = **PNEAREST == 2 && pointers->currentCursorImage.size.x * zoom > buf->size.x;
+
+        } else {
+            box.x -= pointers->currentCursorImage.hotspot.x * zoom;
+            box.y -= pointers->currentCursorImage.hotspot.y * zoom;
+
+            nearest = **PNEAREST;
+        }
+    }
+
     if (!texture)
         return;
 
@@ -96,7 +121,7 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     box.rot = resultShown.rotation;
 
     // now pass the hotspot to rotate around
-    renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, nullptr, 0, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
+    renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, nullptr, 0, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, nearest, resultShown.stretch.angle, resultShown.stretch.magnitude);
 
     if (pointers->currentCursorImage.surface)
             pointers->currentCursorImage.surface->resource()->frame(now);
@@ -135,7 +160,7 @@ It is largely copied from hyprland, but adjusted to allow the cursor to be rotat
 */
 SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<CTexture> texture) {
     static auto* const* PHW_DEBUG = (Hyprlang::INT* const*) getConfig(CONFIG_HW_DEBUG);
-    static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_NEAREST);
+    static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_HIGHRES_NEAREST);
 
     auto output = state->monitor->output;
 
@@ -371,10 +396,16 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
 
 void CDynamicCursors::setShape(const std::string& shape) {
     g_pShapeRuleHandler->activate(shape);
+    highres.loadShape(shape);
 }
 
 void CDynamicCursors::unsetShape() {
     g_pShapeRuleHandler->activate("clientside");
+    highres.loadShape("clientside");
+}
+
+void CDynamicCursors::updateTheme() {
+    highres.update();
 }
 
 /*

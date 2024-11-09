@@ -1,15 +1,18 @@
 #include "globals.hpp"
+#include <memory>
 
 #define private public
 #include <hyprland/src/managers/PointerManager.hpp>
 #undef private
 #include <hyprutils/math/Vector2D.hpp>
 #include <hyprland/src/managers/eventLoop/EventLoopManager.hpp>
+#include <hyprcursor/hyprcursor.hpp>
 
 #include "mode/ModeRotate.hpp"
 #include "mode/ModeTilt.hpp"
 #include "mode/ModeStretch.hpp"
 #include "other/Shake.hpp"
+#include "highres.hpp"
 
 class CDynamicCursors {
   public:
@@ -34,12 +37,17 @@ class CDynamicCursors {
     void setShape(const std::string& name);
     /* hook on setCursorSoftware */
     void unsetShape();
+    /* hook on updateTheme */
+    void updateTheme();
 
     /* hook on move, indicate that next onCursorMoved is actual move */
     void setMove();
 
   private:
     SP<CEventLoopTimer> tick;
+
+    /* hyprcursor handler for highres images */
+    CHighresHandler highres;
 
     // current state of the cursor
     SModeResult resultMode;
@@ -70,4 +78,4 @@ class CDynamicCursors {
     void calculate(EModeUpdate type);
 };
 
-inline std::unique_ptr<CDynamicCursors> g_pDynamicCursors;
+inline UP<CDynamicCursors> g_pDynamicCursors;

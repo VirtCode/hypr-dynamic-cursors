@@ -69,6 +69,13 @@ void hkMove(void* thisptr, const Vector2D& deltaLogical) {
     (*(origMove)g_pMoveHook->m_pOriginal)(thisptr, deltaLogical);
 }
 
+typedef void (*origUpdateTheme)(void*);
+inline CFunctionHook* g_pUpdateThemeHook = nullptr;
+void hkUpdateTheme(void* thisptr) {
+    (*(origUpdateTheme) g_pUpdateThemeHook->m_pOriginal)(thisptr);
+    if (isEnabled()) g_pDynamicCursors->updateTheme();
+}
+
 /* hooks a function hook */
 CFunctionHook* hook(std::string name, std::string object, void* function) {
     auto names = HyprlandAPI::findFunctionsByName(PHANDLE, name);
@@ -108,7 +115,6 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     addConfig(CONFIG_THRESHOLD, 2);
 
     addConfig(CONFIG_SHAKE, true);
-    addConfig(CONFIG_SHAKE_NEAREST, true);
     addConfig(CONFIG_SHAKE_EFFECTS, false);
     addConfig(CONFIG_SHAKE_IPC, false);
     addConfig(CONFIG_SHAKE_THRESHOLD, 6.0f);
@@ -117,6 +123,11 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     addConfig(CONFIG_SHAKE_INFLUENCE, 0.0F);
     addConfig(CONFIG_SHAKE_LIMIT, 0.0F);
     addConfig(CONFIG_SHAKE_TIMEOUT, 2000);
+
+    addConfig(CONFIG_HIGHRES_ENABLED, true);
+    addConfig(CONFIG_HIGHRES_NEAREST, true);
+    addConfig(CONFIG_HIGHRES_FALLBACK, "clientside");
+    addConfig(CONFIG_HIGHRES_SIZE, -1);
 
     addShapeConfig(CONFIG_TILT_FUNCTION, "negative_quadratic");
     addShapeConfig(CONFIG_TILT_LIMIT, 5000);
@@ -147,6 +158,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
         g_pSetCursorFromNameHook = hook("setCursorFromName", "CCursorManager", (void*) &hkSetCursorFromName);
         g_pSetCursorSurfaceHook = hook("setCursorSurface", "CCursorManager", (void*) &hkSetCursorSurface);
+        g_pUpdateThemeHook = hook("updateTheme", "CCursorManager", (void*) &hkUpdateTheme);
     } catch (...) {
         HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] Failed to load, hooks could not be made!", CColor{1.0, 0.2, 0.2, 1.0}, 5000);
         throw std::runtime_error("hooks failed");
