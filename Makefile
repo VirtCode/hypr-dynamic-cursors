@@ -5,7 +5,7 @@ all: $(PLUGIN_NAME).so
 
 $(PLUGIN_NAME).so: $(SOURCE_FILES)
 	mkdir -p out
-	g++ -shared -Wall --no-gnu-unique -fPIC $(SOURCE_FILES) -g -I /usr/include/hyprland/src `pkg-config --cflags pixman-1 libdrm hyprland` -std=c++23 -o out/$(PLUGIN_NAME).so
+	g++ -shared -Wall --no-gnu-unique -fPIC $(SOURCE_FILES) -g `pkg-config --cflags hyprland | awk '{print $$NF "/src";}'` `pkg-config --cflags pixman-1 libdrm hyprland` -std=c++23 -o out/$(PLUGIN_NAME).so
 
 clean:
 	rm -f out/$(PLUGIN_NAME).so
