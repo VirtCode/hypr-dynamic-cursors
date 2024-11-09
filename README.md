@@ -23,9 +23,9 @@ This mode tries recreating the stretching and squishing that is done to moving o
 https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/7b8289e7-9dd2-4b57-b406-4fa28779a260
 
 ### shake to find
-The plugin supports shake to find, akin to how KDE Plasma, MacOS, etc. do it. It can also be extensively configured and is enabled by default. If you only want shake to find, and no weird cursor behaviour, you can disable the above modes with the mode `none`.
+The plugin supports shake to find, akin to how KDE Plasma, MacOS, etc. do it. It can also be extensively configured and is enabled by default. It also supports using [hyprcursor](https://github.com/hyprwm/hyprcursor) for high resolution cursor images. If you only want shake to find, and no weird cursor behaviour, you can disable the above modes with the mode `none`.
 
-https://github.com/user-attachments/assets/f23669ac-b9c9-4667-993b-5133eb0a7f01
+https://github.com/user-attachments/assets/1346101e-4e62-4ba2-a1df-5940e0706514
 
 ## state
 This plugin is still very early in its development. There are also multiple things which may or may not be implemented in the future:
@@ -261,7 +261,7 @@ The following events with the described arguments are available, when IPC is ena
 If you only want the IPC events and not the plugin actually changing the cursor size, you can set the properties `base` to `1`, `speed`, `influence` and `timeout` to `0` in the `plugin:dynamic-cursors:shake` section such that the cursor is not magified during the shake.
 
 ### hyprcursor
-This plugin supports using hyprcursor to get higher-resolution images for when the cursor is magnified, i.e. when using shake to find. Due to the nature of cursors on wayland, there are some caveats to it. All configuration for it is located in the `plugin:dynamic-cursors:hyprcursor` section.
+This plugin supports using [hyprcursor](https://github.com/hyprwm/hyprcursor) to get higher-resolution images for when the cursor is magnified, i.e. when using shake to find. Due to the nature of cursors on wayland, there are some caveats to it. All configuration for it is located in the `plugin:dynamic-cursors:hyprcursor` section.
 
 To use hyprcursor for magnified shapes, the following must be met:
 - `plugin:dynamic-cursors:hyprcursor:enabled` must be true (is by default)
