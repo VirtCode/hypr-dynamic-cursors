@@ -36,7 +36,7 @@ void CHighresHandler::update() {
     static auto* const* PSHAKE_BASE= (Hyprlang::FLOAT* const*) getConfig(CONFIG_SHAKE_BASE);
     static auto* const* PSHAKE = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE); // currently only needed for shake
 
-    if (!**PENABLED || !**PUSEHYPRCURSOR || !**PSHAKE) {
+    if (!isEnabled() || !**PENABLED || !**PUSEHYPRCURSOR || !**PSHAKE) {
         // free manager if no longer enabled
         if (manager) {
             manager = nullptr;
