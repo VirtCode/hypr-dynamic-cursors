@@ -288,9 +288,9 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
     g_pHyprOpenGL->beginSimple(state->monitor.lock(), damage, RBO);
 
     if (**PHW_DEBUG)
-        g_pHyprOpenGL->clear(CColor{rand() / float(RAND_MAX), rand() / float(RAND_MAX), rand() / float(RAND_MAX), 1.F});
+        g_pHyprOpenGL->clear(CHyprColor{rand() / float(RAND_MAX), rand() / float(RAND_MAX), rand() / float(RAND_MAX), 1.F});
     else
-        g_pHyprOpenGL->clear(CColor{0.F, 0.F, 0.F, 0.F});
+        g_pHyprOpenGL->clear(CHyprColor{0.F, 0.F, 0.F, 0.F});
 
 
     // the box should start in the middle portion, rotate by our calculated amount

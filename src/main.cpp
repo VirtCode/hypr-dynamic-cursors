@@ -1,3 +1,4 @@
+#include <hyprgraphics/color/Color.hpp>
 #include <hyprland/src/helpers/memory/Memory.hpp>
 #include <hyprland/src/plugins/HookSystem.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
@@ -102,8 +103,8 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     // check that header version aligns with running version
     const std::string HASH = __hyprland_api_get_hash();
     if (HASH != GIT_COMMIT_HASH) {
-        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] Failed to load, mismatched headers!", CColor{1.0, 0.2, 0.2, 1.0}, 5000);
-        HyprlandAPI::addNotification(PHANDLE, std::format("[dynamic-cursors] Built with: {}, running: {}", GIT_COMMIT_HASH, HASH), CColor{1.0, 0.2, 0.2, 1.0}, 5000);
+        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] Failed to load, mismatched headers!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
+        HyprlandAPI::addNotification(PHANDLE, std::format("[dynamic-cursors] Built with: {}, running: {}", GIT_COMMIT_HASH, HASH), CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
         throw std::runtime_error("version mismatch");
     }
 
@@ -160,7 +161,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
         g_pSetCursorSurfaceHook = hook("setCursorSurface", "CCursorManager", (void*) &hkSetCursorSurface);
         g_pUpdateThemeHook = hook("updateTheme", "CCursorManager", (void*) &hkUpdateTheme);
     } catch (...) {
-        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] Failed to load, hooks could not be made!", CColor{1.0, 0.2, 0.2, 1.0}, 5000);
+        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] Failed to load, hooks could not be made!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
         throw std::runtime_error("hooks failed");
     }
 
