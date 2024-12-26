@@ -1,5 +1,4 @@
-#include "globals.hpp"
-#include "src/debug/Log.hpp"
+#include "../globals.hpp"
 #include <GLES2/gl2.h>
 
 #define private public
@@ -9,6 +8,7 @@
 
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/config/ConfigValue.hpp>
+#include <hyprland/src/debug/Log.hpp>
 
 #include "renderer.hpp"
 
@@ -52,7 +52,7 @@ Mat3x3 projectCursorBox(CBox& box, eTransform transform, float rotation, const M
 /*
 This renders a texture with damage but rotates the texture around a given hotspot.
 */
-void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, CRegion* damage, float alpha, SP<CSyncTimeline> waitTimeline, uint64_t waitPoint, Vector2D hotspot, bool nearest, float stretchAngle, Vector2D stretch) {
+void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const CRegion& damage, float alpha, SP<CSyncTimeline> waitTimeline, uint64_t waitPoint, Vector2D hotspot, bool nearest, float stretchAngle, Vector2D stretch) {
     TRACY_GPU_ZONE("RenderDynamicCursor");
 
     if (waitTimeline != nullptr) {
@@ -64,7 +64,7 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, CRegion
 
     alpha = std::clamp(alpha, 0.f, 1.f);
 
-    if (damage->empty())
+    if (damage.empty())
         return;
 
     CBox newBox = *pBox;
@@ -129,7 +129,7 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, CRegion
 
     if (g_pHyprOpenGL->m_RenderData.clipBox.width != 0 && g_pHyprOpenGL->m_RenderData.clipBox.height != 0) {
         CRegion damageClip{g_pHyprOpenGL->m_RenderData.clipBox.x, g_pHyprOpenGL->m_RenderData.clipBox.y, g_pHyprOpenGL->m_RenderData.clipBox.width, g_pHyprOpenGL->m_RenderData.clipBox.height};
-        damageClip.intersect(*damage);
+        damageClip.intersect(damage);
 
         if (!damageClip.empty()) {
             for (auto& RECT : damageClip.getRects()) {
@@ -138,7 +138,7 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, CRegion
             }
         }
     } else {
-        for (auto& RECT : damage->getRects()) {
+        for (auto& RECT : damage.getRects()) {
             g_pHyprOpenGL->scissor(&RECT);
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         }

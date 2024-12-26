@@ -1,8 +1,3 @@
-#include "config/config.hpp"
-#include "mode/Mode.hpp"
-#include "src/debug/Log.hpp"
-#include "src/helpers/math/Math.hpp"
-
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -10,19 +5,28 @@
 #include <hyprlang.hpp>
 #include <gbm.h>
 
+#include <hyprland/src/managers/eventLoop/EventLoopTimer.hpp> // required so we don't "unprivate" chrono
+
 #define private public
 #include <hyprland/src/managers/CursorManager.hpp>
 #include <hyprland/src/managers/PointerManager.hpp>
 #include <hyprland/src/render/OpenGL.hpp>
+#include <hyprland/src/render/Renderer.hpp>
 #include <hyprland/src/Compositor.hpp>
 #undef private
 
 #include <hyprland/src/config/ConfigValue.hpp>
 #include <hyprland/src/protocols/core/Compositor.hpp>
 #include <hyprland/src/protocols/core/Seat.hpp>
+#include <hyprland/src/debug/Log.hpp>
+#include <hyprland/src/helpers/math/Math.hpp>
 
 #include "cursor.hpp"
-#include "renderer.hpp"
+#include "render/renderer.hpp"
+#include "config/config.hpp"
+#include "mode/Mode.hpp"
+#include "render/CursorPassElement.hpp"
+#include "render/Renderer.hpp"
 
 void tickRaw(SP<CEventLoopTimer> self, void* data) {
     if (isEnabled())
@@ -120,8 +124,20 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     // we rotate the cursor by our calculated amount
     box.rot = resultShown.rotation;
 
-    // now pass the hotspot to rotate around
-    renderCursorTextureInternalWithDamage(texture, &box, &damage, 1.F, nullptr, 0, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, nearest, resultShown.stretch.angle, resultShown.stretch.magnitude);
+    CCursorPassElement::SRenderData data;
+    data.tex = texture;
+    data.box = box;
+    data.syncTimeline = pointers->currentCursorImage.waitTimeline;
+    data.syncPoint = pointers->currentCursorImage.waitPoint;
+    data.hotspot = pointers->currentCursorImage.hotspot * state->monitor->scale * zoom;
+    data.nearest = nearest;
+    data.stretchAngle = resultShown.stretch.angle;
+    data.stretchMagnitude = resultShown.stretch.magnitude;
+
+    g_pHyprRenderer->m_sRenderPass.add(makeShared<CCursorPassElement>(data));
+
+    pointers->currentCursorImage.waitTimeline.reset();
+    pointers->currentCursorImage.waitPoint = 0;
 
     if (pointers->currentCursorImage.surface)
             pointers->currentCursorImage.surface->resource()->frame(now);
@@ -298,7 +314,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
     xbox.rot = resultShown.rotation;
 
     //  use our custom draw function
-    renderCursorTextureInternalWithDamage(texture, &xbox, &damage, 1.F, pointers->currentCursorImage.waitTimeline, pointers->currentCursorImage.waitPoint, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
+    renderCursorTextureInternalWithDamage(texture, &xbox, damage, 1.F, pointers->currentCursorImage.waitTimeline, pointers->currentCursorImage.waitPoint, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
 
     g_pHyprOpenGL->end();
     glFlush();
