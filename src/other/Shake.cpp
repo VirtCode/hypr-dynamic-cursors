@@ -9,6 +9,7 @@
 #include <chrono>
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/debug/Log.hpp>
+#include <hyprutils/animation/AnimationConfig.hpp>
 
 CShake::CShake() {
     // the timing and the bezier are quite crucial, as things will break down if they are just changed slighly
@@ -23,17 +24,14 @@ CShake::CShake() {
         g_pAnimationManager->addBezierWithName(bezier, {0.22, 1.0}, {0.36, 1.0});
     });
 
-    // wtf is this struct?
-    static SAnimationPropertyConfig properties = {false, bezier, "", time / 100.F, 1, nullptr, nullptr };
-    properties.pValues = &properties;
+    // wtf is this struct, what is pValues?
+    static SP<SAnimationPropertyConfig> properties = makeShared<SAnimationPropertyConfig>();
+    properties->internalBezier = bezier;
+    properties->internalSpeed = time / 100.f;
+    properties->internalEnabled = 1;
+    properties->pValues = properties;
 
-    zoom.create(&properties, AVARDAMAGE_NONE);
-    zoom.registerVar();
-    zoom.setValueAndWarp(1);
-}
-
-CShake::~CShake() {
-    zoom.unregister();
+    g_pAnimationManager->createAnimation(1.f, zoom, properties, AVARDAMAGE_NONE);
 }
 
 double CShake::update(Vector2D pos) {
@@ -77,30 +75,30 @@ double CShake::update(Vector2D pos) {
     if (diagonal > 100 && amount > 0) {
         float delta = 1.F / g_pHyprRenderer->m_pMostHzMonitor->refreshRate;
 
-        float next = this->zoom.goal();
+        float next = this->zoom->goal();
 
         if (!started) next = **PBASE; // start on base zoom
         next += delta * (**PSPEED + (amount * amount) * **PINFLUENCE); // increase when moving
         if (**PLIMIT > 1) next = std::min(**PLIMIT, next); // limit overall zoom
 
-        if (next != this->zoom.goal()) this->zoom = next;
+        *this->zoom = next;
         this->end = steady_clock::now() + milliseconds(**PTIMEOUT);
         started = true;
     } else {
         if (started && end < std::chrono::steady_clock::now()) {
-            this->zoom = 1;
+            *this->zoom = 1;
             started = false;
         }
     }
 
     if (**PIPC) {
-        if (started || this->zoom.value() > 1) {
+        if (started || this->zoom->value() > 1) {
             if (!ipc) {
                 g_pEventManager->postEvent(SHyprIPCEvent { IPC_SHAKE_START });
                 ipc = true;
             }
 
-            g_pEventManager->postEvent(SHyprIPCEvent { IPC_SHAKE_UPDATE, std::format("{},{},{},{},{}", (int) pos.x, (int) pos.y, trail, diagonal, this->zoom.value()) });
+            g_pEventManager->postEvent(SHyprIPCEvent { IPC_SHAKE_UPDATE, std::format("{},{},{},{},{}", (int) pos.x, (int) pos.y, trail, diagonal, this->zoom->value()) });
         } else {
             if (ipc) {
                 g_pEventManager->postEvent(SHyprIPCEvent { IPC_SHAKE_END });
@@ -109,7 +107,9 @@ double CShake::update(Vector2D pos) {
         }
     }
 
-    return this->zoom.value();
+    Debug::log(ERR, "value: {}, goal: {}", this->zoom->value(), this->zoom->goal());
+
+    return this->zoom->value();
 }
 
 void CShake::warp(Vector2D old, Vector2D pos) {

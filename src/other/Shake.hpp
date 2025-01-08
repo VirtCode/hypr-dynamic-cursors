@@ -1,4 +1,5 @@
-#include "src/helpers/AnimatedVariable.hpp"
+#include "helpers/AnimatedVariable.hpp"
+#include <hyprutils/animation/AnimatedVariable.hpp>
 #include <hyprutils/math/Vector2D.hpp>
 #include <vector>
 
@@ -7,12 +8,12 @@
 #define IPC_SHAKE_END "shakeend"
 
 using namespace Hyprutils::Math;
+using namespace Hyprutils::Animation;
 using namespace std::chrono;
 
 class CShake {
   public:
     CShake();
-    ~CShake();
 
     /* calculates the new zoom factor for the current pos */
     double update(Vector2D pos);
@@ -24,7 +25,7 @@ class CShake {
     bool ipc = false;
 
     bool started = false;
-    CAnimatedVariable<float> zoom;
+    PHLANIMVAR<float> zoom;
     steady_clock::time_point end;
 
     /* ringbuffer for last samples */
