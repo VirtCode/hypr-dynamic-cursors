@@ -107,8 +107,6 @@ double CShake::update(Vector2D pos) {
         }
     }
 
-    Debug::log(ERR, "value: {}, goal: {}", this->zoom->value(), this->zoom->goal());
-
     return this->zoom->value();
 }
 
