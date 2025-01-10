@@ -5,6 +5,8 @@
 #include <hyprland/src/helpers/Monitor.hpp>
 #include <hyprland/src/Compositor.hpp>
 #include <hyprlang.hpp>
+#include <optional>
+#include <string>
 #include <unistd.h>
 
 #include "globals.hpp"
@@ -164,6 +166,31 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
         HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] Failed to load, hooks could not be made!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
         throw std::runtime_error("hooks failed");
     }
+
+    // add dispatchers
+    addDispatcher(CONFIG_DISPATCHER_MAGNIFY, [&](CVarList args) {
+        std::optional<std::string> error;
+
+        std::optional<int> duration;
+        std::optional<float> size;
+
+        try {
+            auto it = args.begin();
+            if (it != args.end() && *it != "") {
+                duration = std::stoi(*it);
+
+                it++;
+                if (it != args.end())
+                    size = std::stof(*it);
+            }
+        } catch (...) {
+            error = "types did not match";
+        }
+
+        g_pDynamicCursors->dispatchMagnify(duration, size);
+
+        return error;
+    });
 
     return {"dynamic-cursors", "a plugin to make your hyprland cursor more realistic, also adds shake to find", "Virt", "0.1"};
 }

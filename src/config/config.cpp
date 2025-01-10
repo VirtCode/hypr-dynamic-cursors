@@ -1,5 +1,7 @@
 #include "../globals.hpp"
 #include "../cursor.hpp"
+#include "SharedDefs.hpp"
+#include "debug/Log.hpp"
 #include "src/render/Renderer.hpp"
 #include "config.hpp"
 #include <hyprland/src/plugins/PluginAPI.hpp>
@@ -73,4 +75,18 @@ void addRulesConfig() {
 
 void finishConfig() {
     HyprlandAPI::reloadConfig();
+}
+
+void addDispatcher(std::string name, std::function<std::optional<std::string>(Hyprutils::String::CVarList)> handler) {
+    HyprlandAPI::addDispatcherV2(PHANDLE, NAMESPACE + name, [=](std::string in) {
+        auto error = handler(CVarList(in));
+
+        SDispatchResult result;
+        if (error.has_value()) {
+            Debug::log(ERR, "[dynamic-cursors] dispatcher {} recieved invalid args: {}", name, error.value());
+            result.error = error.value();
+        }
+
+        return result;
+    });
 }

@@ -43,6 +43,8 @@ class CDynamicCursors {
     /* hook on move, indicate that next onCursorMoved is actual move */
     void setMove();
 
+    void dispatchMagnify(std::optional<int> duration, std::optional<float> size);
+
   private:
     SP<CEventLoopTimer> tick;
 

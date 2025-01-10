@@ -1,6 +1,8 @@
 #pragma once
 
+#include <functional>
 #include <hyprlang.hpp>
+#include <hyprutils/string/VarList.hpp>
 #include "ShapeRule.hpp"
 
 #define NAMESPACE "plugin:dynamic-cursors:"
@@ -37,6 +39,8 @@
 
 #define CONFIG_SHAPERULE         "shaperule"
 
+#define CONFIG_DISPATCHER_MAGNIFY "magnify"
+
 /* is the plugin enabled */
 bool isEnabled();
 
@@ -59,3 +63,6 @@ void* const* getConfig(std::string name);
 
 /* get static pointer a hyprland config value */
 void* const* getHyprlandConfig(std::string name);
+
+/* adds a dispatcher */
+void addDispatcher(std::string name, std::function<std::optional<std::string>(Hyprutils::String::CVarList)> handler);

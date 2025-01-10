@@ -23,7 +23,7 @@ This mode tries recreating the stretching and squishing that is done to moving o
 https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/7b8289e7-9dd2-4b57-b406-4fa28779a260
 
 ### shake to find
-The plugin supports shake to find, akin to how KDE Plasma, MacOS, etc. do it. It can also be extensively configured and is enabled by default. It also supports using [hyprcursor](https://github.com/hyprwm/hyprcursor) for high resolution cursor images. If you only want shake to find, and no weird cursor behaviour, you can disable the above modes with the mode `none`.
+The plugin supports shake to find, akin to how KDE Plasma, MacOS, etc. do it. It can also be extensively configured and is enabled by default. It also supports using [hyprcursor](https://github.com/hyprwm/hyprcursor) for high resolution cursor images. The magnification can also be triggered as a dispatcher instead of on shake. If you only want shake to find, and no weird cursor behaviour, you can disable the above modes with the mode `none`.
 
 https://github.com/user-attachments/assets/1346101e-4e62-4ba2-a1df-5940e0706514
 
@@ -252,7 +252,7 @@ This plugin can expose cursor shake events via IPC. This behaviour must be expli
 
 The following events with the described arguments are available, when IPC is enabled:
 - `shakestart`: fired when a shake is detected.
-- `shakeupdate`: fired on frame during the shake, has arguments `x,y,trail,diagonal,zoom`:
+- `shakeupdate`: fired on frame during the shake, has arguments `x, y, trail, diagonal, zoom`:
   - `x`, `y` are the current cursor position.
   - `trail` and `diagonal` are two floats, the first indicating the distance the mouse travelled, and second the diagonal this movement was within. Their quotient `trail / diagonal` indicates how intense the shaking is.
   - `zoom` is the current cursor magnification level, as currently shown by this plugin, depending on the shake configuration. It is also interpolated smoothly.
@@ -273,6 +273,12 @@ As mentioned, there are some caveats to it. Here are the most common ones:
 - **Still pixelated on GTK apps and xwayland** - These apps are using clientside cursors, so the program itself is specifying the cursor shape, hence we cannot load a higher resolution for it. You can set a specific shape to show in these cases with the `fallback` option (see config).
 - **Hyprland lags when loading the plugin** - Loading a set of high resolution cursor shapes takes some time. This means your session will freeze while the theme is being loaded. You can try setting a custom / lower `resolution` option (see config).
 - **Blurred at very large sizes** - The high resolution cursors are preloaded at a fixed size. If you magnify your cursor beyond this size, your cursors will look blurry. You can increase the preload size with the `resolution` option (see config), at the expense of some memory and higher loading times.
+
+### dispatchers
+This plugin has a couple of dispatchers to trigger certain effects with a keybind. Here's a list:
+- `plugin:dynamic-cursors:magnify` with arguments `duration?, size?` triggers cursor magnification like on a shake
+  - `duration` (optional): overrides duration in milliseconds to stay magnified
+  - `size` (optional): overrides magnification factor
 
 ## performance
 > **TL;DR:** Hardware cursor performance is about the same as if an animated cursor shape was shown whenever you move your mouse. Sofware cursor performance is not impacted. When the cursor is magnified during a shake, the compositor will temporarily switch to software cursors.

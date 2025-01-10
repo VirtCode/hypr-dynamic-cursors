@@ -516,3 +516,10 @@ void CDynamicCursors::calculate(EModeUpdate type) {
 void CDynamicCursors::setMove() {
     isMove = true;
 }
+
+void CDynamicCursors::dispatchMagnify(std::optional<int> duration, std::optional<float> size) {
+    static auto* const* PSHAKE = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE);
+    if (!**PSHAKE) return;
+
+    shake.force(duration, size);
+}

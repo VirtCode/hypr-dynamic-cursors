@@ -1,4 +1,5 @@
 #include "helpers/AnimatedVariable.hpp"
+#include <bits/getopt_ext.h>
 #include <hyprutils/animation/AnimatedVariable.hpp>
 #include <hyprutils/math/Vector2D.hpp>
 #include <vector>
@@ -19,6 +20,9 @@ class CShake {
     double update(Vector2D pos);
     /* called when a cursor warp has happened (to avoid magnifying on warps) */
     void warp(Vector2D old, Vector2D pos);
+
+    /* force magnification regardless of speed now */
+    void force(std::optional<int> duration, std::optional<float> size);
 
   private:
     /* tracks whether the current shake has already been announced in the ipc */

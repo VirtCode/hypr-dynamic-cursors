@@ -110,6 +110,15 @@ double CShake::update(Vector2D pos) {
     return this->zoom->value();
 }
 
+void CShake::force(std::optional<int> duration, std::optional<float> size) {
+    static auto* const* PTIMEOUT = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_TIMEOUT);
+    static auto* const* PBASE = (Hyprlang::FLOAT* const*) getConfig(CONFIG_SHAKE_BASE);
+
+    started = true;
+    *this->zoom = size.value_or(**PBASE);
+    this->end = steady_clock::now() + milliseconds(duration.value_or(**PTIMEOUT));
+}
+
 void CShake::warp(Vector2D old, Vector2D pos) {
     auto delta = pos - old;
 
