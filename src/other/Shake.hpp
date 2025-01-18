@@ -1,5 +1,4 @@
-#include "helpers/AnimatedVariable.hpp"
-#include <bits/getopt_ext.h>
+#include <hyprland/src/helpers/AnimatedVariable.hpp>
 #include <hyprutils/animation/AnimatedVariable.hpp>
 #include <hyprutils/math/Vector2D.hpp>
 #include <vector>

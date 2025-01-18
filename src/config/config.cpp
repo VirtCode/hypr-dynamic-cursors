@@ -1,9 +1,8 @@
 #include "../globals.hpp"
 #include "../cursor.hpp"
-#include "SharedDefs.hpp"
-#include "debug/Log.hpp"
-#include "src/render/Renderer.hpp"
 #include "config.hpp"
+
+#include <hyprland/src/render/Renderer.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
 #include <hyprlang.hpp>
 #include <stdexcept>
@@ -79,7 +78,7 @@ void finishConfig() {
 
 void addDispatcher(std::string name, std::function<std::optional<std::string>(Hyprutils::String::CVarList)> handler) {
     HyprlandAPI::addDispatcherV2(PHANDLE, NAMESPACE + name, [=](std::string in) {
-        auto error = handler(CVarList(in));
+        auto error = handler(Hyprutils::String::CVarList(in));
 
         SDispatchResult result;
         if (error.has_value()) {

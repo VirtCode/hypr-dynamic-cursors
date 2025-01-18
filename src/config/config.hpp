@@ -1,9 +1,10 @@
 #pragma once
 
+#include "ShapeRule.hpp"
+
 #include <functional>
 #include <hyprlang.hpp>
 #include <hyprutils/string/VarList.hpp>
-#include "ShapeRule.hpp"
 
 #define NAMESPACE "plugin:dynamic-cursors:"
 

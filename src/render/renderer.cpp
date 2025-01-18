@@ -1,5 +1,5 @@
-#include "../globals.hpp"
 #include <GLES2/gl2.h>
+#include <hyprland/src/defines.hpp> // don't unprivate stuff in here
 
 #define private public
 #include <hyprland/src/render/OpenGL.hpp>

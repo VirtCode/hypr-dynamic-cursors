@@ -1,4 +1,4 @@
-#include "src/managers/CursorManager.hpp"
+#include <hyprland/src/managers/CursorManager.hpp>
 #include <hyprland/src/render/Texture.hpp>
 #include <hyprland/src/helpers/memory/Memory.hpp>
 #include <hyprcursor/hyprcursor.hpp>

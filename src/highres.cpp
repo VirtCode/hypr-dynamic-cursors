@@ -1,12 +1,11 @@
 #include "globals.hpp"
-#include "plugins/PluginAPI.hpp"
 #include <chrono>
 #include <cmath>
 #include <hyprlang.hpp>
 
 #include <hyprland/src/managers/eventLoop/EventLoopTimer.hpp> // required so we don't "unprivate" chrono
 #define private public
-#include "src/managers/CursorManager.hpp"
+#include <hyprland/src/managers/CursorManager.hpp>
 #undef private
 
 #include "highres.hpp"

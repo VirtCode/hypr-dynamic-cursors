@@ -2,6 +2,7 @@
 #include "utils.hpp"
 #include "../config/config.hpp"
 #include <hyprland/src/Compositor.hpp>
+#include <hyprland/src/render/Renderer.hpp>
 
 EModeUpdate CModeTilt::strategy() {
     return TICK;

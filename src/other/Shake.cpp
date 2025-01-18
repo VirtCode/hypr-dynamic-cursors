@@ -1,15 +1,15 @@
 #include "../globals.hpp"
 #include "../config/config.hpp"
-#include "src/config/ConfigManager.hpp"
-#include "src/helpers/AnimatedVariable.hpp"
-#include "src/managers/AnimationManager.hpp"
-#include "src/managers/EventManager.hpp"
 #include "Shake.hpp"
+
 #include <algorithm>
 #include <chrono>
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/debug/Log.hpp>
+#include <hyprland/src/managers/AnimationManager.hpp>
+#include <hyprland/src/managers/EventManager.hpp>
 #include <hyprutils/animation/AnimationConfig.hpp>
+#include <hyprland/src/render/Renderer.hpp>
 
 CShake::CShake() {
     // the timing and the bezier are quite crucial, as things will break down if they are just changed slighly
