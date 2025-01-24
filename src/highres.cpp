@@ -57,7 +57,7 @@ void CHighresHandler::update() {
     options.logFn = hcLogger;
     options.allowDefaultFallback = true;
 
-    manager = std::make_unique<Hyprcursor::CHyprcursorManager>(name.empty() ? nullptr : name.c_str(), options);
+    manager = makeUnique<Hyprcursor::CHyprcursorManager>(name.empty() ? nullptr : name.c_str(), options);
     if (!manager->valid()) {
         Debug::log(ERR, "Hyprcursor for dynamic cursors failed loading theme \"{}\", falling back to pixelated trash.", name);
 
