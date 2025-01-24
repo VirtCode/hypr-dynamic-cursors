@@ -148,7 +148,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     finishConfig();
 
     // init things
-    g_pDynamicCursors = std::make_unique<CDynamicCursors>();
+    g_pDynamicCursors = makeUnique<CDynamicCursors>();
 
     // try hooking
     try {
