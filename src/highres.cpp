@@ -1,9 +1,12 @@
 #include "globals.hpp"
 #include <chrono>
 #include <cmath>
+#include <future>
+#include <hyprcursor/hyprcursor.hpp>
 #include <hyprlang.hpp>
 
 #include <hyprland/src/managers/eventLoop/EventLoopTimer.hpp> // required so we don't "unprivate" chrono
+#include <hyprutils/memory/UniquePtr.hpp>
 #define private public
 #include <hyprland/src/managers/CursorManager.hpp>
 #undef private
@@ -53,36 +56,70 @@ void CHighresHandler::update() {
     if (manager && loadedName == name && loadedSize == size)
         return;
 
-    auto options = Hyprcursor::SManagerOptions();
-    options.logFn = hcLogger;
-    options.allowDefaultFallback = true;
+    // we are currently loading another theme
+    if (managerFuture) {
+        // in this case we don't do anything as proceeding would block until the future is done (thanks cpp apis)
+        // we just skip the update, but when retrieving the future we check again and then these changes will be loaded
 
-    manager = makeUnique<Hyprcursor::CHyprcursorManager>(name.empty() ? nullptr : name.c_str(), options);
-    if (!manager->valid()) {
-        Debug::log(ERR, "Hyprcursor for dynamic cursors failed loading theme \"{}\", falling back to pixelated trash.", name);
-
-        manager = nullptr;
-        texture = nullptr;
-        buffer = nullptr;
+        Debug::log(LOG, "Skipping hyprcursor theme reload for dynamic cursors because one is already being loaded");
         return;
     }
 
-    auto time = std::chrono::system_clock::now();
-
-    Debug::log(INFO, "Loading hyprcursor theme {} of size {} for dynamic cursors, this might take a while!", name, size);
     style = Hyprcursor::SCursorStyleInfo { size };
-    manager->loadThemeStyle(style);
+
     loadedSize = size;
     loadedName = name;
 
-    float ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - time).count();
-    Debug::log(INFO, "Loading finished, took {}ms", ms);
+    Debug::log(LOG, "Creating future for loading hyprcursor theme for dynamic cursors");
+
+    auto fut = std::async(std::launch::async, [=, style = style] () -> UP<Hyprcursor::CHyprcursorManager> {
+        Debug::log(INFO, "Starting to load hyprcursor theme '{}' of size {} for dynamic cursors asynchronously ...", name, size);
+        auto time = std::chrono::system_clock::now();
+
+        auto options = Hyprcursor::SManagerOptions();
+        options.logFn = hcLogger;
+        options.allowDefaultFallback = true;
+
+        auto manager = makeUnique<Hyprcursor::CHyprcursorManager>(name.empty() ? nullptr : name.c_str(), options);
+
+        if (!manager->valid()) {
+            Debug::log(ERR, "... hyprcursor for dynamic cursors failed loading theme '{}', falling back to pixelated trash.", name);
+            return nullptr;
+        }
+
+        manager->loadThemeStyle(style);
+
+        float ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - time).count();
+        Debug::log(INFO, "... hyprcursor for dynamic cursors loading finished, took {}ms", ms);
+
+        return manager;
+    });
+
+    manager = nullptr; // free old manager
+    managerFuture = makeUnique<std::future<UP<Hyprcursor::CHyprcursorManager>>>(std::move(fut));
 }
 
 void CHighresHandler::loadShape(const std::string& name) {
     static auto const* PFALLBACK = (Hyprlang::STRING const*) getConfig(CONFIG_HIGHRES_FALLBACK);
 
-    if (!manager) return;
+    if (!manager) {
+        // don't show old, potentially outdated shapes
+        texture = nullptr;
+        buffer = nullptr;
+
+        if (!managerFuture || managerFuture->wait_for(std::chrono::seconds(0)) != std::future_status::ready) return;
+
+        Debug::log(INFO, "Future for hyprcursor theme for dynamic cursors is ready, using new theme");
+        manager = managerFuture->get();
+        managerFuture = nullptr;
+
+        if (!manager) return; // could've failed
+        else {
+            // in case someone has updated the theme again in the meantime
+            update();
+            if (!manager) return; // new manager could be on the way
+        }
+    }
 
     Hyprcursor::SCursorShapeData shape = manager->getShape(name.c_str(), style);
 

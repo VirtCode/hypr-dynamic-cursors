@@ -1,3 +1,4 @@
+#include <future>
 #include <hyprland/src/managers/CursorManager.hpp>
 #include <hyprland/src/render/Texture.hpp>
 #include <hyprland/src/helpers/memory/Memory.hpp>
@@ -23,6 +24,8 @@ private:
     bool enabled = true;
 
     Hyprcursor::SCursorStyleInfo style;
+
+    UP<std::future<UP<Hyprcursor::CHyprcursorManager>>> managerFuture;
     UP<Hyprcursor::CHyprcursorManager> manager;
 
     /* keep track of loaded theme so we don't reload unnessecarily (<- i'm almost certain there's a typo in this word) */

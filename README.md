@@ -271,8 +271,9 @@ To use hyprcursor for magnified shapes, the following must be met:
 
 As mentioned, there are some caveats to it. Here are the most common ones:
 - **Still pixelated on GTK apps and xwayland** - These apps are using clientside cursors, so the program itself is specifying the cursor shape, hence we cannot load a higher resolution for it. You can set a specific shape to show in these cases with the `fallback` option (see config).
-- **Hyprland lags when loading the plugin** - Loading a set of high resolution cursor shapes takes some time. This means your session will freeze while the theme is being loaded. You can try setting a custom / lower `resolution` option (see config).
 - **Blurred at very large sizes** - The high resolution cursors are preloaded at a fixed size. If you magnify your cursor beyond this size, your cursors will look blurry. You can increase the preload size with the `resolution` option (see config), at the expense of some memory and higher loading times.
+
+Loading a cursor theme at a high resolution is relatively resource intensive. This plugin thus loads the theme asynchronously on a seperate thread, meaning your session will stay interactive during this time. But this means that when loading the plugin or changing cursor theme, your CPU might spike momentarily and the high-resolution theme will only be available after a short time (usually just a couple of seconds).
 
 ### dispatchers
 This plugin has a couple of dispatchers to trigger certain effects with a keybind. Here's a list:
