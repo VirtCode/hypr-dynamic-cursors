@@ -6,6 +6,7 @@
 #include <gbm.h>
 
 #include <hyprland/src/managers/eventLoop/EventLoopTimer.hpp> // required so we don't "unprivate" chrono
+#include <hyprutils/utils/ScopeGuard.hpp>
 
 #define private public
 #include <hyprland/src/managers/CursorManager.hpp>
@@ -201,8 +202,12 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
 
     if (!state->monitor->cursorSwapchain || maxSize != state->monitor->cursorSwapchain->currentOptions().size || state->monitor->cursorSwapchain->currentOptions().length != 3) {
 
-        if (!state->monitor->cursorSwapchain)
-            state->monitor->cursorSwapchain = Aquamarine::CSwapchain::create(state->monitor->output->getBackend()->preferredAllocator(), state->monitor->output->getBackend());
+        if (!state->monitor->cursorSwapchain) {
+            auto backend                    = state->monitor->output->getBackend();
+            auto primary                    = backend->getPrimary();
+
+            state->monitor->cursorSwapchain = Aquamarine::CSwapchain::create(state->monitor->output->getBackend()->preferredAllocator(), primary ? primary.lock() : backend);
+        }
 
         auto options     = state->monitor->cursorSwapchain->currentOptions();
         options.size     = maxSize;
@@ -301,7 +306,10 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
 
     state->cursorFrontBuffer = buf;
 
-    g_pCompositor->scheduleFrameForMonitor(state->monitor.lock(), Aquamarine::IOutput::AQ_SCHEDULE_CURSOR_SHAPE);
+    if (!state->monitor->shouldSkipScheduleFrameOnMouseEvent())
+        g_pCompositor->scheduleFrameForMonitor(state->monitor.lock(), Aquamarine::IOutput::AQ_SCHEDULE_CURSOR_SHAPE);
+
+    state->monitor->scanoutNeedsCursorUpdate = true;
 
     return true;
 }
@@ -335,11 +343,18 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
             recalc = true;
         }
 
-        if (state->hardwareFailed || !state->entered)
+        if (!state->entered)
+            continue;
+
+        Hyprutils::Utils::CScopeGuard x([m] { m->onCursorMovedOnMonitor(); });
+
+        if (state->hardwareFailed)
             continue;
 
         const auto CURSORPOS = pointers->getCursorPosForMonitor(m);
         m->output->moveCursor(CURSORPOS);
+
+        state->monitor->scanoutNeedsCursorUpdate = true;
     }
 
     if (recalc)
