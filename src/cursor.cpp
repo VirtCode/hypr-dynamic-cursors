@@ -127,8 +127,6 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     CCursorPassElement::SRenderData data;
     data.tex = texture;
     data.box = box;
-    data.syncTimeline = pointers->currentCursorImage.waitTimeline;
-    data.syncPoint = pointers->currentCursorImage.waitPoint;
     data.hotspot = pointers->currentCursorImage.hotspot * state->monitor->scale * zoom;
     data.nearest = nearest;
     data.stretchAngle = resultShown.stretch.angle;
@@ -265,7 +263,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
     xbox.rot = resultShown.rotation;
 
     //  use our custom draw function
-    renderCursorTextureInternalWithDamage(texture, &xbox, damage, 1.F, pointers->currentCursorImage.waitTimeline, pointers->currentCursorImage.waitPoint, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
+    renderCursorTextureInternalWithDamage(texture, &xbox, damage, 1.F, pointers->currentCursorImage.hotspot * state->monitor->scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
 
     g_pHyprOpenGL->end();
     glFlush();
