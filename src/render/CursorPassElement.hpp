@@ -13,8 +13,6 @@ class CCursorPassElement : public IPassElement {
         SP<CTexture>          tex;
         CBox                  box;
         CRegion               damage;
-        SP<CSyncTimeline>     syncTimeline;
-        int64_t               syncPoint = 0;
 
         Vector2D hotspot;
         bool nearest;

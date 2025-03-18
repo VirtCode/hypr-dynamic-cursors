@@ -17,8 +17,6 @@ void CCursorPassElement::draw(const CRegion& damage) {
         &data.box,
         data.damage.empty() ? damage : data.damage,
         1.F,
-        data.syncTimeline,
-        data.syncPoint,
         data.hotspot,
         data.nearest,
         data.stretchAngle,
