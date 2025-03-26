@@ -128,15 +128,13 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     CCursorPassElement::SRenderData data;
     data.tex = texture;
     data.box = box;
+
     data.hotspot = pointers->currentCursorImage.hotspot * state->monitor->scale * zoom;
     data.nearest = nearest;
     data.stretchAngle = resultShown.stretch.angle;
     data.stretchMagnitude = resultShown.stretch.magnitude;
 
     g_pHyprRenderer->m_sRenderPass.add(makeShared<CCursorPassElement>(data));
-
-    pointers->currentCursorImage.waitTimeline.reset();
-    pointers->currentCursorImage.waitPoint = 0;
 
     if (pointers->currentCursorImage.surface)
             pointers->currentCursorImage.surface->resource()->frame(now);
