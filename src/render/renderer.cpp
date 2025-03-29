@@ -72,9 +72,9 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
     CShader*   shader = nullptr;
 
     switch (tex->m_iType) {
-        case TEXTURE_RGBA: shader = &g_pHyprOpenGL->m_RenderData.pCurrentMonData->m_shRGBA; break;
-        case TEXTURE_RGBX: shader = &g_pHyprOpenGL->m_RenderData.pCurrentMonData->m_shRGBX; break;
-        case TEXTURE_EXTERNAL: shader = &g_pHyprOpenGL->m_RenderData.pCurrentMonData->m_shEXT; break;
+        case TEXTURE_RGBA: shader = &g_pHyprOpenGL->m_shaders->m_shRGBA; break;
+        case TEXTURE_RGBX: shader = &g_pHyprOpenGL->m_shaders->m_shRGBX; break;
+        case TEXTURE_EXTERNAL: shader = &g_pHyprOpenGL->m_shaders->m_shEXT; break;
         default: RASSERT(false, "tex->m_iTarget unsupported!");
     }
 
