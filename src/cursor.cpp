@@ -33,7 +33,9 @@ void tickRaw(SP<CEventLoopTimer> self, void* data) {
     if (isEnabled())
         g_pDynamicCursors->onTick(g_pPointerManager.get());
 
-    const int TIMEOUT = g_pHyprRenderer->m_pMostHzMonitor ? 1000.0 / g_pHyprRenderer->m_pMostHzMonitor->refreshRate : 16;
+    const int TIMEOUT = g_pHyprRenderer->m_pMostHzMonitor && g_pHyprRenderer->m_pMostHzMonitor->refreshRate > 0 
+        ? 1000.0 / g_pHyprRenderer->m_pMostHzMonitor->refreshRate 
+        : 16;
     self->updateTimeout(std::chrono::milliseconds(TIMEOUT));
 }
 

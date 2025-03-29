@@ -44,7 +44,7 @@ double CShake::update(Vector2D pos) {
 
     static auto* const* PIPC = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_IPC);
 
-    int max = g_pHyprRenderer->m_pMostHzMonitor->refreshRate; // 1s worth of history
+    int max = std::max(1, (int)(g_pHyprRenderer->m_pMostHzMonitor->refreshRate)); // 1s worth of history, avoiding divide by 0
     samples.resize(max);
     samples_distance.resize(max);
 
