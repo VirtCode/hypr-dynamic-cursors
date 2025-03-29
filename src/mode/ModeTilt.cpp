@@ -15,7 +15,7 @@ SModeResult CModeTilt::update(Vector2D pos) {
     auto limit = g_pShapeRuleHandler->getIntOr(CONFIG_TILT_LIMIT, **PLIMIT);
 
     // create samples array
-    int max = g_pHyprRenderer->m_pMostHzMonitor->refreshRate / 10; // 100ms worth of history
+    int max = std::max(1, (int)(g_pHyprRenderer->m_pMostHzMonitor->refreshRate / 10)); // 100ms worth of history, avoiding divide by 0
     samples.resize(max, pos);
 
     // capture current sample
