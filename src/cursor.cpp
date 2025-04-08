@@ -33,8 +33,8 @@ void tickRaw(SP<CEventLoopTimer> self, void* data) {
     if (isEnabled())
         g_pDynamicCursors->onTick(g_pPointerManager.get());
 
-    const int TIMEOUT = g_pHyprRenderer->m_pMostHzMonitor && g_pHyprRenderer->m_pMostHzMonitor->refreshRate > 0 
-        ? 1000.0 / g_pHyprRenderer->m_pMostHzMonitor->refreshRate 
+    const int TIMEOUT = g_pHyprRenderer->m_pMostHzMonitor && g_pHyprRenderer->m_pMostHzMonitor->refreshRate > 0
+        ? 1000.0 / g_pHyprRenderer->m_pMostHzMonitor->refreshRate
         : 16;
     self->updateTimeout(std::chrono::milliseconds(TIMEOUT));
 }
@@ -97,8 +97,8 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
             auto buf = highres.getBuffer();
 
             // we calculate a more accurate hotspot location if we have bigger shapes
-            box.x -= (buf->hotspot.x / buf->size.x) * pointers->currentCursorImage.size.x * zoom;
-            box.y -= (buf->hotspot.y / buf->size.y) * pointers->currentCursorImage.size.y * zoom;
+            box.x -= (buf->m_hotspot.x / buf->size.x) * pointers->currentCursorImage.size.x * zoom;
+            box.y -= (buf->m_hotspot.y / buf->size.y) * pointers->currentCursorImage.size.y * zoom;
 
             // only use nearest-neighbour if magnifying over size
             nearest = **PNEAREST == 2 && pointers->currentCursorImage.size.x * zoom > buf->size.x;
