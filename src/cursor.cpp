@@ -60,7 +60,7 @@ CDynamicCursors::~CDynamicCursors() {
 Reimplements rendering of the software cursor.
 Is also largely identical to hyprlands impl, but uses our custom rendering to rotate the cursor.
 */
-void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMonitor, timespec* now, CRegion& damage, std::optional<Vector2D> overridePos) {
+void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos) {
     static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_HIGHRES_NEAREST);
 
     if (!pointers->hasCursor())
