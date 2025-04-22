@@ -216,7 +216,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
         options.length   = 3;
         options.scanout  = true;
         options.cursor   = true;
-        options.multigpu = state->monitor->output->getBackend()->preferredAllocator()->drmFD() != g_pCompositor->m_iDRMFD;
+        options.multigpu = state->monitor->output->getBackend()->preferredAllocator()->drmFD() != g_pCompositor->m_drmFD;
         // We do not set the format. If it's unset (DRM_FORMAT_INVALID) then the swapchain will pick for us,
         // but if it's set, we don't wanna change it.
 
@@ -327,7 +327,7 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
     const auto CURSORBOX = pointers->getCursorBoxGlobal();
     bool       recalc    = false;
 
-    for (auto& m : g_pCompositor->m_vMonitors) {
+    for (auto& m : g_pCompositor->m_monitors) {
         auto state = pointers->stateFor(m);
 
         state->box = pointers->getCursorBoxLogicalForMonitor(state->monitor.lock());
@@ -457,7 +457,7 @@ void CDynamicCursors::calculate(EModeUpdate type) {
 
         bool entered = false;
 
-        for (auto& m : g_pCompositor->m_vMonitors) {
+        for (auto& m : g_pCompositor->m_monitors) {
             auto state = g_pPointerManager->stateFor(m);
 
             if (state->entered) entered = true;
