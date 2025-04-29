@@ -17,11 +17,11 @@
 #include "src/managers/PointerManager.hpp"
 #include "src/version.h"
 
-typedef void (*origRenderSofwareCursorsFor)(void*, SP<CMonitor>, const Time::steady_tp&, CRegion&, std::optional<Vector2D>);
+typedef void (*origRenderSofwareCursorsFor)(void*, SP<CMonitor>, const Time::steady_tp&, CRegion&, std::optional<Vector2D>, bool);
 inline CFunctionHook* g_pRenderSoftwareCursorsForHook = nullptr;
-void hkRenderSoftwareCursorsFor(void* thisptr, SP<CMonitor> pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos) {
-    if (isEnabled()) g_pDynamicCursors->renderSoftware((CPointerManager*) thisptr, pMonitor, now, damage, overridePos);
-    else (*(origRenderSofwareCursorsFor)g_pRenderSoftwareCursorsForHook->m_pOriginal)(thisptr, pMonitor, now, damage, overridePos);
+void hkRenderSoftwareCursorsFor(void* thisptr, SP<CMonitor> pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos, bool forceRender) {
+    if (isEnabled()) g_pDynamicCursors->renderSoftware((CPointerManager*) thisptr, pMonitor, now, damage, overridePos, forceRender);
+    else (*(origRenderSofwareCursorsFor)g_pRenderSoftwareCursorsForHook->m_pOriginal)(thisptr, pMonitor, now, damage, overridePos, forceRender);
 }
 
 typedef void (*origDamageIfSoftware)(void*);
