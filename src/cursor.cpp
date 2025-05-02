@@ -70,8 +70,8 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     auto zoom = resultShown.scale;
 
     if (!state->hardwareFailed && state->softwareLocks <= 0 && !forceRender) {
-        if (pointers->currentCursorImage.surface)
-                pointers->currentCursorImage.surface->resource()->frame(now);
+        if (pointers->m_currentCursorImage.surface)
+                pointers->m_currentCursorImage.surface->resource()->frame(now);
 
         return;
     }
@@ -87,8 +87,8 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
 
     if (zoom > 1) {
         // this first has to undo the hotspot transform from getCursorBoxGlobal
-        box.x += pointers->currentCursorImage.hotspot.x;
-        box.y += pointers->currentCursorImage.hotspot.y;
+        box.x += pointers->m_currentCursorImage.hotspot.x;
+        box.y += pointers->m_currentCursorImage.hotspot.y;
 
         auto high = highres.getTexture();
 
@@ -97,15 +97,15 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
             auto buf = highres.getBuffer();
 
             // we calculate a more accurate hotspot location if we have bigger shapes
-            box.x -= (buf->m_hotspot.x / buf->size.x) * pointers->currentCursorImage.size.x * zoom;
-            box.y -= (buf->m_hotspot.y / buf->size.y) * pointers->currentCursorImage.size.y * zoom;
+            box.x -= (buf->m_hotspot.x / buf->size.x) * pointers->m_currentCursorImage.size.x * zoom;
+            box.y -= (buf->m_hotspot.y / buf->size.y) * pointers->m_currentCursorImage.size.y * zoom;
 
             // only use nearest-neighbour if magnifying over size
-            nearest = **PNEAREST == 2 && pointers->currentCursorImage.size.x * zoom > buf->size.x;
+            nearest = **PNEAREST == 2 && pointers->m_currentCursorImage.size.x * zoom > buf->size.x;
 
         } else {
-            box.x -= pointers->currentCursorImage.hotspot.x * zoom;
-            box.y -= pointers->currentCursorImage.hotspot.y * zoom;
+            box.x -= pointers->m_currentCursorImage.hotspot.x * zoom;
+            box.y -= pointers->m_currentCursorImage.hotspot.y * zoom;
 
             nearest = **PNEAREST;
         }
@@ -131,15 +131,15 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     data.tex = texture;
     data.box = box;
 
-    data.hotspot = pointers->currentCursorImage.hotspot * state->monitor->m_scale * zoom;
+    data.hotspot = pointers->m_currentCursorImage.hotspot * state->monitor->m_scale * zoom;
     data.nearest = nearest;
     data.stretchAngle = resultShown.stretch.angle;
     data.stretchMagnitude = resultShown.stretch.magnitude;
 
     g_pHyprRenderer->m_sRenderPass.add(makeShared<CCursorPassElement>(data));
 
-    if (pointers->currentCursorImage.surface)
-            pointers->currentCursorImage.surface->resource()->frame(now);
+    if (pointers->m_currentCursorImage.surface)
+            pointers->m_currentCursorImage.surface->resource()->frame(now);
 }
 
 /*
@@ -150,15 +150,15 @@ void CDynamicCursors::damageSoftware(CPointerManager* pointers) {
 
     // we damage a padding of the diagonal around the hotspot, to accomodate for all possible hotspots and rotations
     auto zoom = resultShown.scale;
-    Vector2D size = pointers->currentCursorImage.size / pointers->currentCursorImage.scale * zoom;
+    Vector2D size = pointers->m_currentCursorImage.size / pointers->m_currentCursorImage.scale * zoom;
     int diagonal = size.size();
     Vector2D padding = {diagonal, diagonal};
 
-    CBox b = CBox{pointers->pointerPos, size + (padding * 2)}.translate(-(pointers->currentCursorImage.hotspot * zoom + padding));
+    CBox b = CBox{pointers->m_pointerPos, size + (padding * 2)}.translate(-(pointers->m_currentCursorImage.hotspot * zoom + padding));
 
     static auto PNOHW = CConfigValue<Hyprlang::INT>("cursor:no_hardware_cursors");
 
-    for (auto& mw : pointers->monitorStates) {
+    for (auto& mw : pointers->m_monitorStates) {
         if (mw->monitor.expired())
             continue;
 
@@ -182,7 +182,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
     auto maxSize    = output->cursorPlaneSize();
     auto zoom = resultShown.scale;
 
-    auto cursorSize = pointers->currentCursorImage.size * zoom;
+    auto cursorSize = pointers->m_currentCursorImage.size * zoom;
     int cursorDiagonal = cursorSize.size();
     auto cursorPadding = Vector2D{cursorDiagonal, cursorDiagonal};
     auto targetSize = cursorSize + cursorPadding * 2;
@@ -192,7 +192,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
 
     if (maxSize != Vector2D{-1, -1}) {
         if (targetSize.x > maxSize.x || targetSize.y > maxSize.y) {
-            Debug::log(TRACE, "hardware cursor too big! {} > {}", pointers->currentCursorImage.size, maxSize);
+            Debug::log(TRACE, "hardware cursor too big! {} > {}", pointers->m_currentCursorImage.size, maxSize);
             return nullptr;
         }
     } else {
@@ -264,11 +264,11 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
 
 
     // the box should start in the middle portion, rotate by our calculated amount
-    CBox xbox = {cursorPadding, Vector2D{pointers->currentCursorImage.size / pointers->currentCursorImage.scale * state->monitor->m_scale * zoom}.round()};
+    CBox xbox = {cursorPadding, Vector2D{pointers->m_currentCursorImage.size / pointers->m_currentCursorImage.scale * state->monitor->m_scale * zoom}.round()};
     xbox.rot = resultShown.rotation;
 
     //  use our custom draw function
-    renderCursorTextureInternalWithDamage(texture, &xbox, damage, 1.F, pointers->currentCursorImage.hotspot * state->monitor->m_scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
+    renderCursorTextureInternalWithDamage(texture, &xbox, damage, 1.F, pointers->m_currentCursorImage.hotspot * state->monitor->m_scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
 
     g_pHyprOpenGL->end();
     glFlush();
@@ -292,10 +292,10 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
         return false;
 
     // we need to transform the hotspot manually as we need to indent it by the padding
-    int diagonal = pointers->currentCursorImage.size.size();
+    int diagonal = pointers->m_currentCursorImage.size.size();
     Vector2D padding = {diagonal, diagonal};
 
-    const auto HOTSPOT = CBox{((pointers->currentCursorImage.hotspot * PMONITOR->m_scale) + padding) * resultShown.scale, {0, 0}}
+    const auto HOTSPOT = CBox{((pointers->m_currentCursorImage.hotspot * PMONITOR->m_scale) + padding) * resultShown.scale, {0, 0}}
         .transform(wlTransformToHyprutils(invertTransform(PMONITOR->m_transform)), PMONITOR->m_cursorSwapchain->currentOptions().size.x, PMONITOR->m_cursorSwapchain->currentOptions().size.y)
         .pos();
 
@@ -363,15 +363,15 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
     // ignore warp
     if (!isMove && **PIGNORE_WARPS) {
         auto mode = this->currentMode();
-        if (mode) mode->warp(lastPos, pointers->pointerPos);
+        if (mode) mode->warp(lastPos, pointers->m_pointerPos);
 
-        if (**PSHAKE) shake.warp(lastPos, pointers->pointerPos);
+        if (**PSHAKE) shake.warp(lastPos, pointers->m_pointerPos);
     }
 
     calculate(MOVE);
 
     isMove = false;
-    lastPos = pointers->pointerPos;
+    lastPos = pointers->m_pointerPos;
 }
 
 void CDynamicCursors::setShape(const std::string& shape) {
@@ -417,13 +417,13 @@ void CDynamicCursors::calculate(EModeUpdate type) {
         // reset mode if it has changed
         if (mode != lastMode) mode->reset();
 
-        if (mode->strategy() == type) resultMode = mode->update(g_pPointerManager->pointerPos);
+        if (mode->strategy() == type) resultMode = mode->update(g_pPointerManager->m_pointerPos);
     } else resultMode = SModeResult();
 
     lastMode = mode;
 
     if (**PSHAKE) {
-        if (type == TICK) resultShake = shake.update(g_pPointerManager->pointerPos);
+        if (type == TICK) resultShake = shake.update(g_pPointerManager->m_pointerPos);
 
         // reset mode results if shaking
         if (resultShake > 1 && !**PSHAKE_EFFECTS) resultMode = SModeResult();

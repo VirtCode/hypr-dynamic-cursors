@@ -49,8 +49,8 @@ void CHighresHandler::update() {
         return;
     }
 
-    std::string name = g_pCursorManager->m_szTheme;
-    unsigned int size = **PSIZE != -1 ? **PSIZE : std::round(g_pCursorManager->m_sCurrentStyleInfo.size * **PSHAKE_BASE * 1.5f); // * 1.5f to accomodate for slight growth
+    std::string name = g_pCursorManager->m_theme;
+    unsigned int size = **PSIZE != -1 ? **PSIZE : std::round(g_pCursorManager->m_currentStyleInfo.size * **PSHAKE_BASE * 1.5f); // * 1.5f to accomodate for slight growth
 
     // we already have loaded the same theme and size
     if (manager && loadedName == name && loadedSize == size)
