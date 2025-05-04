@@ -21,62 +21,62 @@ typedef void (*origRenderSofwareCursorsFor)(void*, SP<CMonitor>, const Time::ste
 inline CFunctionHook* g_pRenderSoftwareCursorsForHook = nullptr;
 void hkRenderSoftwareCursorsFor(void* thisptr, SP<CMonitor> pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos, bool forceRender) {
     if (isEnabled()) g_pDynamicCursors->renderSoftware((CPointerManager*) thisptr, pMonitor, now, damage, overridePos, forceRender);
-    else (*(origRenderSofwareCursorsFor)g_pRenderSoftwareCursorsForHook->m_pOriginal)(thisptr, pMonitor, now, damage, overridePos, forceRender);
+    else (*(origRenderSofwareCursorsFor)g_pRenderSoftwareCursorsForHook->m_original)(thisptr, pMonitor, now, damage, overridePos, forceRender);
 }
 
 typedef void (*origDamageIfSoftware)(void*);
 inline CFunctionHook* g_pDamageIfSoftwareHook = nullptr;
 void hkDamageIfSoftware(void* thisptr) {
     if (isEnabled()) g_pDynamicCursors->damageSoftware((CPointerManager*) thisptr);
-    else (*(origDamageIfSoftware)g_pDamageIfSoftwareHook->m_pOriginal)(thisptr);
+    else (*(origDamageIfSoftware)g_pDamageIfSoftwareHook->m_original)(thisptr);
 }
 
 typedef SP<Aquamarine::IBuffer> (*origRenderHWCursorBuffer)(void*, SP<CPointerManager::SMonitorPointerState>, SP<CTexture>);
 inline CFunctionHook* g_pRenderHWCursorBufferHook = nullptr;
 SP<Aquamarine::IBuffer> hkRenderHWCursorBuffer(void* thisptr, SP<CPointerManager::SMonitorPointerState> state, SP<CTexture> texture) {
     if (isEnabled()) return g_pDynamicCursors->renderHardware((CPointerManager*) thisptr, state, texture);
-    else return (*(origRenderHWCursorBuffer)g_pRenderHWCursorBufferHook->m_pOriginal)(thisptr, state, texture);
+    else return (*(origRenderHWCursorBuffer)g_pRenderHWCursorBufferHook->m_original)(thisptr, state, texture);
 }
 
 typedef bool (*origSetHWCursorBuffer)(void*, SP<CPointerManager::SMonitorPointerState>, SP<Aquamarine::IBuffer>);
 inline CFunctionHook* g_pSetHWCursorBufferHook = nullptr;
 bool hkSetHWCursorBuffer(void* thisptr, SP<CPointerManager::SMonitorPointerState> state, SP<Aquamarine::IBuffer> buffer) {
     if (isEnabled()) return g_pDynamicCursors->setHardware((CPointerManager*) thisptr, state, buffer);
-    else return (*(origSetHWCursorBuffer)g_pSetHWCursorBufferHook->m_pOriginal)(thisptr, state, buffer);
+    else return (*(origSetHWCursorBuffer)g_pSetHWCursorBufferHook->m_original)(thisptr, state, buffer);
 }
 
 typedef void (*origOnCursorMoved)(void*);
 inline CFunctionHook* g_pOnCursorMovedHook = nullptr;
 void hkOnCursorMoved(void* thisptr) {
     if (isEnabled()) return g_pDynamicCursors->onCursorMoved((CPointerManager*) thisptr);
-    else return (*(origOnCursorMoved)g_pOnCursorMovedHook->m_pOriginal)(thisptr);
+    else return (*(origOnCursorMoved)g_pOnCursorMovedHook->m_original)(thisptr);
 }
 
 typedef void (*origSetCusorFromName)(void*, const std::string& name);
 inline CFunctionHook* g_pSetCursorFromNameHook = nullptr;
 void hkSetCursorFromName(void* thisptr, const std::string& name) {
     if (isEnabled()) g_pDynamicCursors->setShape(name);
-    (*(origSetCusorFromName)g_pSetCursorFromNameHook->m_pOriginal)(thisptr, name);
+    (*(origSetCusorFromName)g_pSetCursorFromNameHook->m_original)(thisptr, name);
 }
 
 typedef void (*origSetCursorSurface)(void*, SP<CWLSurface>, const Vector2D&);
 inline CFunctionHook* g_pSetCursorSurfaceHook = nullptr;
 void hkSetCursorSurface(void* thisptr, SP<CWLSurface> surf, const Vector2D& hotspot) {
     if (isEnabled()) g_pDynamicCursors->unsetShape();
-    (*(origSetCursorSurface)g_pSetCursorSurfaceHook->m_pOriginal)(thisptr, surf, hotspot);
+    (*(origSetCursorSurface)g_pSetCursorSurfaceHook->m_original)(thisptr, surf, hotspot);
 }
 
 typedef void (*origMove)(void*, const Vector2D&);
 inline CFunctionHook* g_pMoveHook = nullptr;
 void hkMove(void* thisptr, const Vector2D& deltaLogical) {
     if (isEnabled()) g_pDynamicCursors->setMove();
-    (*(origMove)g_pMoveHook->m_pOriginal)(thisptr, deltaLogical);
+    (*(origMove)g_pMoveHook->m_original)(thisptr, deltaLogical);
 }
 
 typedef void (*origUpdateTheme)(void*);
 inline CFunctionHook* g_pUpdateThemeHook = nullptr;
 void hkUpdateTheme(void* thisptr) {
-    (*(origUpdateTheme) g_pUpdateThemeHook->m_pOriginal)(thisptr);
+    (*(origUpdateTheme) g_pUpdateThemeHook->m_original)(thisptr);
     if (isEnabled()) g_pDynamicCursors->updateTheme();
 }
 
