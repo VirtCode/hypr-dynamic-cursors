@@ -33,8 +33,8 @@ void tickRaw(SP<CEventLoopTimer> self, void* data) {
     if (isEnabled())
         g_pDynamicCursors->onTick(g_pPointerManager.get());
 
-    const int TIMEOUT = g_pHyprRenderer->m_pMostHzMonitor && g_pHyprRenderer->m_pMostHzMonitor->m_refreshRate > 0
-        ? 1000.0 / g_pHyprRenderer->m_pMostHzMonitor->m_refreshRate
+    const int TIMEOUT = g_pHyprRenderer->m_mostHzMonitor && g_pHyprRenderer->m_mostHzMonitor->m_refreshRate > 0
+        ? 1000.0 / g_pHyprRenderer->m_mostHzMonitor->m_refreshRate
         : 16;
     self->updateTimeout(std::chrono::milliseconds(TIMEOUT));
 }
@@ -136,7 +136,7 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     data.stretchAngle = resultShown.stretch.angle;
     data.stretchMagnitude = resultShown.stretch.magnitude;
 
-    g_pHyprRenderer->m_sRenderPass.add(makeShared<CCursorPassElement>(data));
+    g_pHyprRenderer->m_renderPass.add(makeShared<CCursorPassElement>(data));
 
     if (pointers->m_currentCursorImage.surface)
             pointers->m_currentCursorImage.surface->resource()->frame(now);
@@ -245,7 +245,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
     CRegion damage = {0, 0, INT16_MAX, INT16_MAX};
 
     g_pHyprRenderer->makeEGLCurrent();
-    g_pHyprOpenGL->m_RenderData.pMonitor = state->monitor;
+    g_pHyprOpenGL->m_renderData.pMonitor = state->monitor;
 
     auto RBO = g_pHyprRenderer->getOrCreateRenderbuffer(buf, state->monitor->m_cursorSwapchain->currentOptions().format);
 
@@ -272,7 +272,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
 
     g_pHyprOpenGL->end();
     glFlush();
-    g_pHyprOpenGL->m_RenderData.pMonitor.reset();
+    g_pHyprOpenGL->m_renderData.pMonitor.reset();
 
     g_pHyprRenderer->onRenderbufferDestroy(RBO.get());
 

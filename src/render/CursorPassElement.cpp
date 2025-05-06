@@ -33,7 +33,7 @@ bool CCursorPassElement::needsPrecomputeBlur() {
 }
 
 std::optional<CBox> CCursorPassElement::boundingBox() {
-    return data.box.copy().scale(1.F / g_pHyprOpenGL->m_RenderData.pMonitor->m_scale).round();
+    return data.box.copy().scale(1.F / g_pHyprOpenGL->m_renderData.pMonitor->m_scale).round();
 }
 
 CRegion CCursorPassElement::opaqueRegion() {
