@@ -17,6 +17,7 @@ SModeResult CModeStretch::update(Vector2D pos) {
     // create samples array
     int max = std::max(1, (int)(g_pHyprRenderer->m_mostHzMonitor->m_refreshRate / 10)); // 100ms worth of history, avoiding divide by 0
     samples.resize(max, pos);
+    samples_index = std::min(samples_index, max - 1);
 
     // capture current sample
     samples[samples_index] = pos;

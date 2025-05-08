@@ -47,6 +47,7 @@ double CShake::update(Vector2D pos) {
     int max = std::max(1, (int)(g_pHyprRenderer->m_mostHzMonitor->m_refreshRate)); // 1s worth of history, avoiding divide by 0
     samples.resize(max);
     samples_distance.resize(max);
+    samples_index = std::min(samples_index, max - 1);
 
     int previous = samples_index == 0 ? max - 1 : samples_index - 1;
     samples[samples_index] = Vector2D{pos};
