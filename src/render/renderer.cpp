@@ -69,7 +69,7 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
 
     Mat3x3 glMatrix = g_pHyprOpenGL->m_renderData.projection.copy().multiply(matrix);
 
-    CShader*   shader = nullptr;
+    SShader*   shader = nullptr;
 
     switch (tex->m_type) {
         case TEXTURE_RGBA: shader = &g_pHyprOpenGL->m_shaders->m_shRGBA; break;
