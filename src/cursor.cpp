@@ -76,10 +76,17 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
         return;
     }
 
+    // don't render cursor if forced but we are already using sw cursors for the monitor
+    // otherwise we draw the cursor again for screencopy when using sw cursors
+    if (forceRender && (state->hardwareFailed || state->softwareLocks != 0))
+        return;
+
     auto box = state->box.copy();
     if (overridePos.has_value()) {
         box.x = overridePos->x;
         box.y = overridePos->y;
+
+        box.translate(-pointers->m_currentCursorImage.hotspot);
     }
 
     auto texture = pointers->getCurrentCursorTexture();
