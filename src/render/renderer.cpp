@@ -64,7 +64,7 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
     g_pHyprOpenGL->m_renderData.renderModif.applyToBox(newBox);
 
     // get transform
-    const auto TRANSFORM = wlTransformToHyprutils(invertTransform(!g_pHyprOpenGL->m_endFrame ? WL_OUTPUT_TRANSFORM_NORMAL : g_pHyprOpenGL->m_renderData.pMonitor->m_transform));
+    const auto TRANSFORM = wlTransformToHyprutils(invertTransform(!g_pHyprOpenGL->m_monitorTransformEnabled ? WL_OUTPUT_TRANSFORM_NORMAL : g_pHyprOpenGL->m_renderData.pMonitor->m_transform));
     Mat3x3 matrix = projectCursorBox(newBox, TRANSFORM, newBox.rot, g_pHyprOpenGL->m_renderData.monitorProjection, hotspot, stretchAngle, stretch);
 
     Mat3x3 glMatrix = g_pHyprOpenGL->m_renderData.projection.copy().multiply(matrix);
