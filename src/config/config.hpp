@@ -29,9 +29,11 @@
 
 #define CONFIG_TILT_LIMIT       "tilt:limit"
 #define CONFIG_TILT_FUNCTION    "tilt:function"
+#define CONFIG_TILT_WINDOW      "tilt:window"
 
 #define CONFIG_STRETCH_LIMIT    "stretch:limit"
 #define CONFIG_STRETCH_FUNCTION "stretch:function"
+#define CONFIG_STRETCH_WINDOW   "stretch:window"
 
 #define CONFIG_HIGHRES_ENABLED  "hyprcursor:enabled"
 #define CONFIG_HIGHRES_NEAREST  "hyprcursor:nearest"

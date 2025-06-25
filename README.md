@@ -142,6 +142,10 @@ plugin:dynamic-cursors {
         # negative_quadratic - negative version of the quadratic one, feels more aggressive
         # see `activation` in `src/mode/utils.cpp` for how exactly the calculation is done
         function = negative_quadratic
+
+        # time window (ms) over which the speed is calculated
+        # higher values will make slow motions smoother but more delayed
+        window = 100
     }
 
     # for mode = stretch
@@ -158,6 +162,10 @@ plugin:dynamic-cursors {
         # negative_quadratic - negative version of the quadratic one, feels more aggressive
         # see `activation` in `src/mode/utils.cpp` for how exactly the calculation is done
         function = quadratic
+
+        # time window (ms) over which the speed is calculated
+        # higher values will make slow motions smoother but more delayed
+        window = 100
     }
 
     # configure shake to find
@@ -227,7 +235,7 @@ plugin:dynamic-cursors {
 ### shape rules
 Shape Rules can be used to override the mode or its behaviour on a per-shape basis. They can be defined with the keyword `shaperule` in the config file, preferably in the `plugin:dynamic-cursors` section.
 
-**Note:** Shape rules only apply to server side cursor shapes. Sadly, not everyone supports server side cursors yet, which means shape rules won't work with apps using toolkits like e.g. GTK.
+**Note:** Shape rules only apply to server side cursor shapes. Sadly, not everyone supports server side cursors yet, which means shape rules won't work in some applications.
 
 A shape rule usually consists of three parts:
 ```
