@@ -133,12 +133,14 @@ plugin:dynamic-cursors {
 
         # controls how powerful the tilt is, the lower, the more power
         # this value controls at which speed (px/s) the full tilt is reached
+        # the full tilt being 60° in both directions
         limit = 5000
 
         # relationship between speed and tilt, supports these values:
         # linear             - a linear function is used
         # quadratic          - a quadratic function is used (most realistic to actual air drag)
         # negative_quadratic - negative version of the quadratic one, feels more aggressive
+        # see `activation` in `src/mode/utils.cpp` for how exactly the calculation is done
         function = negative_quadratic
     }
 
@@ -147,12 +149,14 @@ plugin:dynamic-cursors {
 
         # controls how much the cursor is stretched
         # this value controls at which speed (px/s) the full stretch is reached
+        # the full stretch being twice the original length
         limit = 3000
 
         # relationship between speed and stretch amount, supports these values:
         # linear             - a linear function is used
         # quadratic          - a quadratic function is used
         # negative_quadratic - negative version of the quadratic one, feels more aggressive
+        # see `activation` in `src/mode/utils.cpp` for how exactly the calculation is done
         function = quadratic
     }
 
@@ -270,7 +274,7 @@ To use hyprcursor for magnified shapes, the following must be met:
 - the hyprcursor theme should be **SVG-based**
 
 As mentioned, there are some caveats to it. Here are the most common ones:
-- **Still pixelated on GTK apps and xwayland** - These apps are using clientside cursors, so the program itself is specifying the cursor shape, hence we cannot load a higher resolution for it. You can set a specific shape to show in these cases with the `fallback` option (see config).
+- **Still pixelated some apps and xwayland** - These apps probably are using clientside cursors, so the program itself is specifying the cursor shape, hence we cannot load a higher resolution for it. You can set a specific shape to show in these cases with the `fallback` option (see config).
 - **Blurred at very large sizes** - The high resolution cursors are preloaded at a fixed size. If you magnify your cursor beyond this size, your cursors will look blurry. You can increase the preload size with the `resolution` option (see config), at the expense of some memory and higher loading times.
 
 Loading a cursor theme at a high resolution is relatively resource intensive. This plugin thus loads the theme asynchronously on a seperate thread, meaning your session will stay interactive during this time. But this means that when loading the plugin or changing cursor theme, your CPU might spike momentarily and the high-resolution theme will only be available after a short time (usually just a couple of seconds).
@@ -282,7 +286,7 @@ This plugin has a couple of dispatchers to trigger certain effects with a keybin
   - `size` (optional): overrides magnification factor
 
 ## performance
-> **TL;DR:** Hardware cursor performance is about the same as if an animated cursor shape was shown whenever you move your mouse. Sofware cursor performance is not impacted. When the cursor is magnified during a shake, the compositor will temporarily switch to software cursors.
+> **TL;DR:** Hardware cursor performance is about the same as if an animated cursor shape was shown whenever you move your mouse. Sofware cursor performance is not impacted. When the cursor is magnified during a shake, the compositor will temporarily switch to software cursors. If your are using an nvidia gpu, this plugin will fall back to software cursors, see [compatibility](#compatibility).
 
 Depending on your Hyprland configuration, this plugin can have a different performance impact, mainly depending on whether you are using software or hardware cursors:
 
@@ -290,14 +294,14 @@ Depending on your Hyprland configuration, this plugin can have a different perfo
 Transforming the cursor can be done in the same draw call that is used to draw the cursor anyway, so there is no additional performance impact. Note however that software cursors in of themselves are not really efficient.
 
 **Hardware Cursors**: Medium performance impact. <br>
-To transform the cursor smoothly, the cursor shape needs to be changed quite often. This is not exactly compatible with how hardware cursors are intended to work. Thus, performance can be compared to how an animated cursor shape would be rendered, every time the cursor is not stationary. It is however still more performant than software cursors. <br> Another limitation of hardware cursors are the size they are rendered at. This means that when the cursor is being magnified, software cursors will be used temporarily.
+To transform the cursor smoothly, the cursor shape needs to be changed quite often. This is not exactly compatible with how hardware cursors are intended to work. Thus, performance can be compared to how an animated cursor shape would be rendered, every time the cursor is not stationary. It is however still more performant than software cursors. <br> Another limitation of hardware cursors are the size they are rendered at. This means that when the cursor is being magnified, software cursors will be used temporarily. <br> If your are using an Nvidia GPU, the plugin will also fall back to software cursors because of driver limitations (see [compatibility](#compatibility)).
 
 If you have any ideas to improve performance, let me know!
 
 ## compatibility
 Compatibility with other plugins is not guaranteed. It probably should work with most plugins, unless they also change your cursor's behaviour. It will however work with any cursor theme.
 
-Also, this plugin won't work if your hardware cursors rely on `cursor:allow_dumb_copy = true`, which is probably the case if you are on nvidia. You'll probably have to wait until hardware cursors are correctly supported on Hyprland, and use software cursors in the meantime.
+The plugin does also not support _hardware cursors_ on Nvidia GPUs. If you are on nvidia, Hyprland will use CPU rendering to draw into your hardware cursor buffer, because of driver limitations. When using an effect with this plugin however, we potentially draw into the cursor buffer every frame (when the cursor is moving) which is really resource intensive if done on the CPU. Additionally the whole drawing logic would have to be implemented again to be able run on the CPU too. This is why on Nvidia GPUs, the plugin will automatically force the compositor to use software cursors, avoiding the above issues at a slight performance penalty.
 
 ## development
 To work on this plugin, you can clone this repository and use the Makefile to build it. I suggest opening a nested Hyprland session, and loading the plugin there:
@@ -310,7 +314,7 @@ In some cases when working in a nest, nothing will happen with the plugin loaded
 
 If you want to debug hardware cursors, this plugin also has an additional configuration option, `plugin:dynamic-cursors:hw_debug` which when true will show where the whole cursor buffer is, and also shows when it is updated.
 
-Also make sure you disable the plugin on your host session, otherwise your cursor will be rotated twice.
+Also make sure you disable the plugin on your host session if your are using hardware cursors, otherwise your cursor will be rotated twice.
 
 ## license
 This plugin is licensed under the MIT License. Have a look at the `LICENSE.md` file for more information.
