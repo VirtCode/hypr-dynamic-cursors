@@ -143,7 +143,7 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
     data.stretchAngle = resultShown.stretch.angle;
     data.stretchMagnitude = resultShown.stretch.magnitude;
 
-    g_pHyprRenderer->m_renderPass.add(makeShared<CCursorPassElement>(data));
+    g_pHyprRenderer->m_renderPass.add(makeUnique<CCursorPassElement>(data));
 
     if (pointers->m_currentCursorImage.surface)
             pointers->m_currentCursorImage.surface->resource()->frame(now);
