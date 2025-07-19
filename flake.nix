@@ -30,6 +30,7 @@
 
           inherit (hyprland) buildInputs;
           nativeBuildInputs = hyprland.nativeBuildInputs ++ [hyprland gcc14];
+          enableParallelBuilding = true;
 
           dontUseCmakeConfigure = true;
           dontUseMesonConfigure = true;
@@ -40,7 +41,7 @@
             runHook preInstall
 
             mkdir -p "$out/lib"
-            cp -r out/* "$out/lib/lib${name}.so"
+            cp -r out/dynamic-cursors.so "$out/lib/lib${name}.so"
 
             runHook postInstall
           '';
