@@ -6,7 +6,7 @@
 #include <chrono>
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/debug/Log.hpp>
-#include <hyprland/src/managers/AnimationManager.hpp>
+#include <hyprland/src/managers/animation/AnimationManager.hpp>
 #include <hyprland/src/managers/EventManager.hpp>
 #include <hyprutils/animation/AnimationConfig.hpp>
 #include <hyprland/src/render/Renderer.hpp>
