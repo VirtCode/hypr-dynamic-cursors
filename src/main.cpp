@@ -13,6 +13,7 @@
 #include "cursor.hpp"
 #include "config/config.hpp"
 #include "helpers/time/Time.hpp"
+#include "render/Renderer.hpp"
 #include "src/debug/Log.hpp"
 #include "src/managers/PointerManager.hpp"
 #include "src/version.h"
@@ -198,7 +199,12 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     return {"dynamic-cursors", "a plugin to make your hyprland cursor more realistic, also adds shake to find", "Virt", "0.1"};
 }
 
-APICALL EXPORT void PLUGIN_EXIT() { }
+APICALL EXPORT void PLUGIN_EXIT() {
+
+    // we need to remove our pass elements because otherwise we'll have some
+    // invalid passes after unload, causing a SEGV
+    g_pHyprRenderer->m_renderPass.removeAllOfType("CCursorPassElement");
+}
 
 // Do NOT change this function.
 APICALL EXPORT std::string PLUGIN_API_VERSION() {

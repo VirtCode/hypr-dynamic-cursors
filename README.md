@@ -46,7 +46,7 @@ Please note that this plugin was created more or less as a joke. I mainly wanted
 
 ## installation
 
-> Note, this plugin is only supported on `x84_64` architectures, see [compatibility](#compatibility) for more info. If you don't know what this means, you're probably fine.
+> Note that this plugin is only supported on `x84_64` architectures, see [compatibility](#compatibility) for more info. If you don't know what this means, you're probably fine.
 
 ### hyprpm
 
