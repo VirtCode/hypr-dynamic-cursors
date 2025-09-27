@@ -46,6 +46,8 @@ Please note that this plugin was created more or less as a joke. I mainly wanted
 
 ## installation
 
+> Note, this plugin is only supported on `x84_64` architectures, see [compatibility](#compatibility) for more info. If you don't know what this means, you're probably fine.
+
 ### hyprpm
 
 Installation is supported via `hyprpm`. Supported hyprland versions are `v0.41.2` and upwards. The main branch generally tries to target `-git`.
@@ -307,6 +309,8 @@ To transform the cursor smoothly, the cursor shape needs to be changed quite oft
 If you have any ideas to improve performance, let me know!
 
 ## compatibility
+This plugin makes heavy use of [function hooks](https://wiki.hypr.land/Plugins/Development/Advanced/#using-function-hooks), a feature of Hyprland's plugin API which is only supported on `x86_64` systems. The plugin will load on other architectures but won't actually do anything useful. If you want support for other architectures, [bother Vaxry here](https://github.com/hyprwm/Hyprland/discussions/10695).
+
 Compatibility with other plugins is not guaranteed. It probably should work with most plugins, unless they also change your cursor's behaviour. It will however work with any cursor theme.
 
 The plugin does also not support _hardware cursors_ on Nvidia GPUs. If you are on nvidia, Hyprland will use CPU rendering to draw into your hardware cursor buffer, because of driver limitations. When using an effect with this plugin however, we potentially draw into the cursor buffer every frame (when the cursor is moving) which is really resource intensive if done on the CPU. Additionally the whole drawing logic would have to be implemented again to be able run on the CPU too. This is why on Nvidia GPUs, the plugin will automatically force the compositor to use software cursors, avoiding the above issues at a slight performance penalty.
