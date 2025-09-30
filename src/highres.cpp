@@ -33,7 +33,7 @@ static void hcLogger(enum eHyprcursorLogLevel level, char* message) {
 }
 
 void CHighresHandler::update() {
-    std::lock_guard<std::mutex> lock(updateMutex);
+    std::lock_guard<std::recursive_mutex> lock(updateMutex);
 
     static auto* const* PENABLED = (Hyprlang::INT* const*) getConfig(CONFIG_HIGHRES_ENABLED);
     static auto* const* PUSEHYPRCURSOR = (Hyprlang::INT* const*) getHyprlandConfig("cursor:enable_hyprcursor");
@@ -104,7 +104,7 @@ void CHighresHandler::update() {
 }
 
 void CHighresHandler::loadShape(const std::string& name) {
-    std::lock_guard<std::mutex> lock(updateMutex);
+    std::lock_guard<std::recursive_mutex> lock(updateMutex);
 
     static auto const* PFALLBACK = (Hyprlang::STRING const*) getConfig(CONFIG_HIGHRES_FALLBACK);
 

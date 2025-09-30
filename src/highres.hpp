@@ -23,7 +23,7 @@ public:
 
 private:
     bool enabled = true;
-    std::mutex updateMutex; // Protect against race conditions during config reload
+    std::recursive_mutex updateMutex; // Protect against race conditions during config reload (recursive for update->loadShape->update)
 
     Hyprcursor::SCursorStyleInfo style;
 
