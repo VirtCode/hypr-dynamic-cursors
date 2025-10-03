@@ -1,5 +1,4 @@
 #include <future>
-#include <mutex>
 #include <hyprland/src/managers/CursorManager.hpp>
 #include <hyprland/src/render/Texture.hpp>
 #include <hyprland/src/helpers/memory/Memory.hpp>
@@ -23,7 +22,6 @@ public:
 
 private:
     bool enabled = true;
-    std::recursive_mutex updateMutex; // Protect against race conditions during config reload (recursive for update->loadShape->update)
 
     Hyprcursor::SCursorStyleInfo style;
 

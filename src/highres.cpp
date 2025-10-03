@@ -28,13 +28,11 @@ CHighresHandler::CHighresHandler() {
 static void hcLogger(enum eHyprcursorLogLevel level, char* message) {
     if (level == HC_LOG_TRACE) return;
     // Copy message to avoid race condition when called from background thread
-    std::string safe_message(message ? message : "");
-    Debug::log(NONE, "[hc (dynamic)] {}", safe_message);
+    std::string msg(message ? message : "");
+    Debug::log(NONE, "[hc (dynamic)] {}", msg);
 }
 
 void CHighresHandler::update() {
-    std::lock_guard<std::recursive_mutex> lock(updateMutex);
-
     static auto* const* PENABLED = (Hyprlang::INT* const*) getConfig(CONFIG_HIGHRES_ENABLED);
     static auto* const* PUSEHYPRCURSOR = (Hyprlang::INT* const*) getHyprlandConfig("cursor:enable_hyprcursor");
     static auto* const* PSIZE = (Hyprlang::INT* const*) getConfig(CONFIG_HIGHRES_SIZE);
@@ -104,8 +102,6 @@ void CHighresHandler::update() {
 }
 
 void CHighresHandler::loadShape(const std::string& name) {
-    std::lock_guard<std::recursive_mutex> lock(updateMutex);
-
     static auto const* PFALLBACK = (Hyprlang::STRING const*) getConfig(CONFIG_HIGHRES_FALLBACK);
 
     if (!manager) {
