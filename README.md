@@ -22,6 +22,9 @@ This mode tries recreating the stretching and squishing that is done to moving o
 
 https://github.com/VirtCode/hypr-dynamic-cursors/assets/41426325/7b8289e7-9dd2-4b57-b406-4fa28779a260
 
+### edge squash
+The cursor squashes when it gets close to screen edges, like it's being pressed against them. It flattens perpendicular to the edge and stretches along it. In corners, it squashes diagonally. There's also some spring physics so it bounces back smoothly when you pull away. The effect works independently of the simulation modes above and is enabled by default.
+
 ### shake to find
 The plugin supports shake to find, akin to how KDE Plasma, MacOS, etc. do it. It can also be extensively configured and is enabled by default. It also supports using [hyprcursor](https://github.com/hyprwm/hyprcursor) for high resolution cursor images. The magnification can also be triggered as a dispatcher instead of on shake. If you only want shake to find, and no weird cursor behaviour, you can disable the above modes with the mode `none`.
 
@@ -168,6 +171,31 @@ plugin:dynamic-cursors {
         # time window (ms) over which the speed is calculated
         # higher values will make slow motions smoother but more delayed
         window = 100
+    }
+
+    # configure edge squash effect
+    # squashes the cursor when near screen edges
+    edge_squash {
+
+        # enables edge squash
+        enabled = true
+
+        # distance from edge in pixels to start the effect
+        distance = 130
+
+        # strength of the squash effect (1.0 = full squash at edge)
+        strength = 1.0
+
+        # distance from corner (in px) to trigger diagonal squashing
+        # only applies when close to both edges simultaneously
+        corner_radius = 60
+
+        # spring physics for bounce-back effect
+        # how quickly cursor bounces back (0.0 - 1.0, higher = faster)
+        spring_stiffness = 0.15
+
+        # prevents oscillation (0.0 - 1.0, higher = more damping)
+        spring_damping = 0.7
     }
 
     # configure shake to find
