@@ -146,7 +146,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     addShapeConfig(CONFIG_ROTATE_OFFSET, 0.0f);
 
     addConfig(CONFIG_HW_DEBUG, false);
-    addConfig(CONFIG_IGNORE_WARPS, false);
+    addConfig(CONFIG_IGNORE_WARPS, true);
 
     addRulesConfig();
     finishConfig();
