@@ -105,10 +105,11 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     PHANDLE = handle;
 
     // check that header version aligns with running version
-    const std::string HASH = __hyprland_api_get_hash();
-    if (HASH != GIT_COMMIT_HASH) {
+    const std::string COMPOSITOR_HASH = __hyprland_api_get_hash();
+    const std::string CLIENT_HASH = __hyprland_api_get_client_hash();
+    if (COMPOSITOR_HASH != CLIENT_HASH) {
         HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] Failed to load, mismatched headers!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
-        HyprlandAPI::addNotification(PHANDLE, std::format("[dynamic-cursors] Built with: {}, running: {}", GIT_COMMIT_HASH, HASH), CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
+        HyprlandAPI::addNotification(PHANDLE, std::format("[dynamic-cursors] Built with: {}, running: {}", COMPOSITOR_HASH, CLIENT_HASH), CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
         throw std::runtime_error("version mismatch");
     }
 
