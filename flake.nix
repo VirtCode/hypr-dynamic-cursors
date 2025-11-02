@@ -19,7 +19,7 @@
       default = self.packages.${system}.hypr-dynamic-cursors;
       hypr-dynamic-cursors = let
         inherit (inputs.hyprland.packages.${system}) hyprland;
-        inherit (pkgsFor.${system}) stdenvNoCC gcc14;
+        inherit (pkgsFor.${system}) stdenvNoCC gcc15;
 
         name = "hypr-dynamic-cursors";
       in
@@ -29,7 +29,7 @@
           src = ./.;
 
           inherit (hyprland) buildInputs;
-          nativeBuildInputs = hyprland.nativeBuildInputs ++ [hyprland gcc14];
+          nativeBuildInputs = hyprland.nativeBuildInputs ++ [hyprland gcc15];
           enableParallelBuilding = true;
 
           dontUseCmakeConfigure = true;
