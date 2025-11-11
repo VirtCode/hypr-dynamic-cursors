@@ -12,6 +12,7 @@
 #include "mode/ModeTilt.hpp"
 #include "mode/ModeStretch.hpp"
 #include "other/Shake.hpp"
+#include "other/EdgeSquash.hpp"
 #include "highres.hpp"
 
 class CDynamicCursors {
@@ -72,6 +73,9 @@ class CDynamicCursors {
 
     // shake
     CShake shake;
+
+    // edge squash
+    CEdgeSquash edgeSquash;
 
     /* is set true if a genuine move is being performed, and will be reset to false after onCursorMoved */
     bool isMove = false;
