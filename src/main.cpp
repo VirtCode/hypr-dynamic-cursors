@@ -116,10 +116,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     const std::string CLIENT_HASH = __hyprland_api_get_client_hash();
     if (COMPOSITOR_HASH != CLIENT_HASH) {
         HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] failed to load, version mismatch!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
-
-        // we assume that the log interface is stable (surely right?)
-        Debug::log(ERR, "[dynamic-cursors] cannot load, header mismatch. built against: '{}', running: '{}'", CLIENT_HASH, COMPOSITOR_HASH);
-        throw std::runtime_error("version mismatch");
+        throw std::runtime_error(std::format("version mismatch, built against: {}, running compositor: {}", CLIENT_HASH, COMPOSITOR_HASH));
     }
 
     // setup config
