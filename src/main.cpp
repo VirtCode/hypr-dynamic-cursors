@@ -89,7 +89,8 @@ CFunctionHook* hook(std::string name, std::string object, void* function) {
 
     // we hook on member functions, so search for them
     for (auto match : names) {
-        if (!match.demangled.starts_with(object)) continue;
+        Debug::log(LOG, "[dynamic-cursors] demangled is the following '{}', mangled is '{}'", match.demangled, match.signature);
+        if (!match.signature.contains(object)) continue;
 
         Debug::log(LOG, "[dynamic-cursors] hooking on {} for {}::{}", match.demangled, object, name);
 
