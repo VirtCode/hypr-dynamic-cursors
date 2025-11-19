@@ -6,8 +6,10 @@
 #include <hyprland/src/Compositor.hpp>
 #include <hyprlang.hpp>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <unistd.h>
+#include <dlfcn.h>
 
 #include "globals.hpp"
 #include "cursor.hpp"
@@ -81,24 +83,29 @@ void hkUpdateTheme(void* thisptr) {
     if (isEnabled()) g_pDynamicCursors->updateTheme();
 }
 
-/* hooks a function hook */
-CFunctionHook* hook(std::string name, std::string object, void* function) {
-    auto names = HyprlandAPI::findFunctionsByName(PHANDLE, name);
+/*
+ * hooks a function hook
+ * for some fucking reason the upstream function to find the address is deprecated
+ * so "fine, I'll do it myself"
+ */
+CFunctionHook* hook(const char* signature, void* function) {
+    Debug::log(LOG, "[dynamic-cursors] starting to hook for {}", signature);
 
-    // we hook on member functions, so search for them
-    for (auto match : names) {
-        if (!match.demangled.starts_with(object)) continue;
-
-        Debug::log(LOG, "[dynamic-cursors] hooking on {} for {}::{}", match.demangled, object, name);
-
-        auto hook = HyprlandAPI::createFunctionHook(PHANDLE, match.address, function);
-        hook->hook();
-
-        return hook;
+    void* addr = dlsym(nullptr, signature);
+    if (addr == NULL) {
+        Debug::log(ERR, "[dynamic-cursors] failed to hook, symbol not found");
+        throw std::runtime_error("symbol not found, are you up-to-date?");
     }
 
-    Debug::log(ERR, "Could not find hooking candidate for {}::{}", object, name);
-    throw std::runtime_error("no hook candidate found");
+    auto hook = HyprlandAPI::createFunctionHook(PHANDLE, addr, function);
+
+    Debug::log(LOG, "[dynamic-cursors] trying to hook {:p}", addr);
+    if (!hook->hook()) {
+        Debug::log(ERR, "[dynamic-cursors] could not hook, hooking failed");
+        throw std::runtime_error("hooking failed, are you on x86_64?");
+    }
+
+    return hook;
 }
 
 APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
@@ -108,8 +115,10 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     const std::string COMPOSITOR_HASH = __hyprland_api_get_hash();
     const std::string CLIENT_HASH = __hyprland_api_get_client_hash();
     if (COMPOSITOR_HASH != CLIENT_HASH) {
-        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] Failed to load, mismatched headers!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
-        HyprlandAPI::addNotification(PHANDLE, std::format("[dynamic-cursors] Built with: {}, running: {}", COMPOSITOR_HASH, CLIENT_HASH), CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
+        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] failed to load, version mismatch!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
+
+        // we assume that the log interface is stable (surely right?)
+        Debug::log(ERR, "[dynamic-cursors] cannot load, header mismatch. built against: '{}', running: '{}'", CLIENT_HASH, COMPOSITOR_HASH);
         throw std::runtime_error("version mismatch");
     }
 
@@ -157,19 +166,53 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     // try hooking
     try {
-        g_pRenderSoftwareCursorsForHook = hook("renderSoftwareCursorsFor", "CPointerManager", (void*) &hkRenderSoftwareCursorsFor);
-        g_pDamageIfSoftwareHook = hook("damageIfSoftware", "CPointerManager", (void*) &hkDamageIfSoftware);
-        g_pRenderHWCursorBufferHook = hook("renderHWCursorBuffer", "CPointerManager", (void*) &hkRenderHWCursorBuffer);
-        g_pSetHWCursorBufferHook = hook("setHWCursorBuffer", "CPointerManager", (void*) &hkSetHWCursorBuffer);
-        g_pOnCursorMovedHook = hook("onCursorMoved", "CPointerManager", (void*) &hkOnCursorMoved);
-        g_pMoveHook = hook("moveER", "CPointerManager", (void*) &hkMove); // this `ER` makes it faster because `move` is very generic
+        // CPointerManager
+        g_pRenderSoftwareCursorsForHook = hook( // renderSoftwareCursorsFor
+            "_ZN15CPointerManager24renderSoftwareCursorsForEN9Hyprutils6Memory14CSharedPointerI8CMonitorEERKNSt6chrono10time_pointINS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEERNS0_4Math7CRegionESt8optionalINSG_8Vector2DEEb",
+            (void*) &hkRenderSoftwareCursorsFor
+        );
+        g_pDamageIfSoftwareHook = hook( // damageIfSoftware
+            "_ZN15CPointerManager16damageIfSoftwareEv",
+            (void*) &hkDamageIfSoftware
+        );
+        g_pRenderHWCursorBufferHook = hook( // renderHWCursorBuffer
+            "_ZN15CPointerManager20renderHWCursorBufferEN9Hyprutils6Memory14CSharedPointerINS_20SMonitorPointerStateEEENS2_I8CTextureEE",
+            (void*) &hkRenderHWCursorBuffer
+        );
+        g_pSetHWCursorBufferHook = hook( // setHWCursorBuffer
+            "_ZN15CPointerManager17setHWCursorBufferEN9Hyprutils6Memory14CSharedPointerINS_20SMonitorPointerStateEEENS2_IN10Aquamarine7IBufferEEE",
+            (void*) &hkSetHWCursorBuffer
+        );
+        g_pOnCursorMovedHook = hook( // onCursorMoved
+            "_ZN15CPointerManager13onCursorMovedEv",
+            (void*) &hkOnCursorMoved
+        );
+        g_pMoveHook = hook( // move
+            "_ZN15CPointerManager4moveERKN9Hyprutils4Math8Vector2DE",
+            (void*) &hkMove
+        );
 
-        g_pSetCursorFromNameHook = hook("setCursorFromName", "CCursorManager", (void*) &hkSetCursorFromName);
-        g_pSetCursorSurfaceHook = hook("setCursorSurface", "CCursorManager", (void*) &hkSetCursorSurface);
-        g_pUpdateThemeHook = hook("updateTheme", "CCursorManager", (void*) &hkUpdateTheme);
+        // CCursorManager
+        g_pSetCursorFromNameHook = hook( // setCursorFromName
+            "_ZN14CCursorManager17setCursorFromNameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+            (void*) &hkSetCursorFromName
+        );
+        g_pSetCursorSurfaceHook = hook( // setCursorSurface
+            "_ZN14CCursorManager16setCursorSurfaceEN9Hyprutils6Memory14CSharedPointerI10CWLSurfaceEERKNS0_4Math8Vector2DE",
+            (void*) &hkSetCursorSurface
+        );
+        g_pUpdateThemeHook = hook( // updateThemes
+            "_ZN14CCursorManager11updateThemeEv",
+            (void*) &hkUpdateTheme
+        );
+    } catch (std::exception& e) {
+        Debug::log(ERR, "[dynamic-cursors] failed to hook, {}", e.what());
+        HyprlandAPI::addNotification(PHANDLE, std::format("[dynamic-cursors] cannot load, {}", e.what()), CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
+        throw e;
     } catch (...) {
-        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] Failed to load, hooks could not be made!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
-        throw std::runtime_error("hooks failed");
+        Debug::log(ERR, "[dynamic-cursors] failed to hook for unknown reason");
+        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] cannot load, unknown error with hooks!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
+        throw std::runtime_error("hooks failed for unknown reason");
     }
 
     // add dispatchers
