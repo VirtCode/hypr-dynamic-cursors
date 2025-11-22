@@ -410,6 +410,7 @@ IMode* CDynamicCursors::currentMode() {
     if (mode == "rotate") return &rotate;
     else if (mode == "tilt") return &tilt;
     else if (mode == "stretch") return &stretch;
+    else if (mode == "combined") return &combined;  // ← ADD THIS
     else return nullptr;
 }
 
