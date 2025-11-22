@@ -8,7 +8,7 @@
 EModeUpdate CModeCombined::strategy() {
     // need TICK for tilt & stretch velocity calculations
     // rotate uses MOVE but TICK is a superset (updates more often)
-    return TICK;
+    return MOVE;
 }
 
 SModeResult CModeCombined::update(Vector2D pos) {
