@@ -6,13 +6,11 @@
 #include <cmath>
 
 EModeUpdate CModeCombined::strategy() {
-    // need TICK for tilt & stretch velocity calculations
-    // rotate uses MOVE but TICK is a superset (updates more often)
     return MOVE;
 }
 
 SModeResult CModeCombined::update(Vector2D pos) {
-    // ============ CONFIG VALUES ============
+    // cfg values
     // rotate
     static auto* const* PROTATE_LENGTH = (Hyprlang::INT* const*) getConfig(CONFIG_ROTATE_LENGTH);
     static auto* const* PROTATE_OFFSET = (Hyprlang::FLOAT* const*) getConfig(CONFIG_ROTATE_OFFSET);
@@ -35,7 +33,7 @@ SModeResult CModeCombined::update(Vector2D pos) {
     auto stretchLimit = g_pShapeRuleHandler->getIntOr(CONFIG_STRETCH_LIMIT, **PSTRETCH_LIMIT);
     auto stretchWindow = g_pShapeRuleHandler->getIntOr(CONFIG_STRETCH_WINDOW, **PSTRETCH_WINDOW);
 
-    // ============ SAMPLES SETUP ============
+    // samples setup
     // use the larger window for sample buffer (covers both tilt and stretch needs)
     int windowMs = std::max(tiltWindow, stretchWindow);
     int max = std::max(1, (int)(g_pHyprRenderer->m_mostHzMonitor->m_refreshRate / 1000 * windowMs));
@@ -47,7 +45,7 @@ SModeResult CModeCombined::update(Vector2D pos) {
     samples_index = (samples_index + 1) % max;
     int first = samples_index;
 
-    // ============ ROTATE CALCULATION ============
+    // rotate calc
     // simulated stick being dragged
     if (rotateEnd.y == 0 && rotateEnd.x == 0) {
         rotateEnd.x = pos.x;
@@ -79,12 +77,12 @@ SModeResult CModeCombined::update(Vector2D pos) {
     rotateEnd.x += pos.x;
     rotateEnd.y += pos.y;
 
-    // ============ TILT CALCULATION ============
+    // tilt calc
     // tilt based on horizontal velocity
     double tiltSpeed = (samples[current].x - samples[first].x) / tiltWindow * 1000;
     double tiltAngle = activation(tiltFunction, tiltLimit, tiltSpeed) * (PI / 3);
 
-    // ============ STRETCH CALCULATION ============
+    // stretch calc
     // stretch based on overall velocity
     Vector2D velocity = (samples[current] - samples[first]) / stretchWindow * 1000;
     double mag = velocity.size();
@@ -93,7 +91,7 @@ SModeResult CModeCombined::update(Vector2D pos) {
     if (mag == 0) stretchAngle = 0;
     double stretchScale = activation(stretchFunction, stretchLimit, mag);
 
-    // ============ COMBINE ALL THE THINGS ============
+    // combine all stuff
     auto result = SModeResult();
 
     // rotation: combine rotate + tilt

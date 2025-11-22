@@ -4,8 +4,8 @@
 #include <vector>
 
 /*
-    COMBINED MODE - the ultimate cursor experience
-    stacks tilt + rotate + stretch all at once for maximum realism
+    combined mode - the ultimate cursor experience
+    stacks tilt + rotate + stretch all at once for maximum realism (sorta)
 */
 class CModeCombined : public IMode {
   public:

@@ -223,8 +223,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
         options.length   = 3;
         options.scanout  = true;
         options.cursor   = true;
-        // fuck off multigpu bc i dont need it
-        // options.multigpu = state->monitor->m_output->getBackend()->preferredAllocator()->drmFD() != g_pCompositor->m_drm.fd;
+        options.multigpu = state->monitor->m_output->getBackend()->preferredAllocator()->drmFD() != g_pCompositor->m_drm.fd;
         // We do not set the format. If it's unset (DRM_FORMAT_INVALID) then the swapchain will pick for us,
         // but if it's set, we don't wanna change it.
 
@@ -410,7 +409,7 @@ IMode* CDynamicCursors::currentMode() {
     if (mode == "rotate") return &rotate;
     else if (mode == "tilt") return &tilt;
     else if (mode == "stretch") return &stretch;
-    else if (mode == "combined") return &combined;  // ← ADD THIS
+    else if (mode == "combined") return &combined;
     else return nullptr;
 }
 

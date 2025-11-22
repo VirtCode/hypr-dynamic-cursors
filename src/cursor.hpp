@@ -66,7 +66,7 @@ class CDynamicCursors {
     CModeRotate rotate;
     CModeTilt tilt;
     CModeStretch stretch;
-    CModeCombined combined;  // ← ADD THIS
+    CModeCombined combined;
 
     /* returns the current mode, nullptr if none is selected */
     IMode* currentMode();
