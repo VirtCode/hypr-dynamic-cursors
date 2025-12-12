@@ -373,6 +373,8 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
         if (mode) mode->warp(lastPos, pointers->m_pointerPos);
 
         if (**PSHAKE) shake.warp(lastPos, pointers->m_pointerPos);
+
+        edgeSquash.warp(lastPos, pointers->m_pointerPos);
     }
 
     calculate(MOVE);
@@ -436,8 +438,23 @@ void CDynamicCursors::calculate(EModeUpdate type) {
         if (resultShake > 1 && !**PSHAKE_EFFECTS) resultMode = SModeResult();
     } else resultShake = 1;
 
+    // calculate edge squash
+    auto edgeResult = edgeSquash.update(g_pPointerManager->m_pointerPos);
+
     auto result = resultMode;
     result.scale *= resultShake;
+
+    // combine edge squash with mode result
+    if (edgeResult.stretch.magnitude.x != 1.0 || edgeResult.stretch.magnitude.y != 1.0) {
+        // If mode has no stretch, use edge squash directly
+        if (result.stretch.magnitude.x == 1.0 && result.stretch.magnitude.y == 1.0) {
+            result.stretch = edgeResult.stretch;
+        } else {
+            // Combine stretches by multiplying magnitudes
+            result.stretch.magnitude.x *= edgeResult.stretch.magnitude.x;
+            result.stretch.magnitude.y *= edgeResult.stretch.magnitude.y;
+        }
+    }
 
     if (resultShown.hasDifference(&result, **PTHRESHOLD * (PI / 180.0), 0.01, 0.01)) {
         resultShown = result;

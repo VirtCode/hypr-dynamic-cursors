@@ -24,6 +24,13 @@
 #define CONFIG_SHAKE_LIMIT      "shake:limit"
 #define CONFIG_SHAKE_TIMEOUT    "shake:timeout"
 
+#define CONFIG_EDGE_ENABLED         "edge_squash:enabled"
+#define CONFIG_EDGE_DISTANCE        "edge_squash:distance"
+#define CONFIG_EDGE_STRENGTH        "edge_squash:strength"
+#define CONFIG_EDGE_CORNER_RADIUS   "edge_squash:corner_radius"
+#define CONFIG_EDGE_SPRING_STIFFNESS "edge_squash:spring_stiffness"
+#define CONFIG_EDGE_SPRING_DAMPING   "edge_squash:spring_damping"
+
 #define CONFIG_ROTATE_LENGTH    "rotate:length"
 #define CONFIG_ROTATE_OFFSET    "rotate:offset"
 
