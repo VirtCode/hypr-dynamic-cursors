@@ -1,4 +1,6 @@
 #include "../globals.hpp"
+#include <sstream> // required so we don't "unprivate" sstream before including cursor.hpp
+#include <hyprland/src/managers/eventLoop/EventLoopTimer.hpp> // required so we don't "unprivate" chrono before including cursor.hpp
 #include "../cursor.hpp"
 #include "config.hpp"
 
@@ -82,7 +84,7 @@ void addDispatcher(std::string name, std::function<std::optional<std::string>(Hy
 
         SDispatchResult result;
         if (error.has_value()) {
-            Debug::log(ERR, "[dynamic-cursors] dispatcher {} recieved invalid args: {}", name, error.value());
+            Log::logger->log(Log::ERR, "[dynamic-cursors] dispatcher {} recieved invalid args: {}", name, error.value());
             result.error = error.value();
         }
 

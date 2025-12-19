@@ -1,6 +1,6 @@
 #include "utils.hpp"
 #include <string>
-#include <hyprland/src/debug/Log.hpp>
+#include <hyprland/src/debug/log/Logger.hpp>
 
 double activation(std::string function, double max, double value) {
     double result = 0;
@@ -23,7 +23,7 @@ double activation(std::string function, double max, double value) {
 
         result *= (value > 0 ? 1 : -1);
     } else
-        Debug::log(WARN, "[dynamic-cursors] unknown air function specified");
+        Log::logger->log(Log::WARN, "[dynamic-cursors] unknown air function specified");
 
     return std::clamp(result, -1.0, 1.0);
 }
