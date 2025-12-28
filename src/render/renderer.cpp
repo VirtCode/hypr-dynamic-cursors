@@ -68,7 +68,7 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
     g_pHyprOpenGL->m_renderData.renderModif.applyToBox(newBox);
 
     // get transform
-    const auto TRANSFORM = wlTransformToHyprutils(invertTransform(!g_pHyprOpenGL->m_monitorTransformEnabled ? WL_OUTPUT_TRANSFORM_NORMAL : g_pHyprOpenGL->m_renderData.pMonitor->m_transform));
+    const auto TRANSFORM = Math::wlTransformToHyprutils(Math::invertTransform(!g_pHyprOpenGL->m_monitorTransformEnabled ? WL_OUTPUT_TRANSFORM_NORMAL : g_pHyprOpenGL->m_renderData.pMonitor->m_transform));
     Mat3x3 matrix = projectCursorBox(newBox, TRANSFORM, newBox.rot, g_pHyprOpenGL->m_renderData.monitorProjection, hotspot, stretchAngle, stretch);
 
     Mat3x3 glMatrix = g_pHyprOpenGL->m_renderData.projection.copy().multiply(matrix);
@@ -98,7 +98,7 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
     shader->setUniformInt(SHADER_DISCARD_ALPHA, 0);
 
     CBox transformedBox = newBox;
-    transformedBox.transform(wlTransformToHyprutils(invertTransform(g_pHyprOpenGL->m_renderData.pMonitor->m_transform)), g_pHyprOpenGL->m_renderData.pMonitor->m_transformedSize.x, g_pHyprOpenGL->m_renderData.pMonitor->m_transformedSize.y);
+    transformedBox.transform(Math::wlTransformToHyprutils(Math::invertTransform(g_pHyprOpenGL->m_renderData.pMonitor->m_transform)), g_pHyprOpenGL->m_renderData.pMonitor->m_transformedSize.x, g_pHyprOpenGL->m_renderData.pMonitor->m_transformedSize.y);
 
     const auto TOPLEFT  = Vector2D(transformedBox.x, transformedBox.y);
     const auto FULLSIZE = Vector2D(transformedBox.width, transformedBox.height);
