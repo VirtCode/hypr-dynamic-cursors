@@ -304,7 +304,7 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
     Vector2D padding = {diagonal, diagonal};
 
     const auto HOTSPOT = CBox{((pointers->m_currentCursorImage.hotspot * PMONITOR->m_scale) + padding) * resultShown.scale, {0, 0}}
-        .transform(wlTransformToHyprutils(invertTransform(PMONITOR->m_transform)), PMONITOR->m_cursorSwapchain->currentOptions().size.x, PMONITOR->m_cursorSwapchain->currentOptions().size.y)
+        .transform(Math::wlTransformToHyprutils(Math::invertTransform(PMONITOR->m_transform)), PMONITOR->m_cursorSwapchain->currentOptions().size.x, PMONITOR->m_cursorSwapchain->currentOptions().size.y)
         .pos();
 
     Log::logger->log(Log::TRACE, "[pointer] hw transformed hotspot for {}: {}", state->monitor->m_name, HOTSPOT);
