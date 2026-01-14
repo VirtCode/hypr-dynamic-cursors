@@ -73,12 +73,12 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
 
     Mat3x3 glMatrix = g_pHyprOpenGL->m_renderData.projection.copy().multiply(matrix);
 
-    SShader*   shader = nullptr;
+    WP<CShader> shader;
 
     switch (tex->m_type) {
-        case TEXTURE_RGBA: shader = &g_pHyprOpenGL->m_shaders->m_shRGBA; break;
-        case TEXTURE_RGBX: shader = &g_pHyprOpenGL->m_shaders->m_shRGBX; break;
-        case TEXTURE_EXTERNAL: shader = &g_pHyprOpenGL->m_shaders->m_shEXT; break;
+        case TEXTURE_RGBA: shader = g_pHyprOpenGL->m_shaders->frag[SH_FRAG_RGBA]; break;
+        case TEXTURE_RGBX: shader = g_pHyprOpenGL->m_shaders->frag[SH_FRAG_RGBX]; break;
+        case TEXTURE_EXTERNAL: shader = g_pHyprOpenGL->m_shaders->frag[SH_FRAG_EXT]; break;
         default: RASSERT(false, "tex->m_iTarget unsupported!");
     }
 
@@ -89,7 +89,7 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
     glTexParameteri(tex->m_target, GL_TEXTURE_MAG_FILTER, scaling);
     glTexParameteri(tex->m_target, GL_TEXTURE_MIN_FILTER, scaling);
 
-    g_pHyprOpenGL->useProgram(shader->program);
+    g_pHyprOpenGL->useShader(shader);
 
     shader->setUniformMatrix3fv(SHADER_PROJ, 1, GL_TRUE, glMatrix.getMatrix());
     shader->setUniformInt(SHADER_TEX, 0);
@@ -109,8 +109,8 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
 
     shader->setUniformInt(SHADER_APPLY_TINT, 0);
 
-    glBindVertexArray(shader->uniformLocations[SHADER_SHADER_VAO]);
-    glBindBuffer(GL_ARRAY_BUFFER, shader->uniformLocations[SHADER_SHADER_VBO_UV]);
+    glBindVertexArray(shader->getUniformLocation(SHADER_SHADER_VAO));
+    glBindBuffer(GL_ARRAY_BUFFER, shader->getUniformLocation(SHADER_SHADER_VBO_UV));
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(fullVerts), fullVerts);
 
     if (g_pHyprOpenGL->m_renderData.clipBox.width != 0 && g_pHyprOpenGL->m_renderData.clipBox.height != 0) {
