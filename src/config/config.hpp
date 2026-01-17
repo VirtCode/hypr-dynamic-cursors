@@ -30,6 +30,7 @@
 #define CONFIG_TILT_LIMIT       "tilt:limit"
 #define CONFIG_TILT_FUNCTION    "tilt:function"
 #define CONFIG_TILT_WINDOW      "tilt:window"
+#define CONFIG_FULL_TILT        "tilt:full_tilt"
 
 #define CONFIG_STRETCH_LIMIT    "stretch:limit"
 #define CONFIG_STRETCH_FUNCTION "stretch:function"
