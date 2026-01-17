@@ -144,7 +144,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     addShapeConfig(CONFIG_TILT_FUNCTION, "negative_quadratic");
     addShapeConfig(CONFIG_TILT_LIMIT, 5000);
     addShapeConfig(CONFIG_TILT_WINDOW, 100);
-    addShapeConfig(CONFIG_FULL_TILT, 120);
+    addShapeConfig(CONFIG_FULL_TILT, 60);
 
     addShapeConfig(CONFIG_STRETCH_FUNCTION, "negative_quadratic");
     addShapeConfig(CONFIG_STRETCH_LIMIT, 3000);
