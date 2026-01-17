@@ -33,7 +33,7 @@ SModeResult CModeTilt::update(Vector2D pos) {
     double speed = (samples[current].x - samples[first].x) / window * 1000;
 
     auto result = SModeResult();
-    result.rotation = activation(function, limit, speed) * (PI / (180.0 / full_tilt * 2));
+    result.rotation = activation(function, limit, speed) * (PI / (180.0 / full_tilt));
     return result;
 }
 
