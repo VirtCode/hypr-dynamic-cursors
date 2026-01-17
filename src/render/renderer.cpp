@@ -110,8 +110,8 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
     shader->setUniformInt(SHADER_APPLY_TINT, 0);
 
     glBindVertexArray(shader->getUniformLocation(SHADER_SHADER_VAO));
-    glBindBuffer(GL_ARRAY_BUFFER, shader->getUniformLocation(SHADER_SHADER_VBO_UV));
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(fullVerts), fullVerts);
+    glBindBuffer(GL_ARRAY_BUFFER, shader->getUniformLocation(SHADER_SHADER_VBO));
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(fullVerts), fullVerts.data());
 
     if (g_pHyprOpenGL->m_renderData.clipBox.width != 0 && g_pHyprOpenGL->m_renderData.clipBox.height != 0) {
         CRegion damageClip{g_pHyprOpenGL->m_renderData.clipBox.x, g_pHyprOpenGL->m_renderData.clipBox.y, g_pHyprOpenGL->m_renderData.clipBox.width, g_pHyprOpenGL->m_renderData.clipBox.height};
