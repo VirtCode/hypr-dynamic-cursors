@@ -135,7 +135,6 @@ plugin:dynamic-cursors {
 
         # controls how powerful the tilt is, the lower, the more power
         # this value controls at which speed (px/s) the full tilt is reached
-        # the full tilt being 60° in both directions
         limit = 5000
 
         # relationship between speed and tilt, supports these values:
@@ -148,6 +147,9 @@ plugin:dynamic-cursors {
         # time window (ms) over which the speed is calculated
         # higher values will make slow motions smoother but more delayed
         window = 100
+
+        # full tilt for each side (°)
+        full_tilt = 60
     }
 
     # for mode = stretch
