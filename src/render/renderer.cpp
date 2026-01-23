@@ -76,9 +76,9 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
     WP<CShader> shader;
 
     switch (tex->m_type) {
-        case TEXTURE_RGBA: shader = g_pHyprOpenGL->m_shaders->frag[SH_FRAG_RGBA]; break;
-        case TEXTURE_RGBX: shader = g_pHyprOpenGL->m_shaders->frag[SH_FRAG_RGBX]; break;
-        case TEXTURE_EXTERNAL: shader = g_pHyprOpenGL->m_shaders->frag[SH_FRAG_EXT]; break;
+        case TEXTURE_RGBA: shader = g_pHyprOpenGL->getSurfaceShader(SH_FEAT_RGBA); break;
+        case TEXTURE_RGBX: shader = g_pHyprOpenGL->getSurfaceShader(SH_FEAT_UNKNOWN); break;
+        case TEXTURE_EXTERNAL: shader = g_pHyprOpenGL->m_shaders->frag[SH_FRAG_EXT]; break; // apparently unused
         default: RASSERT(false, "tex->m_iTarget unsupported!");
     }
 
@@ -89,7 +89,7 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
     glTexParameteri(tex->m_target, GL_TEXTURE_MAG_FILTER, scaling);
     glTexParameteri(tex->m_target, GL_TEXTURE_MIN_FILTER, scaling);
 
-    g_pHyprOpenGL->useShader(shader);
+    shader = g_pHyprOpenGL->useShader(shader);
 
     shader->setUniformMatrix3fv(SHADER_PROJ, 1, GL_TRUE, glMatrix.getMatrix());
     shader->setUniformInt(SHADER_TEX, 0);
