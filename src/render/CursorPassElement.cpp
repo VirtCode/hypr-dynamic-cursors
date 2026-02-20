@@ -5,6 +5,7 @@
 #include <hyprland/src/render/OpenGL.hpp>
 
 #include <hyprutils/utils/ScopeGuard.hpp>
+#include <utility>
 using namespace Hyprutils::Utils;
 
 CCursorPassElement::CCursorPassElement(const CCursorPassElement::SRenderData& data_) : data(data_) {
@@ -12,16 +13,14 @@ CCursorPassElement::CCursorPassElement(const CCursorPassElement::SRenderData& da
 }
 
 void CCursorPassElement::draw(const CRegion& damage) {
-    renderCursorTextureInternalWithDamage(
-        data.tex,
-        &data.box,
-        data.damage.empty() ? damage : data.damage,
-        1.F,
-        data.hotspot,
-        data.nearest,
-        data.stretchAngle,
-        data.stretchMagnitude
-    );
+    Mat3x3 proj = transformMonitorTransform(g_pHyprOpenGL->m_renderData.monitorProjection, data.box, data.box.rot, data.hotspot, data.stretchAngle, data.stretchMagnitude);
+    data.box.rot = 0;
+
+    std::swap(g_pHyprOpenGL->m_renderData.monitorProjection, proj);
+    g_pHyprOpenGL->renderTexture(data.tex, data.box, {
+        .damage = data.damage.empty() ? &damage : &data.damage,
+    });
+    std::swap(g_pHyprOpenGL->m_renderData.monitorProjection, proj);
 }
 
 bool CCursorPassElement::needsLiveBlur() {

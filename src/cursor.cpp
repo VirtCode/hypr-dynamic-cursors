@@ -273,10 +273,15 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
 
     // the box should start in the middle portion, rotate by our calculated amount
     CBox xbox = {cursorPadding, Vector2D{pointers->m_currentCursorImage.size / pointers->m_currentCursorImage.scale * state->monitor->m_scale * zoom}.round()};
-    xbox.rot = resultShown.rotation;
 
-    //  use our custom draw function
-    renderCursorTextureInternalWithDamage(texture, &xbox, damage, 1.F, pointers->m_currentCursorImage.hotspot * state->monitor->m_scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
+    Mat3x3 proj = transformMonitorTransform(g_pHyprOpenGL->m_renderData.monitorProjection, xbox, resultShown.rotation, pointers->m_currentCursorImage.hotspot * state->monitor->m_scale * zoom, resultShown.stretch.angle, resultShown.stretch.magnitude);
+
+    // call the rendering with our tweaked monitor transform
+    std::swap(g_pHyprOpenGL->m_renderData.monitorProjection, proj);
+    g_pHyprOpenGL->renderTexture(texture, xbox, {
+        .damage = &damage,
+    });
+    std::swap(g_pHyprOpenGL->m_renderData.monitorProjection, proj);
 
     g_pHyprOpenGL->end();
     glFlush();

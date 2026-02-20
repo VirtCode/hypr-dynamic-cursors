@@ -7,7 +7,7 @@ CXX_FLAGS := -Wall --no-gnu-unique -fPIC -std=c++26 -g \
 
 OUTPUT=out/$(PLUGIN_NAME).so
 
-.PHONY: all clean load unload
+.PHONY: all clean load unload inject uninject
 
 all: $(OUTPUT)
 
@@ -22,8 +22,17 @@ out/%.o: ./src/%.cpp
 clean:
 	$(RM) $(OUTPUT) $(OBJECT_FILES)
 
-load: all unload
+# load into current session
+current: all unload
 	hyprctl plugin load ${PWD}/$(OUTPUT)
 
-unload:
+uncurrent:
 	hyprctl plugin unload ${PWD}/$(OUTPUT)
+
+# load into nested session
+INSTANCE=1
+inject: all uninject
+	hyprctl -i $(INSTANCE) plugin load ${PWD}/$(OUTPUT)
+
+uninject:
+	hyprctl -i $(INSTANCE) plugin unload ${PWD}/$(OUTPUT)
