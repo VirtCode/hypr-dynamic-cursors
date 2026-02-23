@@ -6,6 +6,7 @@
 
 #include <hyprland/src/render/Renderer.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
+#include <hyprland/src/event/EventBus.hpp>
 #include <hyprlang.hpp>
 #include <stdexcept>
 #include <variant>
@@ -69,7 +70,7 @@ void addRulesConfig() {
     HyprlandAPI::addConfigKeyword(PHANDLE, CONFIG_SHAPERULE, onShapeRuleKeyword, Hyprlang::SHandlerOptions {});
 
     // clear on reload
-    static const auto PCALLBACK = HyprlandAPI::registerCallbackDynamic( PHANDLE, "preConfigReload", [&](void* self, SCallbackInfo&, std::any data) {
+    static const auto LISTENER = Event::bus()->m_events.config.preReload.listen([&]() -> void {
         g_pShapeRuleHandler->clear();
     });
 }

@@ -14,13 +14,14 @@
 #include "highres.hpp"
 #include "config/config.hpp"
 #include <hyprland/src/debug/log/Logger.hpp>
+#include <hyprland/src/event/EventBus.hpp>
 
 CHighresHandler::CHighresHandler() {
     // load stuff on creation
     update();
 
     // and reload on config reload
-    static const auto PCALLBACK = HyprlandAPI::registerCallbackDynamic(PHANDLE, "configReloaded", [&](void* self, SCallbackInfo&, std::any data) {
+    static const auto LISTENER = Event::bus()->m_events.config.reloaded.listen([&]() -> void {
         update();
     });
 }

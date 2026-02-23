@@ -10,6 +10,7 @@
 #include <hyprland/src/managers/EventManager.hpp>
 #include <hyprutils/animation/AnimationConfig.hpp>
 #include <hyprland/src/render/Renderer.hpp>
+#include <hyprland/src/event/EventBus.hpp>
 
 CShake::CShake() {
     // the timing and the bezier are quite crucial, as things will break down if they are just changed slighly
@@ -20,7 +21,7 @@ CShake::CShake() {
     // add custom bezier (and readd it after config reload)
     static auto bezier = "dynamic-cursors-magnification";
     g_pAnimationManager->addBezierWithName(bezier, {0.22, 1.0}, {0.36, 1.0});
-    static const auto PCALLBACK = HyprlandAPI::registerCallbackDynamic( PHANDLE, "configReloaded", [&](void* self, SCallbackInfo&, std::any data) {
+    static const auto LISTENER = Event::bus()->m_events.config.reloaded.listen([&]() -> void {
         g_pAnimationManager->addBezierWithName(bezier, {0.22, 1.0}, {0.36, 1.0});
     });
 
