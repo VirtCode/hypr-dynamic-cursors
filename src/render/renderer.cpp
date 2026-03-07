@@ -8,6 +8,7 @@
 #define private public
 #include <hyprland/src/render/OpenGL.hpp>
 #include <hyprland/src/helpers/math/Math.hpp>
+#include <hyprland/src/render/Renderer.hpp>
 #undef private
 
 #include <hyprland/src/Compositor.hpp>
@@ -56,7 +57,7 @@ Mat3x3 projectCursorBox(CBox& box, eTransform transform, float rotation, const M
 /*
 This renders a texture with damage but rotates the texture around a given hotspot.
 */
-void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const CRegion& damage, float alpha, Vector2D hotspot, bool nearest, float stretchAngle, Vector2D stretch) {
+void renderCursorTextureInternalWithDamage(SP<ITexture> tex, CBox* pBox, const CRegion& damage, float alpha, Vector2D hotspot, bool nearest, float stretchAngle, Vector2D stretch) {
     TRACY_GPU_ZONE("RenderDynamicCursor");
 
     alpha = std::clamp(alpha, 0.f, 1.f);
@@ -68,7 +69,7 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
     g_pHyprOpenGL->m_renderData.renderModif.applyToBox(newBox);
 
     // get transform
-    const auto TRANSFORM = Math::wlTransformToHyprutils(Math::invertTransform(!g_pHyprOpenGL->m_monitorTransformEnabled ? WL_OUTPUT_TRANSFORM_NORMAL : g_pHyprOpenGL->m_renderData.pMonitor->m_transform));
+    const auto TRANSFORM = Math::wlTransformToHyprutils(Math::invertTransform(!g_pHyprRenderer->monitorTransformEnabled() ? WL_OUTPUT_TRANSFORM_NORMAL : g_pHyprOpenGL->m_renderData.pMonitor->m_transform));
     Mat3x3 matrix = projectCursorBox(newBox, TRANSFORM, newBox.rot, g_pHyprOpenGL->m_renderData.monitorProjection, hotspot, stretchAngle, stretch);
 
     Mat3x3 glMatrix = g_pHyprOpenGL->m_renderData.projection.copy().multiply(matrix);
@@ -76,9 +77,9 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
     WP<CShader> shader;
 
     switch (tex->m_type) {
-        case TEXTURE_RGBA: shader = g_pHyprOpenGL->getSurfaceShader(SH_FEAT_RGBA); break;
-        case TEXTURE_RGBX: shader = g_pHyprOpenGL->getSurfaceShader(SH_FEAT_UNKNOWN); break;
-        case TEXTURE_EXTERNAL: shader = g_pHyprOpenGL->m_shaders->frag[SH_FRAG_EXT]; break; // apparently unused
+        case TEXTURE_RGBA: shader = g_pHyprOpenGL->getShaderVariant(Render::SH_FRAG_SURFACE, Render::SH_FEAT_RGBA); break;
+        case TEXTURE_RGBX: shader = g_pHyprOpenGL->getShaderVariant(Render::SH_FRAG_SURFACE, Render::SH_FEAT_UNKNOWN); break;
+        case TEXTURE_EXTERNAL: shader = g_pHyprOpenGL->getShaderVariant(Render::SH_FRAG_EXT, Render::SH_FEAT_UNKNOWN); break;
         default: RASSERT(false, "tex->m_iTarget unsupported!");
     }
 
@@ -86,8 +87,8 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
     tex->bind();
 
     auto scaling = g_pHyprOpenGL->m_renderData.useNearestNeighbor || nearest ? GL_NEAREST : GL_LINEAR;
-    glTexParameteri(tex->m_target, GL_TEXTURE_MAG_FILTER, scaling);
-    glTexParameteri(tex->m_target, GL_TEXTURE_MIN_FILTER, scaling);
+    tex->setTexParameter(GL_TEXTURE_MAG_FILTER, scaling);
+    tex->setTexParameter(GL_TEXTURE_MIN_FILTER, scaling);
 
     shader = g_pHyprOpenGL->useShader(shader);
 
