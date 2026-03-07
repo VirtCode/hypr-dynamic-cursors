@@ -31,6 +31,8 @@ commit_pins = [
     ["ab1d80f3d6aebd57a0971b53a1993b1c1dfe0b09", "7e9b7bc9fbcbb2f7f8985ec1f435b43021609639"], # v0.53.1
     ["39f3feddbee4a66be9608ed1eb7e73878d596b50", "7e9b7bc9fbcbb2f7f8985ec1f435b43021609639"], # v0.53.2
     ["dd220efe7b1e292415bd0ea7161f63df9c95bfd3", "7e9b7bc9fbcbb2f7f8985ec1f435b43021609639"], # v0.53.3
+    ["0002f148c9a4fe421a9d33c0faa5528cdc411e62", "0c6b2be864a0cfd4ef73429d6eeb9220eba842ab"], # v0.54.0
+    ["4b07770b9ef1cceb2e6f56d33538aaffb9186b9c", "0c6b2be864a0cfd4ef73429d6eeb9220eba842ab"], # v0.54.1
 ]
 
 [dynamic-cursors]
