@@ -4,13 +4,13 @@
 #include <optional>
 
 class CWLSurfaceResource;
-class CTexture;
+class ITexture;
 class CSyncTimeline;
 
 class CCursorPassElement : public IPassElement {
   public:
     struct SRenderData {
-        SP<CTexture>          tex;
+        SP<ITexture>          tex;
         CBox                  box;
         CRegion               damage;
 
@@ -32,6 +32,10 @@ class CCursorPassElement : public IPassElement {
 
     virtual const char*         passName() {
         return "CCursorPassElement";
+    }
+
+    virtual ePassElementType    type() {
+        return EK_TEXTURE;
     }
 
   private:
