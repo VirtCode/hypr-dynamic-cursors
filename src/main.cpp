@@ -4,7 +4,12 @@
 #include <hyprland/src/plugins/PluginAPI.hpp>
 #include <hyprland/src/helpers/Monitor.hpp>
 #include <hyprland/src/Compositor.hpp>
+#include <hyprland/src/managers/CursorManager.hpp>
+#include <hyprland/src/debug/log/Logger.hpp>
+#include <hyprland/src/helpers/time/Time.hpp>
 #include <hyprlang.hpp>
+#include <hyprutils/string/String.hpp>
+
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -14,11 +19,7 @@
 #include "globals.hpp"
 #include "cursor.hpp"
 #include "config/config.hpp"
-#include "helpers/time/Time.hpp"
 #include "render/Renderer.hpp"
-#include <hyprland/src/debug/log/Logger.hpp>
-#include "src/managers/PointerManager.hpp"
-#include "src/version.h"
 
 typedef void (*origRenderSofwareCursorsFor)(void*, SP<CMonitor>, const Time::steady_tp&, CRegion&, std::optional<Vector2D>, bool);
 inline CFunctionHook* g_pRenderSoftwareCursorsForHook = nullptr;
@@ -83,23 +84,62 @@ void hkUpdateTheme(void* thisptr) {
     if (isEnabled()) g_pDynamicCursors->updateTheme();
 }
 
-/*
- * hooks a function hook
- * for some fucking reason the upstream function to find the address is deprecated
- * so "fine, I'll do it myself"
- */
-CFunctionHook* hook(const char* signature, void* function) {
-    Log::logger->log(Log::INFO, "[dynamic-cursors] starting to hook for {}", signature);
+// takes a member function pointer and returns the function address
+// will throw an exception if the supplied function is virtual
+// see https://itanium-cxx-abi.github.io/cxx-abi/abi.html#member-function-pointers
+template <typename T>
+void* pmf_address(T pmf) {
+    struct PMF {
+        uintptr_t ptr;
+        ptrdiff_t adj;
+    };
 
-    void* addr = dlsym(nullptr, signature);
-    if (addr == NULL) {
-        Log::logger->log(Log::ERR, "[dynamic-cursors] failed to hook, symbol not found");
-        throw std::runtime_error("symbol not found, are you up-to-date?");
+    static_assert(std::is_member_function_pointer_v<T>, "must be member function pointer");
+    static_assert(sizeof(T) == sizeof(PMF), "sanity check: not itanium pmf representation?");
+
+    auto representation = std::bit_cast<PMF>(pmf);
+
+    // if it is a virtual function, it would be a vtable offset + 1, so this would catch it
+    if (representation.ptr & 0x01) {
+        Log::logger->log(Log::ERR, "[dynamic-cursors] aborting hook on virtual function pointer");
+        throw std::runtime_error("unexpected virtual function, are you up-to-date?");
     }
 
-    auto hook = HyprlandAPI::createFunctionHook(PHANDLE, addr, function);
+    return (void*) representation.ptr;
+}
 
-    Log::logger->log(Log::INFO, "[dynamic-cursors] trying to hook {:p}", addr);
+/*
+ * hooks a function hook, given a function address `target` and its symbol `signature` when compiled againtst libstdc++
+ * the symbol is only used when compiled against libstdc++ to check that the function signature has not changed, on other libc++ impls it is ignored
+ *
+ * the target address is intended to stem from a function pointer, the benefit of which is that it doesn't compile if the function isn't found
+ * (signature validation which is equally as important is still only done at load however)
+ * to hook member functions, refer to `pmf_address` above
+ */
+CFunctionHook* hook(void* target, std::string signature, void* handler) {
+    Log::logger->log(Log::INFO, "[dynamic-cursors] starting to hook for {} at {:p}", signature, target);
+
+    Dl_info info = {};
+    if (!dladdr(target, &info)) {
+        Log::logger->log(Log::ERR, "[dynamic-cursors] aborting hook without associated symbol");
+        throw std::runtime_error("symbol not available, are you up-to-date?");
+    }
+
+    // when using libstdc++, we check that the symbol is the one we expect
+    // this makes sure that the function signature has not changed without us noticing
+    #ifdef __GLIBCXX__
+    if (signature != info.dli_sname) {
+        Log::logger->log(Log::ERR, "[dynamic-cursors] aborting hook, function symbol changed to {}", info.dli_sname);
+        throw std::runtime_error("unexpected function signature, are you up-to-date?");
+    }
+    #else
+    Log::logger->log(Log::INFO, "[dynamic-cursors] unchecked symbol compiled against unknown libc++ is {}", info.dli_sname);
+    Log::logger->log(Log::WARN, "[dynamic-cursors] hooking on unknown libc++, signatures are not checked, this might crash");
+    #endif
+
+    auto hook = HyprlandAPI::createFunctionHook(PHANDLE, target, handler);
+
+    Log::logger->log(Log::INFO, "[dynamic-cursors] checks passed, actually hooking");
     if (!hook->hook()) {
         Log::logger->log(Log::ERR, "[dynamic-cursors] could not hook, hooking failed");
         throw std::runtime_error("hooking failed, are you on x86_64?");
@@ -164,42 +204,49 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     // try hooking
     try {
-        // CPointerManager
-        g_pRenderSoftwareCursorsForHook = hook( // renderSoftwareCursorsFor
+        g_pRenderSoftwareCursorsForHook = hook(
+            pmf_address(&CPointerManager::renderSoftwareCursorsFor),
             "_ZN15CPointerManager24renderSoftwareCursorsForEN9Hyprutils6Memory14CSharedPointerI8CMonitorEERKNSt6chrono10time_pointINS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEERNS0_4Math7CRegionESt8optionalINSG_8Vector2DEEb",
             (void*) &hkRenderSoftwareCursorsFor
         );
-        g_pDamageIfSoftwareHook = hook( // damageIfSoftware
+        g_pDamageIfSoftwareHook = hook(
+            pmf_address(&CPointerManager::damageIfSoftware),
             "_ZN15CPointerManager16damageIfSoftwareEv",
             (void*) &hkDamageIfSoftware
         );
-        g_pRenderHWCursorBufferHook = hook( // renderHWCursorBuffer
+        g_pRenderHWCursorBufferHook = hook(
+            pmf_address(&CPointerManager::renderHWCursorBuffer),
             "_ZN15CPointerManager20renderHWCursorBufferEN9Hyprutils6Memory14CSharedPointerINS_20SMonitorPointerStateEEENS2_I8CTextureEE",
             (void*) &hkRenderHWCursorBuffer
         );
-        g_pSetHWCursorBufferHook = hook( // setHWCursorBuffer
+        g_pSetHWCursorBufferHook = hook(
+            pmf_address(&CPointerManager::setHWCursorBuffer),
             "_ZN15CPointerManager17setHWCursorBufferEN9Hyprutils6Memory14CSharedPointerINS_20SMonitorPointerStateEEENS2_IN10Aquamarine7IBufferEEE",
             (void*) &hkSetHWCursorBuffer
         );
-        g_pOnCursorMovedHook = hook( // onCursorMoved
+        g_pOnCursorMovedHook = hook(
+            pmf_address(&CPointerManager::onCursorMoved),
             "_ZN15CPointerManager13onCursorMovedEv",
             (void*) &hkOnCursorMoved
         );
-        g_pMoveHook = hook( // move
+        g_pMoveHook = hook(
+            pmf_address(&CPointerManager::move),
             "_ZN15CPointerManager4moveERKN9Hyprutils4Math8Vector2DE",
             (void*) &hkMove
         );
 
-        // CCursorManager
-        g_pSetCursorFromNameHook = hook( // setCursorFromName
+        g_pSetCursorFromNameHook = hook(
+            pmf_address(&CCursorManager::setCursorFromName),
             "_ZN14CCursorManager17setCursorFromNameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
             (void*) &hkSetCursorFromName
         );
-        g_pSetCursorSurfaceHook = hook( // setCursorSurface
+        g_pSetCursorSurfaceHook = hook(
+            pmf_address(&CCursorManager::setCursorSurface),
             "_ZN14CCursorManager16setCursorSurfaceEN9Hyprutils6Memory14CSharedPointerIN7Desktop4View10CWLSurfaceEEERKNS0_4Math8Vector2DE",
             (void*) &hkSetCursorSurface
         );
-        g_pUpdateThemeHook = hook( // updateThemes
+        g_pUpdateThemeHook = hook(
+            pmf_address(&CCursorManager::updateTheme),
             "_ZN14CCursorManager11updateThemeEv",
             (void*) &hkUpdateTheme
         );
