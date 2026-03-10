@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/debug/log/Logger.hpp>
 #include <hyprland/src/managers/animation/AnimationManager.hpp>
@@ -42,6 +43,7 @@ double CShake::update(Vector2D pos) {
     static auto* const* PINFLUENCE = (Hyprlang::FLOAT* const*) getConfig(CONFIG_SHAKE_INFLUENCE);
     static auto* const* PLIMIT = (Hyprlang::FLOAT* const*) getConfig(CONFIG_SHAKE_LIMIT);
     static auto* const* PTIMEOUT = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_TIMEOUT);
+    static auto* const* PDECAY = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_DECAY);
 
     static auto* const* PIPC = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_IPC);
 
@@ -83,14 +85,41 @@ double CShake::update(Vector2D pos) {
         next += delta * (**PSPEED + (amount * amount) * **PINFLUENCE); // increase when moving
         if (**PLIMIT > 1) next = std::min(**PLIMIT, next); // limit overall zoom
 
+        decaying = false;
         *this->zoom = next;
         this->end = steady_clock::now() + milliseconds(**PTIMEOUT);
         started = true;
     } else {
         if (started && end < std::chrono::steady_clock::now()) {
+            // begin the configurable decay animation instead of relying on the internal animation
+            decaying = true;
+            decayFrom = this->zoom->value();
+            decayStart = steady_clock::now();
             *this->zoom = 1;
             started = false;
         }
+    }
+
+    // if decaying, override the zoom value with a manual interpolation
+    // this is done separately from the internal animation system to allow independent control
+    if (decaying) {
+        int decayMs = std::max(100, (int)**PDECAY);
+        auto elapsed = duration_cast<milliseconds>(steady_clock::now() - decayStart).count();
+        float t = std::min(1.0f, (float)elapsed / decayMs);
+        float eased = t < 0.5f ? 4.0f * t * t * t : 1.0f - std::pow(-2.0f * t + 2.0f, 3.0f) / 2.0f; // InOutCubic
+        float val = decayFrom + (1.0f - decayFrom) * eased;
+        if (t >= 1.0f) decaying = false;
+
+        if (**PIPC) {
+            if (val > 1) {
+                g_pEventManager->postEvent(SHyprIPCEvent { IPC_SHAKE_UPDATE, std::format("{},{},{},{},{}", (int) pos.x, (int) pos.y, 0.0, 0.0, val) });
+            } else if (ipc) {
+                g_pEventManager->postEvent(SHyprIPCEvent { IPC_SHAKE_END });
+                ipc = false;
+            }
+        }
+
+        return val;
     }
 
     if (**PIPC) {

@@ -23,6 +23,7 @@
 #define CONFIG_SHAKE_BASE       "shake:base"
 #define CONFIG_SHAKE_LIMIT      "shake:limit"
 #define CONFIG_SHAKE_TIMEOUT    "shake:timeout"
+#define CONFIG_SHAKE_DECAY      "shake:decay"
 
 #define CONFIG_ROTATE_LENGTH    "rotate:length"
 #define CONFIG_ROTATE_OFFSET    "rotate:offset"

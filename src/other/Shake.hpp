@@ -31,6 +31,11 @@ class CShake {
     PHLANIMVAR<float> zoom;
     steady_clock::time_point end;
 
+    /* state for the configurable decay animation after shake ends */
+    bool decaying = false;
+    float decayFrom = 1.0f;
+    steady_clock::time_point decayStart;
+
     /* ringbuffer for last samples */
     std::vector<Vector2D> samples;
     /* we also store the distance for each sample to the last, so we do only compute this once */

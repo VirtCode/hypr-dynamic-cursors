@@ -201,6 +201,10 @@ plugin:dynamic-cursors {
         # time in millseconds the cursor will stay magnified after a shake has ended
         timeout = 2000
 
+        # time in milliseconds for the cursor to decay back to its original size
+        # uses an InOutCubic easing curve, set to 0 to snap back instantly
+        decay = 400
+
         # show cursor behaviour `tilt`, `rotate`, etc. while shaking
         effects = false
 
