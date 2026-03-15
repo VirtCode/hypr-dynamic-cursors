@@ -4,13 +4,13 @@
 #include <optional>
 
 class CWLSurfaceResource;
-class CTexture;
+class ITexture;
 class CSyncTimeline;
 
 class CCursorPassElement : public IPassElement {
   public:
     struct SRenderData {
-        SP<CTexture>          tex;
+        SP<ITexture>          tex;
         CBox                  box;
         CRegion               damage;
 
@@ -23,7 +23,6 @@ class CCursorPassElement : public IPassElement {
     CCursorPassElement(const SRenderData& data);
     virtual ~CCursorPassElement() = default;
 
-    virtual void                draw(const CRegion& damage);
     virtual bool                needsLiveBlur();
     virtual bool                needsPrecomputeBlur();
     virtual std::optional<CBox> boundingBox();
@@ -32,6 +31,10 @@ class CCursorPassElement : public IPassElement {
 
     virtual const char*         passName() {
         return "CCursorPassElement";
+    }
+    
+    virtual ePassElementType type() override {
+        return EK_TEXTURE;
     }
 
   private:
