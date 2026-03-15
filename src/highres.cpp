@@ -3,6 +3,7 @@
 #include <cmath>
 #include <future>
 #include <hyprcursor/hyprcursor.hpp>
+#include <hyprland/src/render/Renderer.hpp>
 #include <hyprlang.hpp>
 
 #include <hyprland/src/managers/eventLoop/EventLoopTimer.hpp> // required so we don't "unprivate" chrono
@@ -143,10 +144,10 @@ void CHighresHandler::loadShape(const std::string& name) {
         Vector2D{shape.images[0].hotspotX, shape.images[0].hotspotY}
     );
 
-    texture = makeShared<CTexture>(buffer);
+    texture = g_pHyprRenderer->createTexture(buffer, true);
 }
 
-SP<CTexture> CHighresHandler::getTexture() {
+SP<ITexture> CHighresHandler::getTexture() {
     return texture;
 }
 
