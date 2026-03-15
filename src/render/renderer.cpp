@@ -2,6 +2,7 @@
 #include <GLES2/gl2.h>
 #include <GLES3/gl32.h>
 #include <hyprland/src/defines.hpp> // don't unprivate stuff in here
+#include <hyprland/src/render/Renderer.hpp>
 #include <sstream> // required so we don't "unprivate" sstream
 #include <chrono> // required so we don't "unprivate" chrono
 
@@ -56,7 +57,7 @@ Mat3x3 projectCursorBox(CBox& box, eTransform transform, float rotation, const M
 /*
 This renders a texture with damage but rotates the texture around a given hotspot.
 */
-void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const CRegion& damage, float alpha, Vector2D hotspot, bool nearest, float stretchAngle, Vector2D stretch) {
+void renderCursorTextureInternalWithDamage(SP<ITexture> tex, CBox* pBox, const CRegion& damage, float alpha, Vector2D hotspot, bool nearest, float stretchAngle, Vector2D stretch) {
     TRACY_GPU_ZONE("RenderDynamicCursor");
 
     alpha = std::clamp(alpha, 0.f, 1.f);
@@ -65,13 +66,13 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
         return;
 
     CBox newBox = *pBox;
-    g_pHyprOpenGL->m_renderData.renderModif.applyToBox(newBox);
+    g_pHyprRenderer->m_renderData.renderModif.applyToBox(newBox);
 
     // get transform
-    const auto TRANSFORM = Math::wlTransformToHyprutils(Math::invertTransform(!g_pHyprOpenGL->m_monitorTransformEnabled ? WL_OUTPUT_TRANSFORM_NORMAL : g_pHyprOpenGL->m_renderData.pMonitor->m_transform));
-    Mat3x3 matrix = projectCursorBox(newBox, TRANSFORM, newBox.rot, g_pHyprOpenGL->m_renderData.monitorProjection, hotspot, stretchAngle, stretch);
+    const auto TRANSFORM = Math::wlTransformToHyprutils(Math::invertTransform(!g_pHyprRenderer->m_monitorTransformEnabled ? WL_OUTPUT_TRANSFORM_NORMAL : g_pHyprRenderer->m_renderData.pMonitor->m_transform));
+    Mat3x3 matrix = projectCursorBox(newBox, TRANSFORM, newBox.rot, g_pHyprRenderer->m_renderData.monitorProjection, hotspot, stretchAngle, stretch);
 
-    Mat3x3 glMatrix = g_pHyprOpenGL->m_renderData.projection.copy().multiply(matrix);
+    Mat3x3 glMatrix = g_pHyprRenderer->m_renderData.projection.copy().multiply(matrix);
 
     WP<CShader> shader;
 
@@ -85,7 +86,7 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
     glActiveTexture(GL_TEXTURE0);
     tex->bind();
 
-    auto scaling = g_pHyprOpenGL->m_renderData.useNearestNeighbor || nearest ? GL_NEAREST : GL_LINEAR;
+    auto scaling = g_pHyprRenderer->m_renderData.useNearestNeighbor || nearest ? GL_NEAREST : GL_LINEAR;
     glTexParameteri(tex->m_target, GL_TEXTURE_MAG_FILTER, scaling);
     glTexParameteri(tex->m_target, GL_TEXTURE_MIN_FILTER, scaling);
 
@@ -98,7 +99,7 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
     shader->setUniformInt(SHADER_DISCARD_ALPHA, 0);
 
     CBox transformedBox = newBox;
-    transformedBox.transform(Math::wlTransformToHyprutils(Math::invertTransform(g_pHyprOpenGL->m_renderData.pMonitor->m_transform)), g_pHyprOpenGL->m_renderData.pMonitor->m_transformedSize.x, g_pHyprOpenGL->m_renderData.pMonitor->m_transformedSize.y);
+    transformedBox.transform(Math::wlTransformToHyprutils(Math::invertTransform(g_pHyprRenderer->m_renderData.pMonitor->m_transform)), g_pHyprRenderer->m_renderData.pMonitor->m_transformedSize.x, g_pHyprRenderer->m_renderData.pMonitor->m_transformedSize.y);
 
     const auto TOPLEFT  = Vector2D(transformedBox.x, transformedBox.y);
     const auto FULLSIZE = Vector2D(transformedBox.width, transformedBox.height);
@@ -113,8 +114,8 @@ void renderCursorTextureInternalWithDamage(SP<CTexture> tex, CBox* pBox, const C
     glBindBuffer(GL_ARRAY_BUFFER, shader->getUniformLocation(SHADER_SHADER_VBO));
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(fullVerts), fullVerts.data());
 
-    if (g_pHyprOpenGL->m_renderData.clipBox.width != 0 && g_pHyprOpenGL->m_renderData.clipBox.height != 0) {
-        CRegion damageClip{g_pHyprOpenGL->m_renderData.clipBox.x, g_pHyprOpenGL->m_renderData.clipBox.y, g_pHyprOpenGL->m_renderData.clipBox.width, g_pHyprOpenGL->m_renderData.clipBox.height};
+    if (g_pHyprRenderer->m_renderData.clipBox.width != 0 && g_pHyprRenderer->m_renderData.clipBox.height != 0) {
+        CRegion damageClip{g_pHyprRenderer->m_renderData.clipBox.x, g_pHyprRenderer->m_renderData.clipBox.y, g_pHyprRenderer->m_renderData.clipBox.width, g_pHyprRenderer->m_renderData.clipBox.height};
         damageClip.intersect(damage);
 
         if (!damageClip.empty()) {
