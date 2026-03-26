@@ -216,7 +216,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
         );
         g_pRenderHWCursorBufferHook = hook(
             pmf_address(&CPointerManager::renderHWCursorBuffer),
-            "_ZN15CPointerManager20renderHWCursorBufferEN9Hyprutils6Memory14CSharedPointerINS_20SMonitorPointerStateEEENS2_I8ITextureEE",
+            "_ZN15CPointerManager20renderHWCursorBufferEN9Hyprutils6Memory14CSharedPointerINS_20SMonitorPointerStateEEENS2_IN6Render8ITextureEEE",
             (void*) &hkRenderHWCursorBuffer
         );
         g_pSetHWCursorBufferHook = hook(
@@ -261,7 +261,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     }
 
     // add dispatchers
-    addDispatcher(CONFIG_DISPATCHER_MAGNIFY, [&](CVarList args) {
+    addDispatcher(CONFIG_DISPATCHER_MAGNIFY, [&](Hyprutils::String::CVarList args) {
         std::optional<std::string> error;
 
         std::optional<int> duration;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hyprland/src/render/pass/PassElement.hpp>
+#include <hyprland/src/render/Texture.hpp>
 #include <optional>
 
 class CCursorPassElement : public IPassElement {
@@ -16,8 +17,8 @@ class CCursorPassElement : public IPassElement {
         Vector2D stretchMagnitude;
     };
 
-    CTexPassElement(const SRenderData& data);
-    virtual ~CTexPassElement() = default;
+    CCursorPassElement(const SRenderData& data);
+    virtual ~CCursorPassElement() = default;
 
     virtual std::vector<UP<IPassElement>> draw();
     virtual bool                needsLiveBlur();

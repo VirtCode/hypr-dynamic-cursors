@@ -253,9 +253,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
 
     CRegion damage = {0, 0, INT16_MAX, INT16_MAX};
 
-    g_pHyprOpenGL->makeEGLCurrent();
-    g_pHyprOpenGL->m_renderData.pMonitor = state->monitor;
-
+    g_pHyprRenderer->m_renderData.pMonitor = state->monitor;
     auto RBO = g_pHyprRenderer->getOrCreateRenderbuffer(buf, state->monitor->m_cursorSwapchain->currentOptions().format);
 
     // we just fail if we cannot create a render buffer, this will force hl to render sofware cursors, which we support
@@ -264,26 +262,23 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
 
     RBO->bind();
 
-    g_pHyprOpenGL->beginSimple(state->monitor.lock(), damage, RBO);
+
+    CRegion damageRegion = {0, 0, INT_MAX, INT_MAX};
+    g_pHyprRenderer->beginFullFakeRender(state->monitor.lock(), damageRegion, RBO->getFB());
+    g_pHyprRenderer->startRenderPass();
 
     if (**PHW_DEBUG)
-        g_pHyprOpenGL->clear(CHyprColor{rand() / float(RAND_MAX), rand() / float(RAND_MAX), rand() / float(RAND_MAX), 1.F});
+        g_pHyprRenderer->draw(CClearPassElement::SClearData{CHyprColor{rand() / float(RAND_MAX), rand() / float(RAND_MAX), rand() / float(RAND_MAX), 1.F}});
     else
-        g_pHyprOpenGL->clear(CHyprColor{0.F, 0.F, 0.F, 0.F});
+        g_pHyprRenderer->draw(CClearPassElement::SClearData{{0.F, 0.F, 0.F, 0.F}});
 
+    CBox xbox = {cursorPadding, Vector2D{g_pPointerManager->m_currentCursorImage.size / g_pPointerManager->m_currentCursorImage.scale * state->monitor->m_scale * zoom}.round()};
+    Mat3x3 transform = toTransform(xbox, resultShown.rotation, g_pPointerManager->m_currentCursorImage.hotspot * state->monitor->m_scale * zoom, resultShown.stretch.angle, resultShown.stretch.magnitude);
 
-    // the box should start in the middle portion, rotate by our calculated amount
-    CBox xbox = {cursorPadding, Vector2D{pointers->m_currentCursorImage.size / pointers->m_currentCursorImage.scale * state->monitor->m_scale * zoom}.round()};
-    xbox.rot = resultShown.rotation;
+    drawCursor(transform, texture, xbox, damageRegion);
 
-    //  use our custom draw function
-    renderCursorTextureInternalWithDamage(texture, &xbox, damage, 1.F, pointers->m_currentCursorImage.hotspot * state->monitor->m_scale * zoom, zoom > 1 && **PNEAREST, resultShown.stretch.angle, resultShown.stretch.magnitude);
-
-    g_pHyprOpenGL->end();
-    glFlush();
-    g_pHyprOpenGL->m_renderData.pMonitor.reset();
-
-    g_pHyprRenderer->onRenderbufferDestroy(RBO.get());
+    g_pHyprRenderer->endRender();
+    g_pHyprRenderer->m_renderData.pMonitor.reset();
 
     return buf;
 }
