@@ -17,7 +17,7 @@ public:
     /* update the currently loaded shape */
     void loadShape(const std::string& name);
 
-    SP<ITexture> getTexture();
+    SP<Render::ITexture> getTexture();
     SP<CCursorBuffer> getBuffer();
 
 private:
@@ -34,6 +34,6 @@ private:
 
     /* current texture and hotspot */
     std::string shape = "";
-    SP<ITexture> texture;
+    SP<Render::ITexture> texture;
     SP<CCursorBuffer> buffer;
 };

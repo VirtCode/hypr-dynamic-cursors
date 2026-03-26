@@ -182,7 +182,7 @@ void CDynamicCursors::damageSoftware(CPointerManager* pointers) {
 This function reimplements the hardware cursor buffer drawing.
 It is largely copied from hyprland, but adjusted to allow the cursor to be rotated.
 */
-SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<ITexture> texture) {
+SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<Render::ITexture> texture) {
     static auto* const* PHW_DEBUG = (Hyprlang::INT* const*) getConfig(CONFIG_HW_DEBUG);
     static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_HIGHRES_NEAREST);
 

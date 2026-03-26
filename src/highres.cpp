@@ -147,7 +147,7 @@ void CHighresHandler::loadShape(const std::string& name) {
     texture = g_pHyprRenderer->createTexture(SP<Aquamarine::IBuffer>(buffer));
 }
 
-SP<ITexture> CHighresHandler::getTexture() {
+SP<Render::ITexture> CHighresHandler::getTexture() {
     return texture;
 }
 

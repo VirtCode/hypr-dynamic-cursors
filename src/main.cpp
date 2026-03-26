@@ -35,9 +35,9 @@ void hkDamageIfSoftware(void* thisptr) {
     else (*(origDamageIfSoftware)g_pDamageIfSoftwareHook->m_original)(thisptr);
 }
 
-typedef SP<Aquamarine::IBuffer> (*origRenderHWCursorBuffer)(void*, SP<CPointerManager::SMonitorPointerState>, SP<ITexture>);
+typedef SP<Aquamarine::IBuffer> (*origRenderHWCursorBuffer)(void*, SP<CPointerManager::SMonitorPointerState>, SP<Render::ITexture>);
 inline CFunctionHook* g_pRenderHWCursorBufferHook = nullptr;
-SP<Aquamarine::IBuffer> hkRenderHWCursorBuffer(void* thisptr, SP<CPointerManager::SMonitorPointerState> state, SP<ITexture> texture) {
+SP<Aquamarine::IBuffer> hkRenderHWCursorBuffer(void* thisptr, SP<CPointerManager::SMonitorPointerState> state, SP<Render::ITexture> texture) {
     if (isEnabled()) return g_pDynamicCursors->renderHardware((CPointerManager*) thisptr, state, texture);
     else return (*(origRenderHWCursorBuffer)g_pRenderHWCursorBufferHook->m_original)(thisptr, state, texture);
 }

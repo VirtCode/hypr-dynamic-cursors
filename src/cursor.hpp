@@ -29,7 +29,7 @@ class CDynamicCursors {
     /* hook on damageIfSoftware*/
     void damageSoftware(CPointerManager* pointers);
     /* hook on renderHWCursorBuffer */
-    SP<Aquamarine::IBuffer> renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<ITexture> texture);
+    SP<Aquamarine::IBuffer> renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<Render::ITexture> texture);
     /* hook on setHWCursorBuffer */
     bool setHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<Aquamarine::IBuffer> buf);
 
