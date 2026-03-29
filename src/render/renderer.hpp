@@ -13,4 +13,4 @@ Mat3x3 toTransform(CBox& box, float rotation, Vector2D hotspot, float stretchAng
  * dispatches a draw call using the current hyprland renderer to draw the cursor with the provided transform
  * will modify the monitor transform and do a tex pass immediately
  */
-void drawCursor(const Mat3x3& transform, SP<Render::ITexture> tex, CBox box, CRegion damage);
+void drawCursor(const Mat3x3& transform, SP<Render::ITexture> tex, CBox box, CRegion damage, bool nearest);

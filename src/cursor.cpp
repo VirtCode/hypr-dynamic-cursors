@@ -275,7 +275,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
     CBox xbox = {cursorPadding, Vector2D{g_pPointerManager->m_currentCursorImage.size / g_pPointerManager->m_currentCursorImage.scale * state->monitor->m_scale * zoom}.round()};
     Mat3x3 transform = toTransform(xbox, resultShown.rotation, g_pPointerManager->m_currentCursorImage.hotspot * state->monitor->m_scale * zoom, resultShown.stretch.angle, resultShown.stretch.magnitude);
 
-    drawCursor(transform, texture, xbox, damageRegion);
+    drawCursor(transform, texture, xbox, damageRegion, zoom > 1 && **PNEAREST);
 
     g_pHyprRenderer->endRender();
     g_pHyprRenderer->m_renderData.pMonitor.reset();
