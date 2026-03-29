@@ -1,18 +1,15 @@
 #pragma once
 
 #include <hyprland/src/render/pass/PassElement.hpp>
+#include <hyprland/src/render/Texture.hpp>
 #include <optional>
-
-class CWLSurfaceResource;
-class CTexture;
-class CSyncTimeline;
 
 class CCursorPassElement : public IPassElement {
   public:
     struct SRenderData {
-        SP<CTexture>          tex;
-        CBox                  box;
-        CRegion               damage;
+        SP<Render::ITexture>   tex;
+        CBox                   box;
+        CRegion                damage;
 
         Vector2D hotspot;
         bool nearest;
@@ -23,7 +20,7 @@ class CCursorPassElement : public IPassElement {
     CCursorPassElement(const SRenderData& data);
     virtual ~CCursorPassElement() = default;
 
-    virtual void                draw(const CRegion& damage);
+    virtual std::vector<UP<IPassElement>> draw();
     virtual bool                needsLiveBlur();
     virtual bool                needsPrecomputeBlur();
     virtual std::optional<CBox> boundingBox();
@@ -34,6 +31,10 @@ class CCursorPassElement : public IPassElement {
         return "CCursorPassElement";
     }
 
+    virtual ePassElementType type() {
+        return EK_CUSTOM;
+    };
+
   private:
-    SRenderData data;
+    SRenderData m_data;
 };

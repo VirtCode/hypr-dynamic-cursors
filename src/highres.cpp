@@ -15,6 +15,7 @@
 #include "config/config.hpp"
 #include <hyprland/src/debug/log/Logger.hpp>
 #include <hyprland/src/event/EventBus.hpp>
+#include <hyprland/src/render/Renderer.hpp>
 
 CHighresHandler::CHighresHandler() {
     // load stuff on creation
@@ -143,10 +144,10 @@ void CHighresHandler::loadShape(const std::string& name) {
         Vector2D{shape.images[0].hotspotX, shape.images[0].hotspotY}
     );
 
-    texture = makeShared<CTexture>(buffer);
+    texture = g_pHyprRenderer->createTexture(SP<Aquamarine::IBuffer>(buffer));
 }
 
-SP<CTexture> CHighresHandler::getTexture() {
+SP<Render::ITexture> CHighresHandler::getTexture() {
     return texture;
 }
 

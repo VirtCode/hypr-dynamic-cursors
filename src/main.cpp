@@ -35,9 +35,9 @@ void hkDamageIfSoftware(void* thisptr) {
     else (*(origDamageIfSoftware)g_pDamageIfSoftwareHook->m_original)(thisptr);
 }
 
-typedef SP<Aquamarine::IBuffer> (*origRenderHWCursorBuffer)(void*, SP<CPointerManager::SMonitorPointerState>, SP<CTexture>);
+typedef SP<Aquamarine::IBuffer> (*origRenderHWCursorBuffer)(void*, SP<CPointerManager::SMonitorPointerState>, SP<Render::ITexture>);
 inline CFunctionHook* g_pRenderHWCursorBufferHook = nullptr;
-SP<Aquamarine::IBuffer> hkRenderHWCursorBuffer(void* thisptr, SP<CPointerManager::SMonitorPointerState> state, SP<CTexture> texture) {
+SP<Aquamarine::IBuffer> hkRenderHWCursorBuffer(void* thisptr, SP<CPointerManager::SMonitorPointerState> state, SP<Render::ITexture> texture) {
     if (isEnabled()) return g_pDynamicCursors->renderHardware((CPointerManager*) thisptr, state, texture);
     else return (*(origRenderHWCursorBuffer)g_pRenderHWCursorBufferHook->m_original)(thisptr, state, texture);
 }
@@ -216,7 +216,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
         );
         g_pRenderHWCursorBufferHook = hook(
             pmf_address(&CPointerManager::renderHWCursorBuffer),
-            "_ZN15CPointerManager20renderHWCursorBufferEN9Hyprutils6Memory14CSharedPointerINS_20SMonitorPointerStateEEENS2_I8CTextureEE",
+            "_ZN15CPointerManager20renderHWCursorBufferEN9Hyprutils6Memory14CSharedPointerINS_20SMonitorPointerStateEEENS2_IN6Render8ITextureEEE",
             (void*) &hkRenderHWCursorBuffer
         );
         g_pSetHWCursorBufferHook = hook(
@@ -261,7 +261,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     }
 
     // add dispatchers
-    addDispatcher(CONFIG_DISPATCHER_MAGNIFY, [&](CVarList args) {
+    addDispatcher(CONFIG_DISPATCHER_MAGNIFY, [&](Hyprutils::String::CVarList args) {
         std::optional<std::string> error;
 
         std::optional<int> duration;

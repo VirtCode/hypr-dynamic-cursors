@@ -1,27 +1,21 @@
 #include "CursorPassElement.hpp"
 #include "renderer.hpp"
 
-#include <hyprland/src/render/pass/TexPassElement.hpp>
-#include <hyprland/src/render/OpenGL.hpp>
+#include <hyprland/src/render/Renderer.hpp>
 
-#include <hyprutils/utils/ScopeGuard.hpp>
 using namespace Hyprutils::Utils;
 
-CCursorPassElement::CCursorPassElement(const CCursorPassElement::SRenderData& data_) : data(data_) {
+CCursorPassElement::CCursorPassElement(const CCursorPassElement::SRenderData& data) : m_data(data) {
     ;
 }
 
-void CCursorPassElement::draw(const CRegion& damage) {
-    renderCursorTextureInternalWithDamage(
-        data.tex,
-        &data.box,
-        data.damage.empty() ? damage : data.damage,
-        1.F,
-        data.hotspot,
-        data.nearest,
-        data.stretchAngle,
-        data.stretchMagnitude
-    );
+std::vector<UP<IPassElement>> CCursorPassElement::draw() {
+    Mat3x3 transform = toTransform(m_data.box, m_data.box.rot, m_data.hotspot, m_data.stretchAngle, m_data.stretchMagnitude);
+    m_data.box.rot = 0;
+
+    drawCursor(transform, m_data.tex, m_data.box, g_pHyprRenderer->m_renderData.damage, m_data.nearest);
+
+    return {}; // no passes to be submitted later
 }
 
 bool CCursorPassElement::needsLiveBlur() {
@@ -33,7 +27,7 @@ bool CCursorPassElement::needsPrecomputeBlur() {
 }
 
 std::optional<CBox> CCursorPassElement::boundingBox() {
-    return data.box.copy().scale(1.F / g_pHyprOpenGL->m_renderData.pMonitor->m_scale).round();
+    return m_data.box.copy().scale(1.F / g_pHyprRenderer->m_renderData.pMonitor->m_scale).round();
 }
 
 CRegion CCursorPassElement::opaqueRegion() {
