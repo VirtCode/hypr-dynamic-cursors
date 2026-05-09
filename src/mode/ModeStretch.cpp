@@ -9,12 +9,9 @@ EModeUpdate CModeStretch::strategy() {
 }
 
 SModeResult CModeStretch::update(Vector2D pos) {
-    static auto const* PFUNCTION = (Hyprlang::STRING const*) getConfig(CONFIG_STRETCH_FUNCTION);
-    static auto* const* PLIMIT = (Hyprlang::INT* const*) getConfig(CONFIG_STRETCH_LIMIT);
-    static auto* const* PWINDOW = (Hyprlang::INT* const*) getConfig(CONFIG_STRETCH_WINDOW);
-    auto function = g_pShapeRuleHandler->getStringOr(CONFIG_STRETCH_FUNCTION, *PFUNCTION);
-    auto limit = g_pShapeRuleHandler->getIntOr(CONFIG_STRETCH_LIMIT, **PLIMIT);
-    auto window = g_pShapeRuleHandler->getIntOr(CONFIG_STRETCH_WINDOW, **PWINDOW);
+    auto function = g_pConfigHandler->m_shapeRules.getStringOr("stretch:function", CONFIG(stretchFunction));
+    auto limit = g_pConfigHandler->m_shapeRules.getIntOr("stretch:limit", CONFIG(stretchLimit));
+    auto window = g_pConfigHandler->m_shapeRules.getIntOr("stretch:window", CONFIG(stretchWindow));
 
     // create samples array
     int max = std::max(1, (int)(g_pHyprRenderer->m_mostHzMonitor->m_refreshRate / 1000 * window)); // [window]ms worth of history, avoiding divide by 0

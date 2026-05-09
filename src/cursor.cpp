@@ -33,7 +33,7 @@
 #include "render/Renderer.hpp"
 
 void tickRaw(SP<CEventLoopTimer> self, void* data) {
-    if (isEnabled())
+    if (g_pConfigHandler->isEnabled())
         g_pDynamicCursors->onTick(g_pPointerManager.get());
 
     const int TIMEOUT = g_pHyprRenderer->m_mostHzMonitor && g_pHyprRenderer->m_mostHzMonitor->m_refreshRate > 0
@@ -64,8 +64,6 @@ Reimplements rendering of the software cursor.
 Is also largely identical to hyprlands impl, but uses our custom rendering to rotate the cursor.
 */
 void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos, bool forceRender) {
-    static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_HIGHRES_NEAREST);
-
     if (!pointers->hasCursor())
         return;
 
@@ -111,13 +109,13 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
             box.y -= (buf->m_hotspot.y / buf->size.y) * pointers->m_currentCursorImage.size.y * zoom;
 
             // only use nearest-neighbour if magnifying over size
-            nearest = **PNEAREST == 2 && pointers->m_currentCursorImage.size.x * zoom > buf->size.x;
+            nearest = CONFIG(highresNearest) == 2 && pointers->m_currentCursorImage.size.x * zoom > buf->size.x;
 
         } else {
             box.x -= pointers->m_currentCursorImage.hotspot.x * zoom;
             box.y -= pointers->m_currentCursorImage.hotspot.y * zoom;
 
-            nearest = **PNEAREST;
+            nearest = CONFIG(highresNearest);
         }
     }
 
@@ -184,9 +182,6 @@ This function reimplements the hardware cursor buffer drawing.
 It is largely copied from hyprland, but adjusted to allow the cursor to be rotated.
 */
 SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<Render::ITexture> texture) {
-    static auto* const* PHW_DEBUG = (Hyprlang::INT* const*) getConfig(CONFIG_HW_DEBUG);
-    static auto* const* PNEAREST = (Hyprlang::INT* const*) getConfig(CONFIG_HIGHRES_NEAREST);
-
     auto output = state->monitor->m_output;
 
     auto maxSize    = output->cursorPlaneSize();
@@ -268,7 +263,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
     g_pHyprRenderer->beginFullFakeRender(state->monitor.lock(), damageRegion, RBO->getFB());
     g_pHyprRenderer->startRenderPass();
 
-    if (**PHW_DEBUG)
+    if (CONFIG(hwDebug))
         g_pHyprRenderer->draw(CClearPassElement::SClearData{CHyprColor{rand() / float(RAND_MAX), rand() / float(RAND_MAX), rand() / float(RAND_MAX), 1.F}});
     else
         g_pHyprRenderer->draw(CClearPassElement::SClearData{{0.F, 0.F, 0.F, 0.F}});
@@ -276,7 +271,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
     CBox xbox = {cursorPadding, Vector2D{g_pPointerManager->m_currentCursorImage.size / g_pPointerManager->m_currentCursorImage.scale * state->monitor->m_scale * zoom}.round()};
     Mat3x3 transform = toTransform(xbox, resultShown.rotation, g_pPointerManager->m_currentCursorImage.hotspot * state->monitor->m_scale * zoom, resultShown.stretch.angle, resultShown.stretch.magnitude);
 
-    drawCursor(transform, texture, xbox, damageRegion, zoom > 1 && **PNEAREST);
+    drawCursor(transform, texture, xbox, damageRegion, zoom > 1 && CONFIG(highresNearest));
 
     g_pHyprRenderer->endRender();
     g_pHyprRenderer->m_renderData.pMonitor.reset();
@@ -323,9 +318,6 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
 Handles cursor move events.
 */
 void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
-    static auto* const* PSHAKE = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE);
-    static auto* const* PIGNORE_WARPS = (Hyprlang::INT* const*) getConfig(CONFIG_IGNORE_WARPS);
-
     if (!pointers->hasCursor())
         return;
 
@@ -366,11 +358,11 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
         pointers->updateCursorBackend();
 
     // ignore warp
-    if (!isMove && **PIGNORE_WARPS) {
+    if (!isMove && CONFIG(ignoreWarps)) {
         auto mode = this->currentMode();
         if (mode) mode->warp(lastPos, pointers->m_pointerPos);
 
-        if (**PSHAKE) shake.warp(lastPos, pointers->m_pointerPos);
+        if (CONFIG(shakeEnabled)) shake.warp(lastPos, pointers->m_pointerPos);
     }
 
     calculate(MOVE);
@@ -380,12 +372,12 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
 }
 
 void CDynamicCursors::setShape(const std::string& shape) {
-    g_pShapeRuleHandler->activate(shape);
+    g_pConfigHandler->m_shapeRules.activate(shape);
     highres.loadShape(shape);
 }
 
 void CDynamicCursors::unsetShape() {
-    g_pShapeRuleHandler->activate("clientside");
+    g_pConfigHandler->m_shapeRules.activate("clientside");
     highres.loadShape("clientside");
 }
 
@@ -401,8 +393,7 @@ void CDynamicCursors::onTick(CPointerManager* pointers) {
 }
 
 IMode* CDynamicCursors::currentMode() {
-    static auto const* PMODE = (Hyprlang::STRING const*) getConfig(CONFIG_MODE);
-    auto mode = g_pShapeRuleHandler->getModeOr(*PMODE);
+    auto mode = g_pConfigHandler->m_shapeRules.getModeOr(CONFIG(mode));
 
     if (mode == "rotate") return &rotate;
     else if (mode == "tilt") return &tilt;
@@ -411,9 +402,6 @@ IMode* CDynamicCursors::currentMode() {
 }
 
 void CDynamicCursors::calculate(EModeUpdate type) {
-    static auto* const* PTHRESHOLD = (Hyprlang::INT* const*) getConfig(CONFIG_THRESHOLD);
-    static auto* const* PSHAKE = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE);
-    static auto* const* PSHAKE_EFFECTS = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_EFFECTS);
 
     IMode* mode = currentMode();
 
@@ -427,19 +415,19 @@ void CDynamicCursors::calculate(EModeUpdate type) {
 
     lastMode = mode;
 
-    if (**PSHAKE) {
+    if (CONFIG(shakeEnabled)) {
         if (type == TICK) resultShake = shake.update(g_pPointerManager->m_pointerPos);
 
         // reset mode results if shaking
-        if (resultShake > 1 && !**PSHAKE_EFFECTS) resultMode = SModeResult();
+        if (resultShake > 1 && !CONFIG(shakeEffects)) resultMode = SModeResult();
     } else resultShake = 1;
 
     auto result = resultMode;
     result.scale *= resultShake;
 
-    if (resultShown.hasDifference(&result, **PTHRESHOLD * (PI / 180.0), 0.01, 0.01)) {
+    if (resultShown.hasDifference(&result, CONFIG(threshold) * (PI / 180.0), 0.01, 0.01)) {
         resultShown = result;
-        resultShown.clamp(**PTHRESHOLD * (PI / 180.0), 0.01, 0.01); // clamp low values so it is rendered pixel-perfectly when no effect
+        resultShown.clamp(CONFIG(threshold) * (PI / 180.0), 0.01, 0.01); // clamp low values so it is rendered pixel-perfectly when no effect
 
         // lock software cursors if zooming
         if (resultShown.scale > 1) {
@@ -487,8 +475,7 @@ void CDynamicCursors::setMove() {
 }
 
 void CDynamicCursors::dispatchMagnify(std::optional<int> duration, std::optional<float> size) {
-    static auto* const* PSHAKE = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE);
-    if (!**PSHAKE) return;
+    if (!CONFIG(shakeEnabled)) return;
 
     shake.force(duration, size);
 }

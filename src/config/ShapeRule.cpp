@@ -1,4 +1,5 @@
 #include "ShapeRule.hpp"
+#include "config.hpp"
 #include <hyprutils/string/VarList.hpp>
 #include <stdexcept>
 #include <string>
@@ -89,7 +90,7 @@ Hyprlang::CParseResult onShapeRuleKeyword(const char* COMMAND, const char* VALUE
     Hyprlang::CParseResult res;
 
     try {
-        g_pShapeRuleHandler->parseRule(std::string{VALUE});
+        g_pConfigHandler->m_shapeRules.parseRule(std::string{VALUE});
     } catch (const std::exception& ex) {
         res.setError(ex.what());
     }

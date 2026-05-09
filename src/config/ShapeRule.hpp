@@ -1,3 +1,5 @@
+#pragma once
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -48,5 +50,3 @@ class CShapeRuleHandler {
 
 /* method called by hyprland api */
 Hyprlang::CParseResult onShapeRuleKeyword(const char* COMMAND, const char* VALUE);
-
-inline std::unique_ptr<CShapeRuleHandler> g_pShapeRuleHandler;
