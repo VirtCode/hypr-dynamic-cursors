@@ -1,5 +1,6 @@
 #include <cmath>
 #include <cstdlib>
+#include <climits>
 #include <cstring>
 #include <hyprcursor/hyprcursor.hpp>
 #include <hyprlang.hpp>

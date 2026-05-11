@@ -5,6 +5,7 @@
 #include <hyprland/src/helpers/Monitor.hpp>
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/managers/CursorManager.hpp>
+#include <hyprland/src/config/ConfigManager.hpp>
 #include <hyprland/src/debug/log/Logger.hpp>
 #include <hyprland/src/helpers/time/Time.hpp>
 #include <hyprlang.hpp>
@@ -155,8 +156,14 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     const std::string COMPOSITOR_HASH = __hyprland_api_get_hash();
     const std::string CLIENT_HASH = __hyprland_api_get_client_hash();
     if (COMPOSITOR_HASH != CLIENT_HASH) {
-        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] failed to load, version mismatch!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
+        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] failed to load, version mismatch!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 10000);
         throw std::runtime_error(std::format("version mismatch, built against: {}, running compositor: {}", CLIENT_HASH, COMPOSITOR_HASH));
+    }
+
+    // refuse to load on lua configs, as this will cause the compsitor to crash
+    if (Config::mgr()->type() != Config::CONFIG_LEGACY) {
+        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] cannot load, lua configuration is not yet supported!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 10000);
+        throw std::runtime_error("this plugin does not yet support lua configuration");
     }
 
     // setup config
