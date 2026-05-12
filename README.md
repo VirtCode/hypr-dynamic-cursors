@@ -318,7 +318,7 @@ This plugin makes heavy use of [function hooks](https://wiki.hypr.land/Plugins/D
 
 Compatibility with other plugins is not guaranteed. It probably should work with most plugins, unless they also change your cursor's behaviour. It will however work with any cursor theme.
 
-The plugin does also not support _hardware cursors_ on Nvidia GPUs. If you are on nvidia, Hyprland will use CPU rendering to draw into your hardware cursor buffer, because of driver limitations. When using an effect with this plugin however, we potentially draw into the cursor buffer every frame (when the cursor is moving) which is really resource intensive if done on the CPU. Additionally, the whole drawing logic would have to be implemented again to be able run on the CPU too. This is why on Nvidia GPUs, the plugin will automatically force the compositor to use software cursors, avoiding the above issues at a slight performance penalty.
+The plugin does also not support _hardware cursors_ on Nvidia GPUs. If you are on nvidia, Hyprland will use CPU rendering to draw into your hardware cursor buffer, because of driver limitations. When using an effect with this plugin however, we potentially draw into the cursor buffer every frame (when the cursor is moving) which is really resource intensive if done on the CPU. Additionally, the whole drawing logic would have to be implemented again to be able to run on the CPU too. This is why on Nvidia GPUs, the plugin will automatically force the compositor to use software cursors, avoiding the above issues at a slight performance penalty.
 
 ## development
 To work on this plugin, you can clone this repository and use the Makefile to build it. I suggest opening a nested Hyprland session, and loading the plugin there:
