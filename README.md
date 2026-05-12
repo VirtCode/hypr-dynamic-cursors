@@ -220,7 +220,7 @@ plugin:dynamic-cursors {
         # this will also have effect without hyprcursor support being enabled
         # 0 / false - never use pixelated scaling
         # 1 / true  - use pixelated when no highres image
-        # 2         - always use pixleated scaling
+        # 2         - always use pixelated scaling
         nearest = true
 
         # enable dedicated hyprcursor support
