@@ -7,7 +7,7 @@ Mat3x3 toTransform(CBox& box, float rotation, Vector2D hotspot, float stretchAng
 
     if (stretch != Vector2D{1,1}) {
         // center to origin, rotate, shift up, scale, undo
-        // we do the shifting up so the stretch is "only to one side"
+        // we do the shifting up, so the stretch is "only to one side"
 
         mat.translate({box.w / 2, box.h / 2});
         mat.rotate(stretchAngle);
