@@ -18,7 +18,7 @@ CShake::CShake() {
 
     int time = 400;
 
-    // add custom bezier (and readd it after config reload)
+    // add custom bezier (and read it after config reload)
     static auto bezier = "dynamic-cursors-magnification";
     g_pAnimationManager->addBezierWithName(bezier, {0.22, 1.0}, {0.36, 1.0});
     static const auto LISTENER = Event::bus()->m_events.config.reloaded.listen([&]() -> void {
