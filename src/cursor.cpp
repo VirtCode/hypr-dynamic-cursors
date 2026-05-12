@@ -79,7 +79,7 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
         return;
     }
 
-    // don't render cursor if forced but we are already using sw cursors for the monitor
+    // don't render cursor if forced, but we are already using sw cursors for the monitor
     // otherwise we draw the cursor again for screencopy when using sw cursors
     if (forceRender && (state->hardwareFailed || state->softwareLocks != 0))
         return;
@@ -154,11 +154,11 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
 
 /*
 This function implements damaging the screen such that the software cursor is drawn.
-It is largely identical to hyprlands implementation, but expands the damage reagion, to accomodate various rotations.
+It is largely identical to hyprlands implementation, but expands the damage region, to accommodate various rotations.
 */
 void CDynamicCursors::damageSoftware(CPointerManager* pointers) {
 
-    // we damage a padding of the diagonal around the hotspot, to accomodate for all possible hotspots and rotations
+    // we damage a padding of the diagonal around the hotspot, to accommodate for all possible hotspots and rotations
     auto zoom = resultShown.scale;
     Vector2D size = pointers->m_currentCursorImage.size / pointers->m_currentCursorImage.scale * zoom;
     int diagonal = size.size();
@@ -257,7 +257,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
     g_pHyprRenderer->m_renderData.pMonitor = state->monitor;
     auto RBO = g_pHyprRenderer->getOrCreateRenderbuffer(buf, state->monitor->m_cursorSwapchain->currentOptions().format);
 
-    // we just fail if we cannot create a render buffer, this will force hl to render sofware cursors, which we support
+    // we just fail if we cannot create a render buffer, this will force hl to render software cursors, which we support
     if (!RBO)
         return nullptr;
 
@@ -473,7 +473,7 @@ void CDynamicCursors::calculate(EModeUpdate type) {
         }
 
         // there should always be one monitor entered
-        // this fixes an issue wheter the cursor shape would not properly update after change
+        // this fixes an issue where the cursor shape would not properly update after change
         if (!entered) {
             Log::logger->log(Log::INFO, "[dynamic-cursors] updating because none entered");
             g_pPointerManager->recheckEnteredOutputs();

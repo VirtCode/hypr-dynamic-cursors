@@ -106,7 +106,7 @@ plugin:dynamic-cursors {
     # tilt    - tilt the cursor based on x-velocity
     # rotate  - rotate the cursor based on movement direction
     # stretch - stretch the cursor shape based on direction and velocity
-    # none    - do not change the cursors behaviour
+    # none    - do not change the cursor's behaviour
     mode = tilt
 
     # minimum angle difference in degrees after which the shape is changed
@@ -194,14 +194,14 @@ plugin:dynamic-cursors {
         base = 4.0
         # magnification increase per second when continuing to shake
         speed = 4.0
-        # how much the speed is influenced by the current shake intensitiy
+        # how much the speed is influenced by the current shake intensity
         influence = 0.0
 
         # maximal magnification the cursor can reach
         # values below 1 disable the limit (e.g. 0)
         limit = 0.0
 
-        # time in millseconds the cursor will stay magnified after a shake has ended
+        # time in milliseconds the cursor will stay magnified after a shake has ended
         timeout = 2000
 
         # show cursor behaviour `tilt`, `rotate`, etc. while shaking
@@ -216,11 +216,11 @@ plugin:dynamic-cursors {
     # see the `hyprcursor` section below
     hyprcursor {
 
-        # use nearest-neighbour (pixelated) scaling when magnifing beyond texture size
+        # use nearest-neighbour (pixelated) scaling when magnifying beyond texture size
         # this will also have effect without hyprcursor support being enabled
         # 0 / false - never use pixelated scaling
         # 1 / true  - use pixelated when no highres image
-        # 2         - always use pixleated scaling
+        # 2         - always use pixelated scaling
         nearest = true
 
         # enable dedicated hyprcursor support
@@ -277,7 +277,7 @@ The following events with the described arguments are available, when IPC is ena
   - `zoom` is the current cursor magnification level, as currently shown by this plugin, depending on the shake configuration. It is also interpolated smoothly.
 - `shakeend`: fired when a shake has ended (after the `timeout`)
 
-If you only want the IPC events and not the plugin actually changing the cursor size, you can set the properties `base` to `1`, `speed`, `influence` and `timeout` to `0` in the `plugin:dynamic-cursors:shake` section such that the cursor is not magified during the shake.
+If you only want the IPC events and not the plugin actually changing the cursor size, you can set the properties `base` to `1`, `speed`, `influence` and `timeout` to `0` in the `plugin:dynamic-cursors:shake` section such that the cursor is not magnified during the shake.
 
 ### hyprcursor
 This plugin supports using [hyprcursor](https://github.com/hyprwm/hyprcursor) to get higher-resolution images for when the cursor is magnified, i.e. when using shake to find. Due to the nature of cursors on wayland, there are some caveats to it. All configuration for it is located in the `plugin:dynamic-cursors:hyprcursor` section.
@@ -292,7 +292,7 @@ As mentioned, there are some caveats to it. Here are the most common ones:
 - **Still pixelated some apps and xwayland** - These apps probably are using clientside cursors, so the program itself is specifying the cursor shape, hence we cannot load a higher resolution for it. You can set a specific shape to show in these cases with the `fallback` option (see config).
 - **Blurred at very large sizes** - The high resolution cursors are preloaded at a fixed size. If you magnify your cursor beyond this size, your cursors will look blurry. You can increase the preload size with the `resolution` option (see config), at the expense of some memory and higher loading times.
 
-Loading a cursor theme at a high resolution is relatively resource intensive. This plugin thus loads the theme asynchronously on a seperate thread, meaning your session will stay interactive during this time. But this means that when loading the plugin or changing cursor theme, your CPU might spike momentarily and the high-resolution theme will only be available after a short time (usually just a couple of seconds).
+Loading a cursor theme at a high resolution is relatively resource intensive. This plugin thus loads the theme asynchronously on a separate thread, meaning your session will stay interactive during this time. But this means that when loading the plugin or changing cursor theme, your CPU might spike momentarily, and the high-resolution theme will only be available after a short time (usually just a couple of seconds).
 
 ### dispatchers
 This plugin has a couple of dispatchers to trigger certain effects with a keybind. Here's a list:
@@ -301,7 +301,7 @@ This plugin has a couple of dispatchers to trigger certain effects with a keybin
   - `size` (optional): overrides magnification factor
 
 ## performance
-> **TL;DR:** Hardware cursor performance is about the same as if an animated cursor shape was shown whenever you move your mouse. Sofware cursor performance is not impacted. When the cursor is magnified during a shake, the compositor will temporarily switch to software cursors. If your are using an nvidia gpu, this plugin will fall back to software cursors, see [compatibility](#compatibility).
+> **TL;DR:** Hardware cursor performance is about the same as if an animated cursor shape was shown whenever you move your mouse. Software cursor performance is not impacted. When the cursor is magnified during a shake, the compositor will temporarily switch to software cursors. If you are using an nvidia gpu, this plugin will fall back to software cursors, see [compatibility](#compatibility).
 
 Depending on your Hyprland configuration, this plugin can have a different performance impact, mainly depending on whether you are using software or hardware cursors:
 
@@ -309,7 +309,7 @@ Depending on your Hyprland configuration, this plugin can have a different perfo
 Transforming the cursor can be done in the same draw call that is used to draw the cursor anyway, so there is no additional performance impact. Note however that software cursors in of themselves are not really efficient.
 
 **Hardware Cursors**: Medium performance impact. <br>
-To transform the cursor smoothly, the cursor shape needs to be changed quite often. This is not exactly compatible with how hardware cursors are intended to work. Thus, performance can be compared to how an animated cursor shape would be rendered, every time the cursor is not stationary. It is however still more performant than software cursors. <br> Another limitation of hardware cursors are the size they are rendered at. This means that when the cursor is being magnified, software cursors will be used temporarily. <br> If your are using an Nvidia GPU, the plugin will also fall back to software cursors because of driver limitations (see [compatibility](#compatibility)).
+To transform the cursor smoothly, the cursor shape needs to be changed quite often. This is not exactly compatible with how hardware cursors are intended to work. Thus, performance can be compared to how an animated cursor shape would be rendered, every time the cursor is not stationary. It is however still more performant than software cursors. <br> Another limitation of hardware cursors are the size they are rendered at. This means that when the cursor is being magnified, software cursors will be used temporarily. <br> If you are using an Nvidia GPU, the plugin will also fall back to software cursors because of driver limitations (see [compatibility](#compatibility)).
 
 If you have any ideas to improve performance, let me know!
 
@@ -318,7 +318,7 @@ This plugin makes heavy use of [function hooks](https://wiki.hypr.land/Plugins/D
 
 Compatibility with other plugins is not guaranteed. It probably should work with most plugins, unless they also change your cursor's behaviour. It will however work with any cursor theme.
 
-The plugin does also not support _hardware cursors_ on Nvidia GPUs. If you are on nvidia, Hyprland will use CPU rendering to draw into your hardware cursor buffer, because of driver limitations. When using an effect with this plugin however, we potentially draw into the cursor buffer every frame (when the cursor is moving) which is really resource intensive if done on the CPU. Additionally the whole drawing logic would have to be implemented again to be able run on the CPU too. This is why on Nvidia GPUs, the plugin will automatically force the compositor to use software cursors, avoiding the above issues at a slight performance penalty.
+The plugin does also not support _hardware cursors_ on Nvidia GPUs. If you are on nvidia, Hyprland will use CPU rendering to draw into your hardware cursor buffer, because of driver limitations. When using an effect with this plugin however, we potentially draw into the cursor buffer every frame (when the cursor is moving) which is really resource intensive if done on the CPU. Additionally, the whole drawing logic would have to be implemented again to be able to run on the CPU too. This is why on Nvidia GPUs, the plugin will automatically force the compositor to use software cursors, avoiding the above issues at a slight performance penalty.
 
 ## development
 To work on this plugin, you can clone this repository and use the Makefile to build it. I suggest opening a nested Hyprland session, and loading the plugin there:
@@ -331,7 +331,7 @@ In some cases when working in a nest, nothing will happen with the plugin loaded
 
 If you want to debug hardware cursors, this plugin also has an additional configuration option, `plugin:dynamic-cursors:hw_debug` which when true will show where the whole cursor buffer is, and also shows when it is updated.
 
-Also make sure you disable the plugin on your host session if your are using hardware cursors, otherwise your cursor will be rotated twice.
+Also make sure you disable the plugin on your host session if you are using hardware cursors, otherwise your cursor will be rotated twice.
 
 ## license
 This plugin is licensed under the MIT License. Have a look at the `LICENSE.md` file for more information.

@@ -13,12 +13,12 @@
 #include <hyprland/src/event/EventBus.hpp>
 
 CShake::CShake() {
-    // the timing and the bezier are quite crucial, as things will break down if they are just changed slighly
-    // this is not ideal and should be fixed some time in the future, then it may be made configurable (if it has a substatntial enough effect on behaviour)
+    // the timing and the bezier are quite crucial, as things will break down if they are just changed slightly
+    // this is not ideal and should be fixed some time in the future, then it may be made configurable (if it has a substantial enough effect on behaviour)
 
     int time = 400;
 
-    // add custom bezier (and readd it after config reload)
+    // add custom bezier (and read it after config reload)
     static auto bezier = "dynamic-cursors-magnification";
     g_pAnimationManager->addBezierWithName(bezier, {0.22, 1.0}, {0.36, 1.0});
     static const auto LISTENER = Event::bus()->m_events.config.reloaded.listen([&]() -> void {
@@ -55,7 +55,7 @@ double CShake::update(Vector2D pos) {
     samples_distance[samples_index] = samples[samples_index].distance(samples[previous]);
     samples_index = (samples_index + 1) % max; // increase for next sample
 
-    // The idea for this algorith was largely inspired by KDE Plasma
+    // The idea for this algorithm was largely inspired by KDE Plasma
     // https://invent.kde.org/plasma/kwin/-/blob/master/src/plugins/shakecursor/shakedetector.cpp
 
     // calculate total distance travelled
