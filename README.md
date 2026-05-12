@@ -331,7 +331,7 @@ In some cases when working in a nest, nothing will happen with the plugin loaded
 
 If you want to debug hardware cursors, this plugin also has an additional configuration option, `plugin:dynamic-cursors:hw_debug` which when true will show where the whole cursor buffer is, and also shows when it is updated.
 
-Also make sure you disable the plugin on your host session if your are using hardware cursors, otherwise your cursor will be rotated twice.
+Also make sure you disable the plugin on your host session if you are using hardware cursors, otherwise your cursor will be rotated twice.
 
 ## license
 This plugin is licensed under the MIT License. Have a look at the `LICENSE.md` file for more information.
