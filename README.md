@@ -93,7 +93,7 @@ wayland.windowManager.hyprland = {
 
 ## configuration
 > [!IMPORTANT]
-> **This plugin does not yet support being configured via lua**, and will not load when hyprland is configured that way. Lua will first be available supporting Hyprland version `0.55.1` an onward, and the progress for lua support is tracked at [#139](https://github.com/VirtCode/hypr-dynamic-cursors/pull/139).
+> **This plugin does not yet support being configured via lua**, and will not load when hyprland is configured that way. Lua will first be available supporting Hyprland version `0.55.1` and onward, and the progress for lua support is tracked at [#139](https://github.com/VirtCode/hypr-dynamic-cursors/pull/139).
 
 This plugin can be configured in its dedicated configuration section (`plugin:dynamic-cursors`). The default values are shown below.
 ```ini
