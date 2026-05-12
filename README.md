@@ -106,7 +106,7 @@ plugin:dynamic-cursors {
     # tilt    - tilt the cursor based on x-velocity
     # rotate  - rotate the cursor based on movement direction
     # stretch - stretch the cursor shape based on direction and velocity
-    # none    - do not change the cursors behaviour
+    # none    - do not change the cursor's behaviour
     mode = tilt
 
     # minimum angle difference in degrees after which the shape is changed
