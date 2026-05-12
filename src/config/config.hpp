@@ -48,7 +48,7 @@
 /* is the plugin enabled */
 bool isEnabled();
 
-/* initializes stuff so config can be set up */
+/* initializes stuff, so config can be set up */
 void startConfig();
 /* finishes config setup */
 void finishConfig();
