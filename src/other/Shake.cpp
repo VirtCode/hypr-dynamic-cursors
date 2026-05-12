@@ -13,7 +13,7 @@
 #include <hyprland/src/event/EventBus.hpp>
 
 CShake::CShake() {
-    // the timing and the bezier are quite crucial, as things will break down if they are just changed slighly
+    // the timing and the bezier are quite crucial, as things will break down if they are just changed slightly
     // this is not ideal and should be fixed some time in the future, then it may be made configurable (if it has a substatntial enough effect on behaviour)
 
     int time = 400;
