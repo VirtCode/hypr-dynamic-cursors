@@ -79,7 +79,7 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
         return;
     }
 
-    // don't render cursor if forced but we are already using sw cursors for the monitor
+    // don't render cursor if forced, but we are already using sw cursors for the monitor
     // otherwise we draw the cursor again for screencopy when using sw cursors
     if (forceRender && (state->hardwareFailed || state->softwareLocks != 0))
         return;
