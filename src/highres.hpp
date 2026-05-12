@@ -28,7 +28,7 @@ private:
     UP<std::future<UP<Hyprcursor::CHyprcursorManager>>> managerFuture;
     UP<Hyprcursor::CHyprcursorManager> manager;
 
-    /* keep track of loaded theme so we don't reload unnecessarily (<- i'm almost certain there's a typo in this word (<- i0m almost certain i just fixed it)) */
+    /* keep track of loaded theme so we don't reload unnecessarily (<- i'm almost certain there's a typo in this word (<- i'm almost certain i just fixed it)) */
     unsigned int loadedSize = -1;
     std::string loadedName = "";
 
