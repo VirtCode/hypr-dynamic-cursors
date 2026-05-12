@@ -301,7 +301,7 @@ This plugin has a couple of dispatchers to trigger certain effects with a keybin
   - `size` (optional): overrides magnification factor
 
 ## performance
-> **TL;DR:** Hardware cursor performance is about the same as if an animated cursor shape was shown whenever you move your mouse. Software cursor performance is not impacted. When the cursor is magnified during a shake, the compositor will temporarily switch to software cursors. If your are using an nvidia gpu, this plugin will fall back to software cursors, see [compatibility](#compatibility).
+> **TL;DR:** Hardware cursor performance is about the same as if an animated cursor shape was shown whenever you move your mouse. Software cursor performance is not impacted. When the cursor is magnified during a shake, the compositor will temporarily switch to software cursors. If you are using an nvidia gpu, this plugin will fall back to software cursors, see [compatibility](#compatibility).
 
 Depending on your Hyprland configuration, this plugin can have a different performance impact, mainly depending on whether you are using software or hardware cursors:
 
