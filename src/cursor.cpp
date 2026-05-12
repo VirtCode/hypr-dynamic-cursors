@@ -154,7 +154,7 @@ void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMo
 
 /*
 This function implements damaging the screen such that the software cursor is drawn.
-It is largely identical to hyprlands implementation, but expands the damage reagion, to accomodate various rotations.
+It is largely identical to hyprlands implementation, but expands the damage region, to accomodate various rotations.
 */
 void CDynamicCursors::damageSoftware(CPointerManager* pointers) {
 
