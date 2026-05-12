@@ -257,7 +257,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(CPointerManager* pointer
     g_pHyprRenderer->m_renderData.pMonitor = state->monitor;
     auto RBO = g_pHyprRenderer->getOrCreateRenderbuffer(buf, state->monitor->m_cursorSwapchain->currentOptions().format);
 
-    // we just fail if we cannot create a render buffer, this will force hl to render sofware cursors, which we support
+    // we just fail if we cannot create a render buffer, this will force hl to render software cursors, which we support
     if (!RBO)
         return nullptr;
 
