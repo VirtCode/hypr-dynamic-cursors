@@ -14,7 +14,7 @@
 
 CShake::CShake() {
     // the timing and the bezier are quite crucial, as things will break down if they are just changed slightly
-    // this is not ideal and should be fixed some time in the future, then it may be made configurable (if it has a substatntial enough effect on behaviour)
+    // this is not ideal and should be fixed some time in the future, then it may be made configurable (if it has a substantial enough effect on behaviour)
 
     int time = 400;
 
