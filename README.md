@@ -216,7 +216,7 @@ plugin:dynamic-cursors {
     # see the `hyprcursor` section below
     hyprcursor {
 
-        # use nearest-neighbour (pixelated) scaling when magnifing beyond texture size
+        # use nearest-neighbour (pixelated) scaling when magnifying beyond texture size
         # this will also have effect without hyprcursor support being enabled
         # 0 / false - never use pixelated scaling
         # 1 / true  - use pixelated when no highres image
