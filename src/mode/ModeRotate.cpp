@@ -38,7 +38,7 @@ SModeResult CModeRotate::update(Vector2D pos) {
     double angle = -std::atan(end.x / end.y);
     if (end.y > 0) angle += PI;
     angle += PI;
-    angle += offset * ((2 * PI) / 360); // convert to radiants
+    angle += offset * ((2 * PI) / 360); // convert to radians
 
     if (end.y == 0) angle = 0; // do not divide by 0 above, leave untransformed in these cases
 
