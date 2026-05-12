@@ -201,7 +201,7 @@ plugin:dynamic-cursors {
         # values below 1 disable the limit (e.g. 0)
         limit = 0.0
 
-        # time in millseconds the cursor will stay magnified after a shake has ended
+        # time in milliseconds the cursor will stay magnified after a shake has ended
         timeout = 2000
 
         # show cursor behaviour `tilt`, `rotate`, etc. while shaking
