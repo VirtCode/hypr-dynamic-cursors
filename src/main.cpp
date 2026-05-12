@@ -110,7 +110,7 @@ void* pmf_address(T pmf) {
 }
 
 /*
- * hooks a function hook, given a function address `target` and its symbol `signature` when compiled againtst libstdc++
+ * hooks a function hook, given a function address `target` and its symbol `signature` when compiled against libstdc++
  * the symbol is only used when compiled against libstdc++ to check that the function signature has not changed, on other libc++ impls it is ignored
  *
  * the target address is intended to stem from a function pointer, the benefit of which is that it doesn't compile if the function isn't found
