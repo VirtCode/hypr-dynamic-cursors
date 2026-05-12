@@ -277,7 +277,7 @@ The following events with the described arguments are available, when IPC is ena
   - `zoom` is the current cursor magnification level, as currently shown by this plugin, depending on the shake configuration. It is also interpolated smoothly.
 - `shakeend`: fired when a shake has ended (after the `timeout`)
 
-If you only want the IPC events and not the plugin actually changing the cursor size, you can set the properties `base` to `1`, `speed`, `influence` and `timeout` to `0` in the `plugin:dynamic-cursors:shake` section such that the cursor is not magified during the shake.
+If you only want the IPC events and not the plugin actually changing the cursor size, you can set the properties `base` to `1`, `speed`, `influence` and `timeout` to `0` in the `plugin:dynamic-cursors:shake` section such that the cursor is not magnified during the shake.
 
 ### hyprcursor
 This plugin supports using [hyprcursor](https://github.com/hyprwm/hyprcursor) to get higher-resolution images for when the cursor is magnified, i.e. when using shake to find. Due to the nature of cursors on wayland, there are some caveats to it. All configuration for it is located in the `plugin:dynamic-cursors:hyprcursor` section.
