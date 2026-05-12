@@ -473,7 +473,7 @@ void CDynamicCursors::calculate(EModeUpdate type) {
         }
 
         // there should always be one monitor entered
-        // this fixes an issue wheter the cursor shape would not properly update after change
+        // this fixes an issue where the cursor shape would not properly update after change
         if (!entered) {
             Log::logger->log(Log::INFO, "[dynamic-cursors] updating because none entered");
             g_pPointerManager->recheckEnteredOutputs();
