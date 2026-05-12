@@ -55,7 +55,7 @@ double CShake::update(Vector2D pos) {
     samples_distance[samples_index] = samples[samples_index].distance(samples[previous]);
     samples_index = (samples_index + 1) % max; // increase for next sample
 
-    // The idea for this algorith was largely inspired by KDE Plasma
+    // The idea for this algorithm was largely inspired by KDE Plasma
     // https://invent.kde.org/plasma/kwin/-/blob/master/src/plugins/shakecursor/shakedetector.cpp
 
     // calculate total distance travelled
