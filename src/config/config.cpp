@@ -85,7 +85,7 @@ void addDispatcher(std::string name, std::function<std::optional<std::string>(Hy
 
         SDispatchResult result;
         if (error.has_value()) {
-            Log::logger->log(Log::ERR, "[dynamic-cursors] dispatcher {} recieved invalid args: {}", name, error.value());
+            Log::logger->log(Log::ERR, "[dynamic-cursors] dispatcher {} received invalid args: {}", name, error.value());
             result.error = error.value();
         }
 
