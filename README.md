@@ -194,7 +194,7 @@ plugin:dynamic-cursors {
         base = 4.0
         # magnification increase per second when continuing to shake
         speed = 4.0
-        # how much the speed is influenced by the current shake intensitiy
+        # how much the speed is influenced by the current shake intensity
         influence = 0.0
 
         # maximal magnification the cursor can reach
