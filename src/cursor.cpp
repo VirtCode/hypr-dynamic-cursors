@@ -158,7 +158,7 @@ It is largely identical to hyprlands implementation, but expands the damage regi
 */
 void CDynamicCursors::damageSoftware(CPointerManager* pointers) {
 
-    // we damage a padding of the diagonal around the hotspot, to accomodate for all possible hotspots and rotations
+    // we damage a padding of the diagonal around the hotspot, to accommodate for all possible hotspots and rotations
     auto zoom = resultShown.scale;
     Vector2D size = pointers->m_currentCursorImage.size / pointers->m_currentCursorImage.scale * zoom;
     int diagonal = size.size();
