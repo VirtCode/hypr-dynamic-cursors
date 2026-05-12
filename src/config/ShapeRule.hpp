@@ -19,7 +19,7 @@ struct SShapeRule {
 };
 
 class CShapeRuleHandler {
-    /* induvidual rule content */
+    /* individual rule content */
     std::unordered_map<std::string, EShapeRuleType> content;
 
     /* possible rules */
