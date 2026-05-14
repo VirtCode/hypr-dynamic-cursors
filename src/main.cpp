@@ -160,12 +160,6 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
         throw std::runtime_error(std::format("version mismatch, built against: {}, running compositor: {}", CLIENT_HASH, COMPOSITOR_HASH));
     }
 
-    // refuse to load on lua configs, as this will cause the compositor to crash
-    if (Config::mgr()->type() != Config::CONFIG_LEGACY) {
-        HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] cannot load, lua configuration is not yet supported!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 10000);
-        throw std::runtime_error("this plugin does not yet support lua configuration");
-    }
-
     // setup config
     startConfig();
 
