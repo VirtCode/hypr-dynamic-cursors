@@ -22,11 +22,11 @@
 #include "config/config.hpp"
 #include "render/Renderer.hpp"
 
-typedef void (*origRenderSofwareCursorsFor)(void*, SP<CMonitor>, const Time::steady_tp&, CRegion&, std::optional<Vector2D>, bool);
+typedef void (*origRenderSoftwareCursorsFor)(void*, SP<CMonitor>, const Time::steady_tp&, CRegion&, std::optional<Vector2D>, bool);
 inline CFunctionHook* g_pRenderSoftwareCursorsForHook = nullptr;
 void hkRenderSoftwareCursorsFor(void* thisptr, SP<CMonitor> pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos, bool forceRender) {
     if (isEnabled()) g_pDynamicCursors->renderSoftware((CPointerManager*) thisptr, pMonitor, now, damage, overridePos, forceRender);
-    else (*(origRenderSofwareCursorsFor)g_pRenderSoftwareCursorsForHook->m_original)(thisptr, pMonitor, now, damage, overridePos, forceRender);
+    else (*(origRenderSoftwareCursorsFor)g_pRenderSoftwareCursorsForHook->m_original)(thisptr, pMonitor, now, damage, overridePos, forceRender);
 }
 
 typedef void (*origDamageIfSoftware)(void*);
@@ -57,11 +57,11 @@ void hkOnCursorMoved(void* thisptr) {
     else return (*(origOnCursorMoved)g_pOnCursorMovedHook->m_original)(thisptr);
 }
 
-typedef void (*origSetCusorFromName)(void*, const std::string& name);
+typedef void (*origSetCursorFromName)(void*, const std::string& name);
 inline CFunctionHook* g_pSetCursorFromNameHook = nullptr;
 void hkSetCursorFromName(void* thisptr, const std::string& name) {
     if (isEnabled()) g_pDynamicCursors->setShape(name);
-    (*(origSetCusorFromName)g_pSetCursorFromNameHook->m_original)(thisptr, name);
+    (*(origSetCursorFromName)g_pSetCursorFromNameHook->m_original)(thisptr, name);
 }
 
 typedef void (*origSetCursorSurface)(void*, SP<Desktop::View::CWLSurface>, const Vector2D&);
