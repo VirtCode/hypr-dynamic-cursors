@@ -28,7 +28,7 @@ void addDispatcher(std::string name, std::function<std::optional<std::string>(Hy
 class CConfigHandler {
 public:
     SP<CBoolValue>      c_enabled;
-    SP<CStringValue>    c_mode;
+    SP<CStringProp>     c_mode;
     SP<CIntValue>       c_threshold;
 
     SP<CBoolValue>      c_shakeEnabled;

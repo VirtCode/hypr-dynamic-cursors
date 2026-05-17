@@ -4,7 +4,7 @@
 Config::FLOAT CFloatProp::value() const {
     if (m_rules && m_rules->active) {
         auto& prop = m_rules->active->at(m_id);
-        if (prop) return std::get<Config::BOOL>(prop.value());
+        if (prop) return std::get<Config::FLOAT>(prop.value());
     }
 
     return m_config->value();

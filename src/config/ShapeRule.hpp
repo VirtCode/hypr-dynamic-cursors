@@ -40,7 +40,11 @@ class CShapeRuleHandler {
     std::optional<std::string> set(const std::string& shape, const std::string& name, T value);
 
     /* activates the shape rule for the given shape */
-    void activate(const std::string& name);
+    void activate(const std::string& shape);
+
+    /* returns the type info of a given prop */
+    // TODO: remove this once we no longer need the legacy config parser
+    const std::type_info* type(const std::string& prop);
 };
 
 /* method called by hyprland api */

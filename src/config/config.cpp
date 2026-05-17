@@ -30,7 +30,7 @@ CConfigHandler::CConfigHandler() {
 
     // add config variables
     c_enabled         = conf(NS("enabled"),                true,                   "global toggle for the plugin");
-    c_mode            = conf(NS("mode"),                   "tilt",                 "sets the cursor behaviour (tilt, rotate, stretch, none)");
+    c_mode            = prop(NS("mode"),                   "tilt",                 "sets the cursor behaviour (tilt, rotate, stretch, none)");
     c_threshold       = conf(NS("threshold"),              2,                      "minimum angle difference in degrees after which the shape is changed");
 
     c_shakeEnabled    = conf(NS("shake:enabled"),          true,                   "enables shake to find");
@@ -64,7 +64,7 @@ CConfigHandler::CConfigHandler() {
     c_ignoreWarps     = conf(NS("ignore_warps"),           true,                   "ignore cursor warps");
 
     // add legacy shape rule keyword
-    //HyprlandAPI::addConfigKeyword(PHANDLE, "shaperule", onShapeRuleKeyword, Hyprlang::SHandlerOptions {});
+    HyprlandAPI::addConfigKeyword(PHANDLE, "shaperule", onShapeRuleKeyword, Hyprlang::SHandlerOptions {});
     static const auto LISTENER = Event::bus()->m_events.config.preReload.listen([&]() -> void {
         m_shapeRules->clear();
     });
