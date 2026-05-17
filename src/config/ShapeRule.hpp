@@ -1,5 +1,9 @@
 #pragma once
 
+#include "rule/IProp.hpp"
+
+#include <hyprland/src/config/shared/Types.hpp>
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -8,44 +12,35 @@
 
 #include <hyprlang.hpp>
 
-/* stores possible types in a shape rule */
-enum EShapeRuleType {
-    STRING,
-    FLOAT,
-    INT
-};
+/* the actual types a value can have */
+typedef std::variant<Config::STRING, Config::FLOAT, Config::INTEGER, Config::BOOL> PropValue;
 
-struct SShapeRule {
-    std::optional<std::string> mode;
-    std::unordered_map<std::string, std::variant<std::string, float, int>> content;
-};
+/* how we store all the properties for a rule */
+typedef std::vector<std::optional<PropValue>> PropStore;
 
 class CShapeRuleHandler {
-    /* individual rule content */
-    std::unordered_map<std::string, EShapeRuleType> content;
+    /* available properties */
+    std::unordered_map<std::string, SP<IProp>> m_properties;
 
     /* possible rules */
-    std::unordered_map<std::string, SShapeRule> rules;
-
-    /* currently active rule, nullptr if none */
-    SShapeRule* active = nullptr;
+    std::unordered_map<std::string, PropStore> m_rules;
 
   public:
-    /* adds a valid shape rule property */
-    void addProperty(std::string key, EShapeRuleType type);
+    /* currently active rule, nullptr if none */
+    PropStore* active = nullptr;
+
+    /* adds a new shape rule property */
+    void registerProp(SP<IProp>);
 
     /* removes currently added shape rules */
     void clear();
-    /* adds a new shape rule from string */
-    void parseRule(std::string string);
+
+    /* sets a property for the given shape, returns errors as a string if any */
+    template<typename T>
+    std::optional<std::string> set(const std::string& shape, const std::string& name, T value);
 
     /* activates the shape rule for the given shape */
-    void activate(std::string name);
-
-    std::string getModeOr(std::string def);
-    std::string getStringOr(std::string key, std::string def);
-    int getIntOr(std::string key, int def);
-    float getFloatOr(std::string key, float def);
+    void activate(const std::string& name);
 };
 
 /* method called by hyprland api */

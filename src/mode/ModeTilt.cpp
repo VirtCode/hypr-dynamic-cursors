@@ -9,10 +9,10 @@ EModeUpdate CModeTilt::strategy() {
 }
 
 SModeResult CModeTilt::update(Vector2D pos) {
-    auto function = g_pConfigHandler->m_shapeRules.getStringOr("tilt:function", CONFIG(tiltFunction));
-    auto limit = g_pConfigHandler->m_shapeRules.getIntOr("tilt:limit", CONFIG(tiltLimit));
-    auto window = g_pConfigHandler->m_shapeRules.getIntOr("tilt:window", CONFIG(tiltWindow));
-    auto full_tilt = g_pConfigHandler->m_shapeRules.getIntOr("tilt:full_tilt", CONFIG(tiltFull));
+    auto function = CONFIG(tiltFunction);
+    auto limit = CONFIG(tiltLimit);
+    auto window = CONFIG(tiltWindow);
+    auto full_tilt = CONFIG(tiltFull);
 
     // create samples array
     int max = std::max(1, (int)(g_pHyprRenderer->m_mostHzMonitor->m_refreshRate / 1000 * window)); // [window]ms worth of history, avoiding divide by 0

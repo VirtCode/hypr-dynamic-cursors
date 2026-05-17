@@ -372,13 +372,12 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
 }
 
 void CDynamicCursors::setShape(const std::string& shape) {
-    g_pConfigHandler->m_shapeRules.activate(shape);
+    g_pConfigHandler->m_shapeRules->activate(shape);
     highres.loadShape(shape);
 }
 
 void CDynamicCursors::unsetShape() {
-    g_pConfigHandler->m_shapeRules.activate("clientside");
-    highres.loadShape("clientside");
+    setShape("clientside");
 }
 
 void CDynamicCursors::updateTheme() {
@@ -393,7 +392,7 @@ void CDynamicCursors::onTick(CPointerManager* pointers) {
 }
 
 IMode* CDynamicCursors::currentMode() {
-    auto mode = g_pConfigHandler->m_shapeRules.getModeOr(CONFIG(mode));
+    auto mode = CONFIG(mode);
 
     if (mode == "rotate") return &rotate;
     else if (mode == "tilt") return &tilt;

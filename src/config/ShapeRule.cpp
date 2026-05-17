@@ -1,119 +1,49 @@
 #include "ShapeRule.hpp"
 #include "config.hpp"
+#include "rule/IProp.hpp"
 #include <hyprutils/string/VarList.hpp>
 #include <stdexcept>
 #include <string>
 #include <hyprutils/string/String.hpp>
 #include <hyprutils/string/VarList.hpp>
+#include <vector>
 
 using namespace Hyprutils::String;
 
 void CShapeRuleHandler::clear() {
-    rules.clear();
+    m_rules.clear();
     active = nullptr;
 }
 
-void CShapeRuleHandler::activate(std::string key) {
-    if (rules.contains(key))
-        active = &rules[key];
+void CShapeRuleHandler::activate(const std::string& key) {
+    if (m_rules.contains(key))
+        active = &m_rules[key];
     else
         active = nullptr;
 }
 
-void CShapeRuleHandler::addProperty(std::string key, EShapeRuleType type) {
-    content[key] = type;
+void CShapeRuleHandler::registerProp(SP<IProp> prop) {
+    // FIXME: make this more safe please
+    const char* name = prop->name() + NS_LEN;
+
+    m_properties[std::string { name }] = prop;
 }
 
-std::variant<std::string, float, int> parse(std::string value, EShapeRuleType type) {
-    switch (type) {
-        case EShapeRuleType::STRING:
-            return value;
-        case EShapeRuleType::FLOAT:
-            return std::stof(value);
-        case EShapeRuleType::INT:
-            return std::stoi(value);
-    }
+template<typename T>
+std::optional<std::string> CShapeRuleHandler::set(const std::string& shape, const std::string& name, T value) {
+    if (!m_properties.contains(name))
+        return std::format("no such property `{}`", name);
 
-    throw std::logic_error("unknown type");
-}
+    WP<IProp> prop = m_properties[name];
 
-void CShapeRuleHandler::parseRule(std::string string) {
-    std::optional<std::string> name;
-    SShapeRule rule;
+    if (*prop->underlying() != typeid(T))
+        return std::format("invalid type for property `{}`", name);
 
-    CVarList list = CVarList(string);
+    // initialize rule with large enough vector
+    if (!m_rules.contains(shape))
+        m_rules[shape] = std::vector<std::optional<PropValue>>(g_currentShapeRule);
 
-    for (auto arg : list) {
-        if (!name.has_value()) name = arg;
-        else {
-            auto pos = arg.rfind(':');
+    m_rules[shape][prop->m_id] = value;
 
-            // mode value
-            if (pos == std::string::npos) {
-                if (rule.mode.has_value())
-                    throw std::logic_error("cannot specify mode twice");
-
-                rule.mode = arg;
-
-            // settings value
-            } else {
-                auto key = arg.substr(0, pos);
-                auto value = arg.substr(pos + 1);
-
-                if (rule.content.contains(key))
-                    throw std::logic_error("cannot specify property " + key + " twice");
-
-                if (!content.contains(key))
-                    throw std::logic_error("unknown property " + key);
-
-                auto type = content[key];
-
-                try {
-                    rule.content[key] = parse(value, type);
-                } catch (...) {
-                    throw std::logic_error("invalid type for property " + key);
-                }
-            }
-        }
-    }
-
-    if (!name.has_value())
-        throw std::logic_error("need to specify at least shape name");
-
-    if (rules.contains(name.value()))
-        throw std::logic_error("cannot have two rules for shape " + name.value());
-
-    rules[name.value()] = rule;
-}
-
-Hyprlang::CParseResult onShapeRuleKeyword(const char* COMMAND, const char* VALUE) {
-    Hyprlang::CParseResult res;
-
-    try {
-        g_pConfigHandler->m_shapeRules.parseRule(std::string{VALUE});
-    } catch (const std::exception& ex) {
-        res.setError(ex.what());
-    }
-
-    return res;
-}
-
-std::string CShapeRuleHandler::getModeOr(std::string def) {
-    if (active) return active->mode.value_or(def);
-    else return def;
-}
-
-std::string CShapeRuleHandler::getStringOr(std::string key, std::string def) {
-    if (active && active->content.contains(key)) return std::get<std::string>(active->content[key]);
-    else return def;
-}
-
-int CShapeRuleHandler::getIntOr(std::string key, int def) {
-    if (active && active->content.contains(key)) return std::get<int>(active->content[key]);
-    else return def;
-}
-
-float CShapeRuleHandler::getFloatOr(std::string key, float def) {
-    if (active && active->content.contains(key)) return std::get<float>(active->content[key]);
-    else return def;
+    return {};
 }

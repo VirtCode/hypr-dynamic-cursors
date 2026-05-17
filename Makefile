@@ -1,6 +1,6 @@
 PLUGIN_NAME=dynamic-cursors
 
-SOURCE_FILES := $(wildcard ./src/*.cpp ./src/*/*.cpp)
+SOURCE_FILES := $(wildcard ./src/*.cpp ./src/*/*.cpp ./src/*/*/*.cpp)
 OBJECT_FILES := $(patsubst ./src/%.cpp, out/%.o, $(SOURCE_FILES))
 CXX_FLAGS := -Wall -fPIC -std=c++26 -g \
 	$(shell pkg-config --cflags hyprland pixman-1 libdrm | sed 's#-I\([^ ]*/hyprland\)\($$\| \)#-I\1 -I\1/src #g')

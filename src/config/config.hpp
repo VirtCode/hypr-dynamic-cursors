@@ -1,6 +1,10 @@
 #pragma once
 
 #include "ShapeRule.hpp"
+#include "rule/BoolProp.hpp"
+#include "rule/FloatProp.hpp"
+#include "rule/IntProp.hpp"
+#include "rule/StringProp.hpp"
 
 #include <functional>
 #include <hyprlang.hpp>
@@ -42,22 +46,22 @@ public:
     SP<CStringValue>    c_highresFallback;
     SP<CIntValue>       c_highresSize;
 
-    SP<CStringValue>    c_tiltFunction;
-    SP<CIntValue>       c_tiltLimit;
-    SP<CIntValue>       c_tiltWindow;
-    SP<CIntValue>       c_tiltFull;
+    SP<CStringProp>     c_tiltFunction;
+    SP<CIntProp>        c_tiltLimit;
+    SP<CIntProp>        c_tiltWindow;
+    SP<CIntProp>        c_tiltFull;
 
-    SP<CStringValue>    c_stretchFunction;
-    SP<CIntValue>       c_stretchLimit;
-    SP<CIntValue>       c_stretchWindow;
+    SP<CStringProp>     c_stretchFunction;
+    SP<CIntProp>        c_stretchLimit;
+    SP<CIntProp>        c_stretchWindow;
 
-    SP<CIntValue>       c_rotateLength;
-    SP<CFloatValue>     c_rotateOffset;
+    SP<CIntProp>        c_rotateLength;
+    SP<CFloatProp>      c_rotateOffset;
 
     SP<CBoolValue>      c_hwDebug;
     SP<CBoolValue>      c_ignoreWarps;
 
-    CShapeRuleHandler   m_shapeRules;
+    UP<CShapeRuleHandler> m_shapeRules;
 
     /* create and initialize the config handler */
     CConfigHandler();
@@ -66,10 +70,15 @@ public:
     bool isEnabled();
 
 private:
-    SP<CBoolValue>   add(bool rule, const char* name, bool def, const char* desc);
-    SP<CIntValue>    add(bool rule, const char* name, int def, const char* desc);
-    SP<CStringValue> add(bool rule, const char* name, const char* def, const char* desc);
-    SP<CFloatValue>  add(bool rule, const char* name, float def, const char* desc);
+    SP<CBoolValue>   conf(const char* name, bool def, const char* desc);
+    SP<CIntValue>    conf(const char* name, int def, const char* desc);
+    SP<CStringValue> conf(const char* name, const char* def, const char* desc);
+    SP<CFloatValue>  conf(const char* name, float def, const char* desc);
+
+    SP<CBoolProp>   prop(const char* name, bool def, const char* desc);
+    SP<CIntProp>    prop(const char* name, int def, const char* desc);
+    SP<CStringProp> prop(const char* name, const char* def, const char* desc);
+    SP<CFloatProp>  prop(const char* name, float def, const char* desc);
 };
 
 inline UP<CConfigHandler> g_pConfigHandler;

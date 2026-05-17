@@ -8,8 +8,8 @@ EModeUpdate CModeRotate::strategy() {
 }
 
 SModeResult CModeRotate::update(Vector2D pos) {
-    auto length = g_pConfigHandler->m_shapeRules.getIntOr("rotate:length", CONFIG(rotateLength));
-    auto offset = g_pConfigHandler->m_shapeRules.getFloatOr("rotate:offset", CONFIG(rotateOffset));
+    auto length = CONFIG(rotateLength);
+    auto offset = CONFIG(rotateOffset);
 
     // this mode has just started, start at upright orientation
     if (end.y == 0 && end.x == 0) {
