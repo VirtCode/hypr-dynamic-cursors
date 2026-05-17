@@ -226,31 +226,6 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
         throw std::runtime_error("hooks failed for unknown reason");
     }
 
-    // add dispatchers
-    addDispatcher("magnify", [&](Hyprutils::String::CVarList args) {
-        std::optional<std::string> error;
-
-        std::optional<int> duration;
-        std::optional<float> size;
-
-        try {
-            auto it = args.begin();
-            if (it != args.end() && *it != "") {
-                duration = std::stoi(*it);
-
-                it++;
-                if (it != args.end())
-                    size = std::stof(*it);
-            }
-        } catch (...) {
-            error = "types did not match";
-        }
-
-        g_pDynamicCursors->dispatchMagnify(duration, size);
-
-        return error;
-    });
-
     return {"dynamic-cursors", "a plugin to make your hyprland cursor more realistic, also adds shake to find", "Virt", "0.1"};
 }
 

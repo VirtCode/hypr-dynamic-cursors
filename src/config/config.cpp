@@ -3,6 +3,7 @@
 #include <sstream> // required so we don't "unprivate" sstream before including cursor.hpp
 #include <hyprland/src/managers/eventLoop/EventLoopTimer.hpp> // required so we don't "unprivate" chrono before including cursor.hpp
 #include "../cursor.hpp"
+#include <hyprland/src/config/lua/bindings/LuaBindingsInternal.hpp>
 #include "ShapeRule.hpp"
 #include "config.hpp"
 
@@ -11,18 +12,9 @@
 #include <hyprland/src/event/EventBus.hpp>
 #include <hyprlang.hpp>
 
-void addDispatcher(std::string name, std::function<std::optional<std::string>(Hyprutils::String::CVarList)> handler) {
-    HyprlandAPI::addDispatcherV2(PHANDLE, NS("") + name, [=](std::string in) {
-        auto error = handler(Hyprutils::String::CVarList(in));
-
-        SDispatchResult result;
-        if (error.has_value()) {
-            Log::logger->log(Log::ERR, "[dynamic-cursors] dispatcher {} received invalid args: {}", name, error.value());
-            result.error = error.value();
-        }
-
-        return result;
-    });
+extern "C" {
+#include <lua.h>
+#include <lauxlib.h>
 }
 
 CConfigHandler::CConfigHandler() {
@@ -71,6 +63,10 @@ CConfigHandler::CConfigHandler() {
     static const auto LISTENER = Event::bus()->m_events.config.preReload.listen([&]() -> void {
         m_shapeRules->clear();
     });
+
+    // add magnify dispatcher
+    HyprlandAPI::addDispatcherV2(PHANDLE, NS("magnify"), ::dispatchMagnify);
+    HyprlandAPI::addLuaFunction(PHANDLE, "dynamic_cursors", "dsp_magnify", ::luaMagnifyDispatcher);
 }
 
 bool CConfigHandler::isEnabled() {
@@ -148,4 +144,87 @@ SP<CFloatProp> CConfigHandler::prop(const char* name, float def, const char* des
     m_shapeRules->registerProp(prop);
 
     return prop;
+}
+
+SDispatchResult dispatchMagnify(std::string in) {
+    Hyprutils::String::CVarList args = in;
+
+    SDispatchResult result;
+
+    std::optional<int> duration;
+    std::optional<float> size;
+
+    try {
+        auto it = args.begin();
+        if (it != args.end() && *it != "") {
+            duration = std::stoi(*it);
+
+            it++;
+            if (it != args.end())
+                size = std::stof(*it);
+        }
+    } catch (...) {
+        result.error = "invalid types for arguments";
+        Log::logger->log(Log::ERR, "[dynamic-cursors] dispatcher `magnify` received invalid args: {}", in);
+    }
+
+    g_pDynamicCursors->dispatchMagnify(duration, size);
+
+    return result;
+}
+
+int luaMagnifyDispatcher(lua_State* L) {
+    if (!lua_istable(L, 1))
+            return Config::Lua::Bindings::Internal::configError(L, "dsp_magnify: expected a table { duration, size }");
+
+    std::optional<int> duration;
+    std::optional<float> size;
+
+    {
+        Hyprutils::Utils::CScopeGuard x([L] { lua_pop(L, 1); });
+
+        lua_getfield(L, 1, "duration");
+
+        if (!lua_isnil(L, -1)) {
+            if (!lua_isinteger(L, -1))
+                return Config::Lua::Bindings::Internal::configError(L, "dsp_magnify: `duration` must be an integer");
+
+            duration = lua_tointeger(L, -1);
+        }
+    }
+
+    {
+        Hyprutils::Utils::CScopeGuard x([L] { lua_pop(L, 1); });
+
+        lua_getfield(L, 1, "size");
+
+        if (!lua_isnil(L, -1)) {
+            if (!lua_isnumber(L, -1))
+                return Config::Lua::Bindings::Internal::configError(L, "dsp_magnify: `size` must be a number");
+
+            size = lua_tonumber(L, -1);
+        }
+    }
+
+    auto dispatch = [](lua_State* L) -> int {
+        std::optional<int> duration;
+        std::optional<float> size;
+
+        if (!lua_isnil(L, lua_upvalueindex(1))) duration = lua_tointeger(L, lua_upvalueindex(1));
+        if (!lua_isnil(L, lua_upvalueindex(2))) size = lua_tonumber(L, lua_upvalueindex(2));
+
+        g_pDynamicCursors->dispatchMagnify(duration, size);
+
+		return 0;
+	};
+
+    if (duration.has_value()) lua_pushinteger(L, duration.value());
+    else lua_pushnil(L);
+
+    if (size.has_value()) lua_pushnumber(L, size.value());
+    else lua_pushnil(L);
+
+	lua_pushcclosure(L, dispatch, 2);
+
+	return 1;
 }

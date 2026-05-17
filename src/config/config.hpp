@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ShapeRule.hpp"
+#include "SharedDefs.hpp"
 #include "rule/BoolProp.hpp"
 #include "rule/FloatProp.hpp"
 #include "rule/IntProp.hpp"
@@ -21,9 +22,6 @@
 #define CONFIG(a) g_pConfigHandler->c_ ## a->value()
 
 using namespace Config::Values;
-
-/* adds a dispatcher */
-void addDispatcher(std::string name, std::function<std::optional<std::string>(Hyprutils::String::CVarList)> handler);
 
 class CConfigHandler {
 public:
@@ -82,3 +80,9 @@ private:
 };
 
 inline UP<CConfigHandler> g_pConfigHandler;
+
+/* the callback for the magnify dispatcher */
+SDispatchResult dispatchMagnify(std::string args);
+
+/* lua magnify dispatcher factory */
+int luaMagnifyDispatcher(lua_State* L);
