@@ -3,6 +3,7 @@
 #include "rule/IProp.hpp"
 
 #include <hyprland/src/config/shared/Types.hpp>
+#include <hyprland/src/plugins/PluginAPI.hpp>
 
 #include <memory>
 #include <optional>
@@ -49,3 +50,6 @@ class CShapeRuleHandler {
 
 /* method called by hyprland api */
 Hyprlang::CParseResult onShapeRuleKeyword(const char* COMMAND, const char* VALUE);
+
+/* method to parse lua shape rule */
+int luaShapeRule(lua_State* L);

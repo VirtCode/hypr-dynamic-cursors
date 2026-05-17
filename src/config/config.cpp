@@ -63,8 +63,11 @@ CConfigHandler::CConfigHandler() {
     c_hwDebug         = conf(NS("hw_debug"),               false,                  "enable hardware debug mode");
     c_ignoreWarps     = conf(NS("ignore_warps"),           true,                   "ignore cursor warps");
 
-    // add legacy shape rule keyword
+    // add shape rule handlers
     HyprlandAPI::addConfigKeyword(PHANDLE, "shaperule", onShapeRuleKeyword, Hyprlang::SHandlerOptions {});
+    HyprlandAPI::addLuaFunction(PHANDLE, "dynamic_cursors", "shape_rule", ::luaShapeRule);
+
+    // clear shape rules on reload
     static const auto LISTENER = Event::bus()->m_events.config.preReload.listen([&]() -> void {
         m_shapeRules->clear();
     });
