@@ -40,12 +40,12 @@ CConfigHandler::CConfigHandler() {
     c_highresFallback = conf(NS("hyprcursor:fallback"),    "clientside",           "shape to use when clientside cursors are being magnified");
     c_highresSize     = conf(NS("hyprcursor:resolution"),  -1,                     "resolution in pixels to load the magnified shapes at");
 
-    c_tiltFunction    = prop(NS("tilt:function"),          "negative_quadratic",   "relationship between speed and tilt (linear, quadratic, negative_quadratic)");
+    c_tiltFunction    = prop(NS("tilt:activation"),        "negative_quadratic",   "relationship between speed and tilt (linear, quadratic, negative_quadratic)");
     c_tiltLimit       = prop(NS("tilt:limit"),             5000,                   "controls at which speed the full tilt is reached");
     c_tiltWindow      = prop(NS("tilt:window"),            100,                    "time window over which the speed is calculated");
-    c_tiltFull        = prop(NS("tilt:full_tilt"),         60,                     "full tilt for each side in degrees");
+    c_tiltFull        = prop(NS("tilt:full"),              60,                     "full tilt for each side in degrees");
 
-    c_stretchFunction = prop(NS("stretch:function"),       "negative_quadratic",   "relationship between speed and stretch amount");
+    c_stretchFunction = prop(NS("stretch:activation"),     "negative_quadratic",   "relationship between speed and stretch amount (linear, quadratic, negative_quadratic)");
     c_stretchLimit    = prop(NS("stretch:limit"),          3000,                   "controls at which speed the full stretch is reached");
     c_stretchWindow   = prop(NS("stretch:window"),         100,                    "time window over which the speed is calculated");
 
