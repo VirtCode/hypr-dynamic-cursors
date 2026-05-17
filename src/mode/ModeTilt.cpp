@@ -9,14 +9,10 @@ EModeUpdate CModeTilt::strategy() {
 }
 
 SModeResult CModeTilt::update(Vector2D pos) {
-    static auto const* PFUNCTION = (Hyprlang::STRING const*) getConfig(CONFIG_TILT_FUNCTION);
-    static auto* const* PLIMIT = (Hyprlang::INT* const*) getConfig(CONFIG_TILT_LIMIT);
-    static auto* const* PWINDOW = (Hyprlang::INT* const*) getConfig(CONFIG_TILT_WINDOW);
-    static auto* const* PFULL_TILT = (Hyprlang::INT* const*) getConfig(CONFIG_FULL_TILT);
-    auto function = g_pShapeRuleHandler->getStringOr(CONFIG_TILT_FUNCTION, *PFUNCTION);
-    auto limit = g_pShapeRuleHandler->getIntOr(CONFIG_TILT_LIMIT, **PLIMIT);
-    auto window = g_pShapeRuleHandler->getIntOr(CONFIG_TILT_WINDOW, **PWINDOW);
-    auto full_tilt = g_pShapeRuleHandler->getIntOr(CONFIG_FULL_TILT, **PFULL_TILT);
+    auto function = CONFIG(tiltFunction);
+    auto limit = CONFIG(tiltLimit);
+    auto window = CONFIG(tiltWindow);
+    auto full_tilt = CONFIG(tiltFull);
 
     // create samples array
     int max = std::max(1, (int)(g_pHyprRenderer->m_mostHzMonitor->m_refreshRate / 1000 * window)); // [window]ms worth of history, avoiding divide by 0

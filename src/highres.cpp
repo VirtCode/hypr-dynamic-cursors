@@ -33,14 +33,9 @@ static void hcLogger(enum eHyprcursorLogLevel level, char* message) {
 }
 
 void CHighresHandler::update() {
-    static auto* const* PENABLED = (Hyprlang::INT* const*) getConfig(CONFIG_HIGHRES_ENABLED);
-    static auto* const* PUSEHYPRCURSOR = (Hyprlang::INT* const*) getHyprlandConfig("cursor:enable_hyprcursor");
-    static auto* const* PSIZE = (Hyprlang::INT* const*) getConfig(CONFIG_HIGHRES_SIZE);
+    static auto PUSEHYPRCURSOR = CConfigValue<Hyprlang::INT>("cursor:enable_hyprcursor");
 
-    static auto* const* PSHAKE_BASE= (Hyprlang::FLOAT* const*) getConfig(CONFIG_SHAKE_BASE);
-    static auto* const* PSHAKE = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE); // currently only needed for shake
-
-    if (!isEnabled() || !**PENABLED || !**PUSEHYPRCURSOR || !**PSHAKE) {
+    if (!g_pConfigHandler->isEnabled() || !CONFIG(highresEnabled) || !*PUSEHYPRCURSOR || !CONFIG(shakeEnabled)) {
         // free manager if no longer enabled
         if (manager) {
             manager = nullptr;
@@ -52,7 +47,7 @@ void CHighresHandler::update() {
     }
 
     std::string name = g_pCursorManager->m_theme;
-    unsigned int size = **PSIZE != -1 ? **PSIZE : std::round(g_pCursorManager->m_currentStyleInfo.size * **PSHAKE_BASE * 1.5f); // * 1.5f to accommodate for slight growth
+    unsigned int size = CONFIG(highresSize) != -1 ? CONFIG(highresSize) : std::round(g_pCursorManager->m_currentStyleInfo.size * CONFIG(shakeBase) * 1.5f); // * 1.5f to accommodate for slight growth
 
     // we already have loaded the same theme and size
     if (manager && loadedName == name && loadedSize == size)
@@ -102,8 +97,6 @@ void CHighresHandler::update() {
 }
 
 void CHighresHandler::loadShape(const std::string& name) {
-    static auto const* PFALLBACK = (Hyprlang::STRING const*) getConfig(CONFIG_HIGHRES_FALLBACK);
-
     if (!manager) {
         // don't show old, potentially outdated shapes
         texture = nullptr;
@@ -127,10 +120,10 @@ void CHighresHandler::loadShape(const std::string& name) {
 
     // try load fallback image
     if (shape.images.size() == 0) {
-        shape = manager->getShape(*PFALLBACK, style);
+        shape = manager->getShape(CONFIG(highresFallback).c_str(), style);
 
         if (shape.images.size() == 0) {
-            Log::logger->log(Log::WARN, "Failed to load fallback shape {}, for shape {}!", *PFALLBACK, name);
+            Log::logger->log(Log::WARN, "Failed to load fallback shape {}, for shape {}!", CONFIG(highresFallback), name);
 
             texture = nullptr;
             buffer = nullptr;

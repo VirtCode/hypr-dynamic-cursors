@@ -1,72 +1,88 @@
 #pragma once
 
 #include "ShapeRule.hpp"
+#include "SharedDefs.hpp"
+#include "rule/BoolProp.hpp"
+#include "rule/FloatProp.hpp"
+#include "rule/IntProp.hpp"
+#include "rule/StringProp.hpp"
 
 #include <functional>
 #include <hyprlang.hpp>
 #include <hyprutils/string/VarList.hpp>
 
-#define NAMESPACE "plugin:dynamic-cursors:"
+#include <hyprland/src/config/values/types/BoolValue.hpp>
+#include <hyprland/src/config/values/types/IntValue.hpp>
+#include <hyprland/src/config/values/types/FloatValue.hpp>
+#include <hyprland/src/config/values/types/StringValue.hpp>
 
-#define CONFIG_ENABLED          "enabled"
-#define CONFIG_MODE             "mode"
-#define CONFIG_THRESHOLD        "threshold"
-#define CONFIG_HW_DEBUG         "hw_debug"
-#define CONFIG_IGNORE_WARPS     "ignore_warps"
+#define NS(a) "plugin:dynamic-cursors:" a
+#define NS_LEN 23
 
-#define CONFIG_SHAKE            "shake:enabled"
-#define CONFIG_SHAKE_EFFECTS    "shake:effects"
-#define CONFIG_SHAKE_IPC        "shake:ipc"
-#define CONFIG_SHAKE_THRESHOLD  "shake:threshold"
-#define CONFIG_SHAKE_SPEED      "shake:speed"
-#define CONFIG_SHAKE_INFLUENCE  "shake:influence"
-#define CONFIG_SHAKE_BASE       "shake:base"
-#define CONFIG_SHAKE_LIMIT      "shake:limit"
-#define CONFIG_SHAKE_TIMEOUT    "shake:timeout"
+#define CONFIG(a) g_pConfigHandler->c_ ## a->value()
 
-#define CONFIG_ROTATE_LENGTH    "rotate:length"
-#define CONFIG_ROTATE_OFFSET    "rotate:offset"
+using namespace Config::Values;
 
-#define CONFIG_TILT_LIMIT       "tilt:limit"
-#define CONFIG_TILT_FUNCTION    "tilt:function"
-#define CONFIG_TILT_WINDOW      "tilt:window"
-#define CONFIG_FULL_TILT        "tilt:full_tilt"
+class CConfigHandler {
+public:
+    SP<CBoolValue>      c_enabled;
+    SP<CStringProp>     c_mode;
+    SP<CIntValue>       c_threshold;
 
-#define CONFIG_STRETCH_LIMIT    "stretch:limit"
-#define CONFIG_STRETCH_FUNCTION "stretch:function"
-#define CONFIG_STRETCH_WINDOW   "stretch:window"
+    SP<CBoolValue>      c_shakeEnabled;
+    SP<CBoolValue>      c_shakeEffects;
+    SP<CBoolValue>      c_shakeIPC;
+    SP<CFloatValue>     c_shakeThreshold;
+    SP<CFloatValue>     c_shakeBase;
+    SP<CFloatValue>     c_shakeSpeed;
+    SP<CFloatValue>     c_shakeInfluence;
+    SP<CFloatValue>     c_shakeLimit;
+    SP<CIntValue>       c_shakeTimeout;
 
-#define CONFIG_HIGHRES_ENABLED  "hyprcursor:enabled"
-#define CONFIG_HIGHRES_NEAREST  "hyprcursor:nearest"
-#define CONFIG_HIGHRES_SIZE     "hyprcursor:resolution"
-#define CONFIG_HIGHRES_FALLBACK "hyprcursor:fallback"
+    SP<CBoolValue>      c_highresEnabled;
+    SP<CIntValue>       c_highresNearest;
+    SP<CStringValue>    c_highresFallback;
+    SP<CIntValue>       c_highresSize;
 
-#define CONFIG_SHAPERULE         "shaperule"
+    SP<CStringProp>     c_tiltFunction;
+    SP<CIntProp>        c_tiltLimit;
+    SP<CIntProp>        c_tiltWindow;
+    SP<CIntProp>        c_tiltFull;
 
-#define CONFIG_DISPATCHER_MAGNIFY "magnify"
+    SP<CStringProp>     c_stretchFunction;
+    SP<CIntProp>        c_stretchLimit;
+    SP<CIntProp>        c_stretchWindow;
 
-/* is the plugin enabled */
-bool isEnabled();
+    SP<CIntProp>        c_rotateLength;
+    SP<CFloatProp>      c_rotateOffset;
 
-/* initializes stuff, so config can be set up */
-void startConfig();
-/* finishes config setup */
-void finishConfig();
+    SP<CBoolValue>      c_hwDebug;
+    SP<CBoolValue>      c_ignoreWarps;
 
-/* add shaperule config entry */
-void addRulesConfig();
+    UP<CShapeRuleHandler> m_shapeRules;
 
-/* will add an ordinary config value */
-void addConfig(std::string name, std::variant<std::string, float, int> value);
+    /* create and initialize the config handler */
+    CConfigHandler();
 
-/* will add a config variable which is also a property for shape rules */
-void addShapeConfig(std::string name, std::variant<std::string, float, int> value);
+    /* whether the plugin is enabled */
+    bool isEnabled();
 
-/* get static pointer to config value */
-void* const* getConfig(std::string name);
+private:
+    SP<CBoolValue>   conf(const char* name, bool def, const char* desc);
+    SP<CIntValue>    conf(const char* name, int def, const char* desc);
+    SP<CStringValue> conf(const char* name, const char* def, const char* desc);
+    SP<CFloatValue>  conf(const char* name, float def, const char* desc);
 
-/* get static pointer a hyprland config value */
-void* const* getHyprlandConfig(std::string name);
+    SP<CBoolProp>   prop(const char* name, bool def, const char* desc);
+    SP<CIntProp>    prop(const char* name, int def, const char* desc);
+    SP<CStringProp> prop(const char* name, const char* def, const char* desc);
+    SP<CFloatProp>  prop(const char* name, float def, const char* desc);
+};
 
-/* adds a dispatcher */
-void addDispatcher(std::string name, std::function<std::optional<std::string>(Hyprutils::String::CVarList)> handler);
+inline UP<CConfigHandler> g_pConfigHandler;
+
+/* the callback for the magnify dispatcher */
+SDispatchResult dispatchMagnify(std::string args);
+
+/* lua magnify dispatcher factory */
+int luaMagnifyDispatcher(lua_State* L);

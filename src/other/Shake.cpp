@@ -36,14 +36,6 @@ CShake::CShake() {
 }
 
 double CShake::update(Vector2D pos) {
-    static auto* const* PTHRESHOLD = (Hyprlang::FLOAT* const*) getConfig(CONFIG_SHAKE_THRESHOLD);
-    static auto* const* PBASE = (Hyprlang::FLOAT* const*) getConfig(CONFIG_SHAKE_BASE);
-    static auto* const* PSPEED = (Hyprlang::FLOAT* const*) getConfig(CONFIG_SHAKE_SPEED);
-    static auto* const* PINFLUENCE = (Hyprlang::FLOAT* const*) getConfig(CONFIG_SHAKE_INFLUENCE);
-    static auto* const* PLIMIT = (Hyprlang::FLOAT* const*) getConfig(CONFIG_SHAKE_LIMIT);
-    static auto* const* PTIMEOUT = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_TIMEOUT);
-
-    static auto* const* PIPC = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_IPC);
 
     int max = std::max(1, (int)(g_pHyprRenderer->m_mostHzMonitor->m_refreshRate)); // 1s worth of history, avoiding divide by 0
     samples.resize(max);
@@ -73,18 +65,20 @@ double CShake::update(Vector2D pos) {
     double diagonal = Vector2D{left, top}.distance(Vector2D(right, bottom));
 
     // if diagonal sufficiently large and over threshold
-    double amount = (trail / diagonal) - **PTHRESHOLD;
+    double amount = (trail / diagonal) - CONFIG(shakeThreshold);
     if (diagonal > 100 && amount > 0) {
         float delta = 1.F / g_pHyprRenderer->m_mostHzMonitor->m_refreshRate;
 
         float next = this->zoom->goal();
 
-        if (!started) next = **PBASE; // start on base zoom
-        next += delta * (**PSPEED + (amount * amount) * **PINFLUENCE); // increase when moving
-        if (**PLIMIT > 1) next = std::min(**PLIMIT, next); // limit overall zoom
+        if (!started) next = CONFIG(shakeBase); // start on base zoom
+        next += delta * (CONFIG(shakeSpeed) + (amount * amount) * CONFIG(shakeInfluence)); // increase when moving
+
+        float limit = CONFIG(shakeLimit);
+        if (limit > 1) next = std::min(limit, next); // limit overall zoom
 
         *this->zoom = next;
-        this->end = steady_clock::now() + milliseconds(**PTIMEOUT);
+        this->end = steady_clock::now() + milliseconds(CONFIG(shakeTimeout));
         started = true;
     } else {
         if (started && end < std::chrono::steady_clock::now()) {
@@ -93,7 +87,7 @@ double CShake::update(Vector2D pos) {
         }
     }
 
-    if (**PIPC) {
+    if (CONFIG(shakeIPC)) {
         if (started || this->zoom->value() > 1) {
             if (!ipc) {
                 g_pEventManager->postEvent(SHyprIPCEvent { IPC_SHAKE_START });
@@ -113,12 +107,9 @@ double CShake::update(Vector2D pos) {
 }
 
 void CShake::force(std::optional<int> duration, std::optional<float> size) {
-    static auto* const* PTIMEOUT = (Hyprlang::INT* const*) getConfig(CONFIG_SHAKE_TIMEOUT);
-    static auto* const* PBASE = (Hyprlang::FLOAT* const*) getConfig(CONFIG_SHAKE_BASE);
-
     started = true;
-    *this->zoom = size.value_or(**PBASE);
-    this->end = steady_clock::now() + milliseconds(duration.value_or(**PTIMEOUT));
+    *this->zoom = size.value_or(CONFIG(shakeBase));
+    this->end = steady_clock::now() + milliseconds(duration.value_or(CONFIG(shakeTimeout)));
 }
 
 void CShake::warp(Vector2D old, Vector2D pos) {

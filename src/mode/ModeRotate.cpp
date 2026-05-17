@@ -8,10 +8,8 @@ EModeUpdate CModeRotate::strategy() {
 }
 
 SModeResult CModeRotate::update(Vector2D pos) {
-    static auto* const* PLENGTH = (Hyprlang::INT* const*) getConfig(CONFIG_ROTATE_LENGTH);
-    static auto* const* POFFSET = (Hyprlang::FLOAT* const*) getConfig(CONFIG_ROTATE_OFFSET);
-    auto length = g_pShapeRuleHandler->getIntOr(CONFIG_ROTATE_LENGTH, **PLENGTH);
-    auto offset = g_pShapeRuleHandler->getFloatOr(CONFIG_ROTATE_OFFSET, **POFFSET);
+    auto length = CONFIG(rotateLength);
+    auto offset = CONFIG(rotateOffset);
 
     // this mode has just started, start at upright orientation
     if (end.y == 0 && end.x == 0) {
