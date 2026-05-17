@@ -63,7 +63,7 @@ void CShapeRuleHandler::parseRule(std::string string) {
                     throw std::logic_error("cannot specify property " + key + " twice");
 
                 if (!content.contains(key))
-                    throw std::logic_error("unkown property " + key);
+                    throw std::logic_error("unknown property " + key);
 
                 auto type = content[key];
 
