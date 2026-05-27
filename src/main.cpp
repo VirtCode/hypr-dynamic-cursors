@@ -20,7 +20,7 @@
 
 #include "globals.hpp"
 #include "cursor.hpp"
-#include "config/config.hpp"
+#include "config/ConfigManager.hpp"
 #include "render/Renderer.hpp"
 
 typedef void (*origRenderSoftwareCursorsFor)(void*, SP<CMonitor>, const Time::steady_tp&, CRegion&, std::optional<Vector2D>, bool);

@@ -1,7 +1,7 @@
 #include "ShapeRule.hpp"
-#include "config.hpp"
+#include "ConfigManager.hpp"
 #include <hyprland/src/debug/log/Logger.hpp>
-#include "rule/IProp.hpp"
+#include "prop/IProp.hpp"
 #include <hyprutils/string/VarList.hpp>
 #include <hyprutils/utils/ScopeGuard.hpp>
 #include <print>

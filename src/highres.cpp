@@ -12,7 +12,7 @@
 #undef private
 
 #include "highres.hpp"
-#include "config/config.hpp"
+#include "config/ConfigManager.hpp"
 #include <hyprland/src/debug/log/Logger.hpp>
 #include <hyprland/src/event/EventBus.hpp>
 #include <hyprland/src/render/Renderer.hpp>

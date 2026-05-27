@@ -27,7 +27,7 @@
 
 #include "cursor.hpp"
 #include "render/renderer.hpp"
-#include "config/config.hpp"
+#include "config/ConfigManager.hpp"
 #include "mode/Mode.hpp"
 #include "render/CursorPassElement.hpp"
 #include "render/Renderer.hpp"

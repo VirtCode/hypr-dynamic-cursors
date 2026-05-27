@@ -2,10 +2,10 @@
 
 #include "ShapeRule.hpp"
 #include "SharedDefs.hpp"
-#include "rule/BoolProp.hpp"
-#include "rule/FloatProp.hpp"
-#include "rule/IntProp.hpp"
-#include "rule/StringProp.hpp"
+#include "prop/BoolProp.hpp"
+#include "prop/FloatProp.hpp"
+#include "prop/IntProp.hpp"
+#include "prop/StringProp.hpp"
 
 #include <functional>
 #include <hyprlang.hpp>

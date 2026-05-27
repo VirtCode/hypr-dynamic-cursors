@@ -1,5 +1,5 @@
 #include "../globals.hpp"
-#include "../config/config.hpp"
+#include "../config/ConfigManager.hpp"
 #include "Shake.hpp"
 
 #include <algorithm>

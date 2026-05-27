@@ -1,4 +1,4 @@
-#include "../config/config.hpp"
+#include "../config/ConfigManager.hpp"
 #include "src/macros.hpp"
 #include <cmath>
 #include "ModeRotate.hpp"

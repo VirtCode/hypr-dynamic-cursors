@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rule/IProp.hpp"
+#include "prop/IProp.hpp"
 
 #include <hyprland/src/config/shared/Types.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>

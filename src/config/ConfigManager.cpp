@@ -5,7 +5,7 @@
 #include "../cursor.hpp"
 #include <hyprland/src/config/lua/bindings/LuaBindingsInternal.hpp>
 #include "ShapeRule.hpp"
-#include "config.hpp"
+#include "ConfigManager.hpp"
 
 #include <hyprland/src/render/Renderer.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
