@@ -21,16 +21,14 @@ CShake::CShake() {
     // add custom bezier (and read it after config reload)
     static auto bezier = "dynamic-cursors-magnification";
     g_pAnimationManager->addBezierWithName(bezier, {0.22, 1.0}, {0.36, 1.0});
-    static const auto LISTENER = Event::bus()->m_events.config.reloaded.listen([&]() -> void {
-        g_pAnimationManager->addBezierWithName(bezier, {0.22, 1.0}, {0.36, 1.0});
-    });
+    static const auto LISTENER = Event::bus()->m_events.config.reloaded.listen([&]() -> void { g_pAnimationManager->addBezierWithName(bezier, {0.22, 1.0}, {0.36, 1.0}); });
 
     // wtf is this struct, what is pValues?
     static SP<SAnimationPropertyConfig> properties = makeShared<SAnimationPropertyConfig>();
-    properties->internalBezier = bezier;
-    properties->internalSpeed = time / 100.f;
-    properties->internalEnabled = 1;
-    properties->pValues = properties;
+    properties->internalBezier                     = bezier;
+    properties->internalSpeed                      = time / 100.f;
+    properties->internalEnabled                    = 1;
+    properties->pValues                            = properties;
 
     g_pAnimationManager->createAnimation(1.f, zoom, properties, AVARDAMAGE_NONE);
 }
@@ -42,24 +40,25 @@ double CShake::update(Vector2D pos) {
     samples_distance.resize(max);
     samples_index = std::min(samples_index, max - 1);
 
-    int previous = samples_index == 0 ? max - 1 : samples_index - 1;
-    samples[samples_index] = Vector2D{pos};
+    int previous                    = samples_index == 0 ? max - 1 : samples_index - 1;
+    samples[samples_index]          = Vector2D{pos};
     samples_distance[samples_index] = samples[samples_index].distance(samples[previous]);
-    samples_index = (samples_index + 1) % max; // increase for next sample
+    samples_index                   = (samples_index + 1) % max; // increase for next sample
 
     // The idea for this algorithm was largely inspired by KDE Plasma
     // https://invent.kde.org/plasma/kwin/-/blob/master/src/plugins/shakecursor/shakedetector.cpp
 
     // calculate total distance travelled
     double trail = 0;
-    for (double distance : samples_distance) trail += distance;
+    for (double distance : samples_distance)
+        trail += distance;
 
     // calculate diagonal of bounding box travelled within
     double left = 1e100, right = 0, bottom = 0, top = 1e100;
     for (Vector2D position : samples) {
-        left = std::min(left, position.x);
-        right = std::max(right, position.x);
-        top = std::min(top, position.y);
+        left   = std::min(left, position.x);
+        right  = std::max(right, position.x);
+        top    = std::min(top, position.y);
         bottom = std::max(bottom, position.y);
     }
     double diagonal = Vector2D{left, top}.distance(Vector2D(right, bottom));
@@ -71,33 +70,35 @@ double CShake::update(Vector2D pos) {
 
         float next = this->zoom->goal();
 
-        if (!started) next = CONFIG(shakeBase); // start on base zoom
+        if (!started)
+            next = CONFIG(shakeBase);                                                      // start on base zoom
         next += delta * (CONFIG(shakeSpeed) + (amount * amount) * CONFIG(shakeInfluence)); // increase when moving
 
         float limit = CONFIG(shakeLimit);
-        if (limit > 1) next = std::min(limit, next); // limit overall zoom
+        if (limit > 1)
+            next = std::min(limit, next); // limit overall zoom
 
         *this->zoom = next;
-        this->end = steady_clock::now() + milliseconds(CONFIG(shakeTimeout));
-        started = true;
+        this->end   = steady_clock::now() + milliseconds(CONFIG(shakeTimeout));
+        started     = true;
     } else {
         if (started && end < std::chrono::steady_clock::now()) {
             *this->zoom = 1;
-            started = false;
+            started     = false;
         }
     }
 
     if (CONFIG(shakeIPC)) {
         if (started || this->zoom->value() > 1) {
             if (!ipc) {
-                g_pEventManager->postEvent(SHyprIPCEvent { IPC_SHAKE_START });
+                g_pEventManager->postEvent(SHyprIPCEvent{IPC_SHAKE_START});
                 ipc = true;
             }
 
-            g_pEventManager->postEvent(SHyprIPCEvent { IPC_SHAKE_UPDATE, std::format("{},{},{},{},{}", (int) pos.x, (int) pos.y, trail, diagonal, this->zoom->value()) });
+            g_pEventManager->postEvent(SHyprIPCEvent{IPC_SHAKE_UPDATE, std::format("{},{},{},{},{}", (int)pos.x, (int)pos.y, trail, diagonal, this->zoom->value())});
         } else {
             if (ipc) {
-                g_pEventManager->postEvent(SHyprIPCEvent { IPC_SHAKE_END });
+                g_pEventManager->postEvent(SHyprIPCEvent{IPC_SHAKE_END});
                 ipc = false;
             }
         }
@@ -107,9 +108,9 @@ double CShake::update(Vector2D pos) {
 }
 
 void CShake::force(std::optional<int> duration, std::optional<float> size) {
-    started = true;
+    started     = true;
     *this->zoom = size.value_or(CONFIG(shakeBase));
-    this->end = steady_clock::now() + milliseconds(duration.value_or(CONFIG(shakeTimeout)));
+    this->end   = steady_clock::now() + milliseconds(duration.value_or(CONFIG(shakeTimeout)));
 }
 
 void CShake::warp(Vector2D old, Vector2D pos) {

@@ -11,14 +11,14 @@ typedef uint64_t PropID;
 inline PropID g_currentShapeRule = 0;
 
 class IProp {
-protected:
+  protected:
     /* pointer to the current shape rule handler */
     WP<CShapeRuleHandler> m_rules;
 
     /* creates a prop */
     IProp();
 
-public:
+  public:
     /* unique id of this rule */
     PropID m_id;
 

@@ -19,6 +19,7 @@ CConfigHandler::CConfigHandler() {
     m_shapeRules = makeUnique<CShapeRuleHandler>();
 
     // add config variables
+    // clang-format off
     c_enabled         = conf(NS("enabled"),                true,                   "global toggle for the plugin");
     c_mode            = prop(NS("mode"),                   "tilt",                 "sets the cursor behaviour (tilt, rotate, stretch, none)");
     c_threshold       = conf(NS("threshold"),              2,                      "minimum angle difference in degrees after which the shape is changed");
@@ -52,15 +53,14 @@ CConfigHandler::CConfigHandler() {
 
     c_hwDebug         = conf(NS("hw_debug"),               false,                  "enable hardware debug mode");
     c_ignoreWarps     = conf(NS("ignore_warps"),           true,                   "ignore cursor warps");
+    // clang-format on
 
     // add shape rule handlers
-    HyprlandAPI::addConfigKeyword(PHANDLE, "shaperule", onShapeRuleKeyword, Hyprlang::SHandlerOptions {});
+    HyprlandAPI::addConfigKeyword(PHANDLE, "shaperule", onShapeRuleKeyword, Hyprlang::SHandlerOptions{});
     HyprlandAPI::addLuaFunction(PHANDLE, "dynamic_cursors", "shape_rule", ::luaShapeRule);
 
     // clear shape rules on reload
-    static const auto LISTENER = Event::bus()->m_events.config.preReload.listen([&]() -> void {
-        m_shapeRules->clear();
-    });
+    static const auto LISTENER = Event::bus()->m_events.config.preReload.listen([&]() -> void { m_shapeRules->clear(); });
 
     // add magnify dispatcher
     HyprlandAPI::addDispatcherV2(PHANDLE, NS("magnify"), ::dispatchMagnify);
@@ -87,7 +87,7 @@ SP<CIntValue> CConfigHandler::conf(const char* name, int def, const char* desc) 
 }
 
 SP<CStringValue> CConfigHandler::conf(const char* name, const char* def, const char* desc) {
-    auto val = makeShared<CStringValue>(name, desc, std::string {def});
+    auto val = makeShared<CStringValue>(name, desc, std::string{def});
     HyprlandAPI::addConfigValueV2(PHANDLE, val);
 
     return val;
@@ -123,7 +123,7 @@ SP<CIntProp> CConfigHandler::prop(const char* name, int def, const char* desc) {
 }
 
 SP<CStringProp> CConfigHandler::prop(const char* name, const char* def, const char* desc) {
-    auto val = makeShared<CStringValue>(name, desc, std::string {def});
+    auto val = makeShared<CStringValue>(name, desc, std::string{def});
     HyprlandAPI::addConfigValueV2(PHANDLE, val);
 
     auto prop = makeShared<CStringProp>(val);
@@ -149,7 +149,7 @@ SDispatchResult dispatchMagnify(std::string in) {
 
     SDispatchResult result;
 
-    std::optional<int> duration;
+    std::optional<int>   duration;
     std::optional<float> size;
 
     try {
@@ -173,9 +173,9 @@ SDispatchResult dispatchMagnify(std::string in) {
 
 int luaMagnifyDispatcher(lua_State* L) {
     if (!lua_istable(L, 1))
-            return Config::Lua::Bindings::Internal::configError(L, "dsp_magnify: expected a table { duration, size }");
+        return Config::Lua::Bindings::Internal::configError(L, "dsp_magnify: expected a table { duration, size }");
 
-    std::optional<int> duration;
+    std::optional<int>   duration;
     std::optional<float> size;
 
     {
@@ -205,24 +205,30 @@ int luaMagnifyDispatcher(lua_State* L) {
     }
 
     auto dispatch = [](lua_State* L) -> int {
-        std::optional<int> duration;
+        std::optional<int>   duration;
         std::optional<float> size;
 
-        if (!lua_isnil(L, lua_upvalueindex(1))) duration = lua_tointeger(L, lua_upvalueindex(1));
-        if (!lua_isnil(L, lua_upvalueindex(2))) size = lua_tonumber(L, lua_upvalueindex(2));
+        if (!lua_isnil(L, lua_upvalueindex(1)))
+            duration = lua_tointeger(L, lua_upvalueindex(1));
+        if (!lua_isnil(L, lua_upvalueindex(2)))
+            size = lua_tonumber(L, lua_upvalueindex(2));
 
         g_pDynamicCursors->dispatchMagnify(duration, size);
 
-		return 0;
-	};
+        return 0;
+    };
 
-    if (duration.has_value()) lua_pushinteger(L, duration.value());
-    else lua_pushnil(L);
+    if (duration.has_value())
+        lua_pushinteger(L, duration.value());
+    else
+        lua_pushnil(L);
 
-    if (size.has_value()) lua_pushnumber(L, size.value());
-    else lua_pushnil(L);
+    if (size.has_value())
+        lua_pushnumber(L, size.value());
+    else
+        lua_pushnil(L);
 
-	lua_pushcclosure(L, dispatch, 2);
+    lua_pushcclosure(L, dispatch, 2);
 
-	return 1;
+    return 1;
 }

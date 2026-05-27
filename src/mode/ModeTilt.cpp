@@ -10,9 +10,9 @@ EModeUpdate CModeTilt::strategy() {
 }
 
 SModeResult CModeTilt::update(Vector2D pos) {
-    auto function = CONFIG(tiltFunction);
-    auto limit = CONFIG(tiltLimit);
-    auto window = CONFIG(tiltWindow);
+    auto function  = CONFIG(tiltFunction);
+    auto limit     = CONFIG(tiltLimit);
+    auto window    = CONFIG(tiltWindow);
     auto full_tilt = CONFIG(tiltFull);
 
     // create samples array
@@ -22,14 +22,14 @@ SModeResult CModeTilt::update(Vector2D pos) {
 
     // capture current sample
     samples[samples_index] = pos;
-    int current = samples_index;
-    samples_index = (samples_index + 1) % max; // increase for next sample
-    int first = samples_index;
+    int current            = samples_index;
+    samples_index          = (samples_index + 1) % max; // increase for next sample
+    int first              = samples_index;
 
     // calculate speed and tilt
     double speed = (samples[current].x - samples[first].x) / window * 1000;
 
-    auto result = SModeResult();
+    auto result     = SModeResult();
     result.rotation = activation(function, limit, speed) * (PI / (180.0 / full_tilt));
     return result;
 }

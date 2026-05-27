@@ -6,7 +6,7 @@ Mat3x3 toTransform(CBox& box, float rotation, Vector2D hotspot, float stretchAng
     auto mat = Mat3x3::identity();
     mat.translate(box.pos());
 
-    if (stretch != Vector2D{1,1}) {
+    if (stretch != Vector2D{1, 1}) {
         // center to origin, rotate, shift up, scale, undo
         // we do the shifting up, so the stretch is "only to one side"
 
@@ -29,7 +29,6 @@ Mat3x3 toTransform(CBox& box, float rotation, Vector2D hotspot, float stretchAng
 
     return mat;
 }
-
 
 void drawCursor(const Mat3x3& transform, SP<Render::ITexture> tex, CBox box, CRegion damage, bool nearest) {
     Mat3x3 proj = g_pHyprRenderer->m_renderData.targetProjection.copy().multiply(transform);

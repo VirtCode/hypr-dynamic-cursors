@@ -1,4 +1,4 @@
-#include <any> // IWYU pragma: keep
+#include <any>    // IWYU pragma: keep
 #include <chrono> // IWYU pragma: keep
 #define private public
 #include <hyprland/src/managers/CursorManager.hpp>
@@ -23,13 +23,12 @@ CHighresHandler::CHighresHandler() {
     update();
 
     // and reload on config reload
-    static const auto LISTENER = Event::bus()->m_events.config.reloaded.listen([&]() -> void {
-        update();
-    });
+    static const auto LISTENER = Event::bus()->m_events.config.reloaded.listen([&]() -> void { update(); });
 }
 
 static void hcLogger(enum eHyprcursorLogLevel level, char* message) {
-    if (level == HC_LOG_TRACE) return;
+    if (level == HC_LOG_TRACE)
+        return;
     Log::logger->log(Log::INFO, "[hc (dynamic)] {}", message);
 }
 
@@ -41,14 +40,15 @@ void CHighresHandler::update() {
         if (manager) {
             manager = nullptr;
             texture = nullptr;
-            buffer = nullptr;
+            buffer  = nullptr;
         }
 
         return;
     }
 
-    std::string name = g_pCursorManager->m_theme;
-    unsigned int size = CONFIG(highresSize) != -1 ? CONFIG(highresSize) : std::round(g_pCursorManager->m_currentStyleInfo.size * CONFIG(shakeBase) * 1.5f); // * 1.5f to accommodate for slight growth
+    std::string  name = g_pCursorManager->m_theme;
+    unsigned int size = CONFIG(highresSize) != -1 ? CONFIG(highresSize) :
+                                                    std::round(g_pCursorManager->m_currentStyleInfo.size * CONFIG(shakeBase) * 1.5f); // * 1.5f to accommodate for slight growth
 
     // we already have loaded the same theme and size
     if (manager && loadedName == name && loadedSize == size)
@@ -63,19 +63,19 @@ void CHighresHandler::update() {
         return;
     }
 
-    style = Hyprcursor::SCursorStyleInfo { size };
+    style = Hyprcursor::SCursorStyleInfo{size};
 
     loadedSize = size;
     loadedName = name;
 
     Log::logger->log(Log::INFO, "Creating future for loading hyprcursor theme for dynamic cursors");
 
-    auto fut = std::async(std::launch::async, [=, style = style] () -> UP<Hyprcursor::CHyprcursorManager> {
+    auto fut = std::async(std::launch::async, [=, style = style]() -> UP<Hyprcursor::CHyprcursorManager> {
         Log::logger->log(Log::INFO, "Starting to load hyprcursor theme '{}' of size {} for dynamic cursors asynchronously ...", name, size);
         auto time = std::chrono::system_clock::now();
 
-        auto options = Hyprcursor::SManagerOptions();
-        options.logFn = hcLogger;
+        auto options                 = Hyprcursor::SManagerOptions();
+        options.logFn                = hcLogger;
         options.allowDefaultFallback = true;
 
         auto manager = makeUnique<Hyprcursor::CHyprcursorManager>(name.empty() ? nullptr : name.c_str(), options);
@@ -93,7 +93,7 @@ void CHighresHandler::update() {
         return manager;
     });
 
-    manager = nullptr; // free old manager
+    manager       = nullptr; // free old manager
     managerFuture = makeUnique<std::future<UP<Hyprcursor::CHyprcursorManager>>>(std::move(fut));
 }
 
@@ -101,19 +101,22 @@ void CHighresHandler::loadShape(const std::string& name) {
     if (!manager) {
         // don't show old, potentially outdated shapes
         texture = nullptr;
-        buffer = nullptr;
+        buffer  = nullptr;
 
-        if (!managerFuture || managerFuture->wait_for(std::chrono::seconds(0)) != std::future_status::ready) return;
+        if (!managerFuture || managerFuture->wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+            return;
 
         Log::logger->log(Log::INFO, "Future for hyprcursor theme for dynamic cursors is ready, using new theme");
-        manager = managerFuture->get();
+        manager       = managerFuture->get();
         managerFuture = nullptr;
 
-        if (!manager) return; // could've failed
+        if (!manager)
+            return; // could've failed
         else {
             // in case someone has updated the theme again in the meantime
             update();
-            if (!manager) return; // new manager could be on the way
+            if (!manager)
+                return; // new manager could be on the way
         }
     }
 
@@ -127,16 +130,12 @@ void CHighresHandler::loadShape(const std::string& name) {
             Log::logger->log(Log::WARN, "Failed to load fallback shape {}, for shape {}!", CONFIG(highresFallback), name);
 
             texture = nullptr;
-            buffer = nullptr;
+            buffer  = nullptr;
             return;
         }
     }
 
-    buffer = makeShared<CCursorBuffer>(
-        shape.images[0].surface,
-        Vector2D{shape.images[0].size, shape.images[0].size},
-        Vector2D{shape.images[0].hotspotX, shape.images[0].hotspotY}
-    );
+    buffer = makeShared<CCursorBuffer>(shape.images[0].surface, Vector2D{shape.images[0].size, shape.images[0].size}, Vector2D{shape.images[0].hotspotX, shape.images[0].hotspotY});
 
     texture = g_pHyprRenderer->createTexture(SP<Aquamarine::IBuffer>(buffer));
 }

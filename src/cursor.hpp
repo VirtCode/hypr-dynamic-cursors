@@ -1,4 +1,4 @@
-#include <any> // IWYU pragma: keep
+#include <any>    // IWYU pragma: keep
 #include <chrono> // IWYU pragma: keep
 #define private public
 #include <hyprland/src/managers/PointerManager.hpp>
@@ -31,7 +31,7 @@ class CDynamicCursors {
     /* hook on renderHWCursorBuffer */
     SP<Aquamarine::IBuffer> renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<Render::ITexture> texture);
     /* hook on setHWCursorBuffer */
-    bool setHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<Aquamarine::IBuffer> buf);
+    bool                    setHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<Aquamarine::IBuffer> buf);
 
     /* hook on setCursorFromName */
     void setShape(const std::string& name);
@@ -53,8 +53,8 @@ class CDynamicCursors {
 
     // current state of the cursor
     SModeResult resultMode;
-    double resultShake;
-    Vector2D lastPos; // used for warp compensation
+    double      resultShake;
+    Vector2D    lastPos; // used for warp compensation
 
     SModeResult resultShown;
 
@@ -62,8 +62,8 @@ class CDynamicCursors {
     bool zoomSoftware = false;
 
     // modes
-    CModeRotate rotate;
-    CModeTilt tilt;
+    CModeRotate  rotate;
+    CModeTilt    tilt;
     CModeStretch stretch;
 
     /* returns the current mode, nullptr if none is selected */

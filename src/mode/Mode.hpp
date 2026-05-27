@@ -13,7 +13,7 @@ class IMode {
     /* updates the calculations and returns the new result */
     virtual SModeResult update(Vector2D pos) = 0;
     /* reset the internal stuff of the mode */
-    virtual void reset() = 0;
+    virtual void        reset() = 0;
     /* called on warp, an update will be sent afterwards (probably) */
-    virtual void warp(Vector2D old, Vector2D pos) = 0;
+    virtual void        warp(Vector2D old, Vector2D pos) = 0;
 };

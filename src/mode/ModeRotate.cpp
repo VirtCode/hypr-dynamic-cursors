@@ -24,7 +24,8 @@ SModeResult CModeRotate::update(Vector2D pos) {
 
     // normalize
     double size = end.size();
-    if (size == 0) size = 1; // do not divide by 0
+    if (size == 0)
+        size = 1; // do not divide by 0
 
     end.x /= size;
     end.y /= size;
@@ -35,17 +36,19 @@ SModeResult CModeRotate::update(Vector2D pos) {
 
     // calculate angle
     double angle = -std::atan(end.x / end.y);
-    if (end.y > 0) angle += PI;
+    if (end.y > 0)
+        angle += PI;
     angle += PI;
     angle += offset * ((2 * PI) / 360); // convert to radians
 
-    if (end.y == 0) angle = 0; // do not divide by 0 above, leave untransformed in these cases
+    if (end.y == 0)
+        angle = 0; // do not divide by 0 above, leave untransformed in these cases
 
     // translate back
     end.x += pos.x;
     end.y += pos.y;
 
-    auto result = SModeResult();
+    auto result     = SModeResult();
     result.rotation = angle;
 
     return result;

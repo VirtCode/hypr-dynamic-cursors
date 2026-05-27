@@ -14,48 +14,48 @@
 #include <hyprland/src/config/values/types/FloatValue.hpp>
 #include <hyprland/src/config/values/types/StringValue.hpp>
 
-#define NS(a) "plugin:dynamic-cursors:" a
+#define NS(a)  "plugin:dynamic-cursors:" a
 #define NS_LEN 23
 
-#define CONFIG(a) g_pConfigHandler->c_ ## a->value()
+#define CONFIG(a) g_pConfigHandler->c_##a->value()
 
 using namespace Config::Values;
 
 class CConfigHandler {
-public:
-    SP<CBoolValue>      c_enabled;
-    SP<CStringProp>     c_mode;
-    SP<CIntValue>       c_threshold;
+  public:
+    SP<CBoolValue>  c_enabled;
+    SP<CStringProp> c_mode;
+    SP<CIntValue>   c_threshold;
 
-    SP<CBoolValue>      c_shakeEnabled;
-    SP<CBoolValue>      c_shakeEffects;
-    SP<CBoolValue>      c_shakeIPC;
-    SP<CFloatValue>     c_shakeThreshold;
-    SP<CFloatValue>     c_shakeBase;
-    SP<CFloatValue>     c_shakeSpeed;
-    SP<CFloatValue>     c_shakeInfluence;
-    SP<CFloatValue>     c_shakeLimit;
-    SP<CIntValue>       c_shakeTimeout;
+    SP<CBoolValue>  c_shakeEnabled;
+    SP<CBoolValue>  c_shakeEffects;
+    SP<CBoolValue>  c_shakeIPC;
+    SP<CFloatValue> c_shakeThreshold;
+    SP<CFloatValue> c_shakeBase;
+    SP<CFloatValue> c_shakeSpeed;
+    SP<CFloatValue> c_shakeInfluence;
+    SP<CFloatValue> c_shakeLimit;
+    SP<CIntValue>   c_shakeTimeout;
 
-    SP<CBoolValue>      c_highresEnabled;
-    SP<CIntValue>       c_highresNearest;
-    SP<CStringValue>    c_highresFallback;
-    SP<CIntValue>       c_highresSize;
+    SP<CBoolValue>   c_highresEnabled;
+    SP<CIntValue>    c_highresNearest;
+    SP<CStringValue> c_highresFallback;
+    SP<CIntValue>    c_highresSize;
 
-    SP<CStringProp>     c_tiltFunction;
-    SP<CIntProp>        c_tiltLimit;
-    SP<CIntProp>        c_tiltWindow;
-    SP<CIntProp>        c_tiltFull;
+    SP<CStringProp> c_tiltFunction;
+    SP<CIntProp>    c_tiltLimit;
+    SP<CIntProp>    c_tiltWindow;
+    SP<CIntProp>    c_tiltFull;
 
-    SP<CStringProp>     c_stretchFunction;
-    SP<CIntProp>        c_stretchLimit;
-    SP<CIntProp>        c_stretchWindow;
+    SP<CStringProp> c_stretchFunction;
+    SP<CIntProp>    c_stretchLimit;
+    SP<CIntProp>    c_stretchWindow;
 
-    SP<CIntProp>        c_rotateLength;
-    SP<CFloatProp>      c_rotateOffset;
+    SP<CIntProp>   c_rotateLength;
+    SP<CFloatProp> c_rotateOffset;
 
-    SP<CBoolValue>      c_hwDebug;
-    SP<CBoolValue>      c_ignoreWarps;
+    SP<CBoolValue> c_hwDebug;
+    SP<CBoolValue> c_ignoreWarps;
 
     UP<CShapeRuleHandler> m_shapeRules;
 
@@ -65,7 +65,7 @@ public:
     /* whether the plugin is enabled */
     bool isEnabled();
 
-private:
+  private:
     SP<CBoolValue>   conf(const char* name, bool def, const char* desc);
     SP<CIntValue>    conf(const char* name, int def, const char* desc);
     SP<CStringValue> conf(const char* name, const char* def, const char* desc);

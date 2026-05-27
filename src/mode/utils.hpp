@@ -20,8 +20,8 @@ struct SModeResult {
 
     // stretch along axis with angle, going through hotspot
     struct {
-        double angle = 0;
-        Vector2D magnitude = Vector2D{1,1};
+        double   angle     = 0;
+        Vector2D magnitude = Vector2D{1, 1};
     } stretch;
 
     void clamp(double angle, double scale, double stretch);

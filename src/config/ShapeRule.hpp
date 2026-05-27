@@ -5,7 +5,6 @@
 #include <hyprland/src/config/shared/Types.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
 
-#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -37,7 +36,7 @@ class CShapeRuleHandler {
     void clear();
 
     /* sets a property for the given shape, returns errors as a string if any */
-    template<typename T>
+    template <typename T>
     std::optional<std::string> set(const std::string& shape, const std::string& name, T value);
 
     /* activates the shape rule for the given shape */

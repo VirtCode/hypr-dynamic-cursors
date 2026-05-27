@@ -34,10 +34,10 @@ void CShapeRuleHandler::registerProp(SP<IProp> prop) {
     // FIXME: make this more safe please
     const char* name = prop->name() + NS_LEN;
 
-    m_properties[std::string { name }] = prop;
+    m_properties[std::string{name}] = prop;
 }
 
-template<typename T>
+template <typename T>
 std::optional<std::string> CShapeRuleHandler::set(const std::string& shape, const std::string& name, T value) {
     if (!m_properties.contains(name))
         return std::format("no such property `{}`", name);
@@ -67,7 +67,7 @@ Hyprlang::CParseResult onShapeRuleKeyword(const char* COMMAND, const char* VALUE
     Hyprlang::CParseResult res;
 
     try {
-        CVarList list = CVarList(VALUE);
+        CVarList                   list = CVarList(VALUE);
         std::optional<std::string> name;
 
         for (auto arg : list) {
@@ -86,9 +86,9 @@ Hyprlang::CParseResult onShapeRuleKeyword(const char* COMMAND, const char* VALUE
                 if (error.has_value())
                     throw std::logic_error(error.value());
 
-            // settings value
+                // settings value
             } else {
-                auto key = arg.substr(0, pos);
+                auto key   = arg.substr(0, pos);
                 auto value = arg.substr(pos + 1);
 
                 auto type = g_pConfigHandler->m_shapeRules->type(key);
@@ -109,9 +109,7 @@ Hyprlang::CParseResult onShapeRuleKeyword(const char* COMMAND, const char* VALUE
                     throw std::logic_error(error.value());
             }
         }
-    } catch (const std::exception& ex) {
-        res.setError(ex.what());
-    }
+    } catch (const std::exception& ex) { res.setError(ex.what()); }
 
     return res;
 }
@@ -166,7 +164,6 @@ int luaShapeRuleTable(const std::string& shape, const std::string& name, lua_Sta
 
     return 0;
 }
-
 
 int luaShapeRule(lua_State* L) {
     if (!lua_istable(L, 1))

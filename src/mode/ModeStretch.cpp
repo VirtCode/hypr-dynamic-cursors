@@ -11,8 +11,8 @@ EModeUpdate CModeStretch::strategy() {
 
 SModeResult CModeStretch::update(Vector2D pos) {
     auto function = CONFIG(stretchFunction);
-    auto limit = CONFIG(stretchLimit);
-    auto window = CONFIG(stretchWindow);
+    auto limit    = CONFIG(stretchLimit);
+    auto window   = CONFIG(stretchWindow);
 
     // create samples array
     int max = std::max(1, (int)(g_pHyprRenderer->m_mostHzMonitor->m_refreshRate / 1000 * window)); // [window]ms worth of history, avoiding divide by 0
@@ -21,21 +21,23 @@ SModeResult CModeStretch::update(Vector2D pos) {
 
     // capture current sample
     samples[samples_index] = pos;
-    int current = samples_index;
-    samples_index = (samples_index + 1) % max; // increase for next sample
-    int first = samples_index;
+    int current            = samples_index;
+    samples_index          = (samples_index + 1) % max; // increase for next sample
+    int first              = samples_index;
 
     // calculate speed and tilt
     Vector2D speed = (samples[current] - samples[first]) / window * 1000;
-    double mag = speed.size();
+    double   mag   = speed.size();
 
     double angle = -std::atan(speed.x / speed.y) + PI;
-    if (speed.y > 0) angle += PI;
-    if (mag == 0) angle = 0;
+    if (speed.y > 0)
+        angle += PI;
+    if (mag == 0)
+        angle = 0;
 
     double scale = activation(function, limit, mag);
 
-    auto result = SModeResult();
+    auto result          = SModeResult();
     result.stretch.angle = angle;
     // we can't do more scaling than that because of how large our buffer around the cursor shape is
     result.stretch.magnitude = Vector2D{1.0 - scale * 0.5, 1.0 + scale * 1.0};
