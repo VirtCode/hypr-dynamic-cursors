@@ -1,21 +1,22 @@
-#include "globals.hpp"
-#include <chrono>
-#include <cmath>
-#include <future>
-#include <hyprcursor/hyprcursor.hpp>
-#include <hyprlang.hpp>
-
-#include <hyprland/src/managers/eventLoop/EventLoopTimer.hpp> // required so we don't "unprivate" chrono
-#include <hyprutils/memory/UniquePtr.hpp>
+#include <any> // IWYU pragma: keep
+#include <chrono> // IWYU pragma: keep
 #define private public
 #include <hyprland/src/managers/CursorManager.hpp>
 #undef private
 
-#include "highres.hpp"
-#include "config/ConfigManager.hpp"
 #include <hyprland/src/debug/log/Logger.hpp>
 #include <hyprland/src/event/EventBus.hpp>
 #include <hyprland/src/render/Renderer.hpp>
+#include <hyprlang.hpp>
+#include <hyprcursor/hyprcursor.hpp>
+#include <hyprutils/memory/UniquePtr.hpp>
+
+#include <chrono>
+#include <cmath>
+#include <future>
+
+#include "highres.hpp"
+#include "config/ConfigManager.hpp"
 
 CHighresHandler::CHighresHandler() {
     // load stuff on creation

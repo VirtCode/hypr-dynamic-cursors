@@ -1,4 +1,5 @@
 #include "renderer.hpp"
+
 #include <hyprland/src/render/Renderer.hpp>
 
 Mat3x3 toTransform(CBox& box, float rotation, Vector2D hotspot, float stretchAngle, Vector2D stretch) {

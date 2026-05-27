@@ -1,7 +1,8 @@
 #pragma once
 
-#include <hyprutils/math/Vector2D.hpp>
 #include "utils.hpp"
+
+#include <hyprutils/math/Vector2D.hpp>
 
 using namespace Hyprutils::Math;
 

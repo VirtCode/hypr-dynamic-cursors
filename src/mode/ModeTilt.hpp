@@ -1,4 +1,5 @@
 #include "Mode.hpp"
+
 #include <hyprutils/math/Vector2D.hpp>
 #include <vector>
 

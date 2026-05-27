@@ -1,6 +1,7 @@
-#include "../config/ConfigManager.hpp"
-#include "src/macros.hpp"
+#include <hyprland/src/macros.hpp>
 #include <cmath>
+
+#include "../config/ConfigManager.hpp"
 #include "ModeRotate.hpp"
 
 EModeUpdate CModeRotate::strategy() {

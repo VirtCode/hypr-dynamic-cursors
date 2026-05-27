@@ -8,6 +8,7 @@
 #include <hyprland/src/config/ConfigManager.hpp>
 #include <hyprland/src/debug/log/Logger.hpp>
 #include <hyprland/src/helpers/time/Time.hpp>
+#include <hyprland/src/render/Renderer.hpp>
 #include <hyprlang.hpp>
 #include <hyprutils/memory/UniquePtr.hpp>
 #include <hyprutils/string/String.hpp>
@@ -21,7 +22,6 @@
 #include "globals.hpp"
 #include "cursor.hpp"
 #include "config/ConfigManager.hpp"
-#include "render/Renderer.hpp"
 
 typedef void (*origRenderSoftwareCursorsFor)(void*, SP<CMonitor>, const Time::steady_tp&, CRegion&, std::optional<Vector2D>, bool);
 inline CFunctionHook* g_pRenderSoftwareCursorsForHook = nullptr;

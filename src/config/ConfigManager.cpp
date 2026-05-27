@@ -1,16 +1,14 @@
-#include "../globals.hpp"
-#include <hyprutils/memory/UniquePtr.hpp>
-#include <sstream> // required so we don't "unprivate" sstream before including cursor.hpp
-#include <hyprland/src/managers/eventLoop/EventLoopTimer.hpp> // required so we don't "unprivate" chrono before including cursor.hpp
-#include "../cursor.hpp"
 #include <hyprland/src/config/lua/bindings/LuaBindingsInternal.hpp>
-#include "ShapeRule.hpp"
-#include "ConfigManager.hpp"
-
 #include <hyprland/src/render/Renderer.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
 #include <hyprland/src/event/EventBus.hpp>
 #include <hyprlang.hpp>
+#include <hyprutils/memory/UniquePtr.hpp>
+
+#include "../globals.hpp"
+#include "../cursor.hpp"
+#include "ShapeRule.hpp"
+#include "ConfigManager.hpp"
 
 extern "C" {
 #include <lua.h>

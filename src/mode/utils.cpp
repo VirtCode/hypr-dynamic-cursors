@@ -1,4 +1,5 @@
 #include "utils.hpp"
+
 #include <string>
 #include <hyprland/src/debug/log/Logger.hpp>
 

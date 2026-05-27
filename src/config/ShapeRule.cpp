@@ -1,15 +1,14 @@
 #include "ShapeRule.hpp"
 #include "ConfigManager.hpp"
-#include <hyprland/src/debug/log/Logger.hpp>
 #include "prop/IProp.hpp"
-#include <hyprutils/string/VarList.hpp>
-#include <hyprutils/utils/ScopeGuard.hpp>
-#include <print>
-#include <stdexcept>
-#include <string>
+
+#include <hyprland/src/debug/log/Logger.hpp>
+#include <hyprland/src/config/lua/bindings/LuaBindingsInternal.hpp>
 #include <hyprutils/string/String.hpp>
 #include <hyprutils/string/VarList.hpp>
-#include <hyprland/src/config/lua/bindings/LuaBindingsInternal.hpp>
+#include <hyprutils/utils/ScopeGuard.hpp>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 extern "C" {

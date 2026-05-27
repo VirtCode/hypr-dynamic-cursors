@@ -1,6 +1,7 @@
 #include "ModeTilt.hpp"
 #include "utils.hpp"
 #include "../config/ConfigManager.hpp"
+
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/render/Renderer.hpp>
 

@@ -1,12 +1,12 @@
-#include "globals.hpp"
-#include <memory>
-
+#include <any> // IWYU pragma: keep
+#include <chrono> // IWYU pragma: keep
 #define private public
 #include <hyprland/src/managers/PointerManager.hpp>
 #undef private
-#include <hyprutils/math/Vector2D.hpp>
-#include <hyprland/src/managers/eventLoop/EventLoopManager.hpp>
+
 #include <hyprcursor/hyprcursor.hpp>
+#include <hyprland/src/managers/eventLoop/EventLoopManager.hpp>
+#include <hyprutils/math/Vector2D.hpp>
 
 #include "mode/ModeRotate.hpp"
 #include "mode/ModeTilt.hpp"

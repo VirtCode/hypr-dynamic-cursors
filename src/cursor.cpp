@@ -1,16 +1,5 @@
-#include <cmath>
-#include <cstdlib>
-#include <climits>
-#include <cstring>
-#include <hyprcursor/hyprcursor.hpp>
-#include <hyprlang.hpp>
-#include <gbm.h>
-
-#include <hyprland/src/managers/eventLoop/EventLoopTimer.hpp> // required so we don't "unprivate" chrono
-#include <hyprutils/utils/ScopeGuard.hpp>
-#include <sstream> // required so we don't "unprivate" sstream
-#include <ranges>  // required so we don't "unprivate" chrono
-
+#include <any> // IWYU pragma: keep
+#include <chrono> // IWYU pragma: keep
 #define private public
 #include <hyprland/src/managers/CursorManager.hpp>
 #include <hyprland/src/managers/PointerManager.hpp>
@@ -19,18 +8,24 @@
 #include <hyprland/src/Compositor.hpp>
 #undef private
 
+#include <hyprcursor/hyprcursor.hpp>
 #include <hyprland/src/config/ConfigValue.hpp>
 #include <hyprland/src/protocols/core/Compositor.hpp>
 #include <hyprland/src/protocols/core/Seat.hpp>
 #include <hyprland/src/debug/log/Logger.hpp>
 #include <hyprland/src/helpers/math/Math.hpp>
+#include <hyprlang.hpp>
+#include <hyprutils/utils/ScopeGuard.hpp>
+#include <cmath>
+#include <cstdlib>
+#include <climits>
+#include <gbm.h>
 
 #include "cursor.hpp"
 #include "render/renderer.hpp"
 #include "config/ConfigManager.hpp"
 #include "mode/Mode.hpp"
 #include "render/CursorPassElement.hpp"
-#include "render/Renderer.hpp"
 
 void tickRaw(SP<CEventLoopTimer> self, void* data) {
     if (g_pConfigHandler->isEnabled())

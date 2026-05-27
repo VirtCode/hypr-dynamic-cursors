@@ -1,16 +1,14 @@
 #pragma once
 
 #include "ShapeRule.hpp"
-#include "SharedDefs.hpp"
 #include "prop/BoolProp.hpp"
 #include "prop/FloatProp.hpp"
 #include "prop/IntProp.hpp"
 #include "prop/StringProp.hpp"
 
-#include <functional>
 #include <hyprlang.hpp>
 #include <hyprutils/string/VarList.hpp>
-
+#include <hyprland/src/SharedDefs.hpp>
 #include <hyprland/src/config/values/types/BoolValue.hpp>
 #include <hyprland/src/config/values/types/IntValue.hpp>
 #include <hyprland/src/config/values/types/FloatValue.hpp>
