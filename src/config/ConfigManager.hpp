@@ -67,14 +67,13 @@ class CConfigHandler {
 
   private:
     SP<CBoolValue>   conf(const char* name, bool def, const char* desc);
+    SP<CBoolProp>    prop(const char* name, bool def, const char* desc);
     SP<CIntValue>    conf(const char* name, int def, const char* desc);
+    SP<CIntProp>     prop(const char* name, int def, const char* desc);
     SP<CStringValue> conf(const char* name, const char* def, const char* desc);
+    SP<CStringProp>  prop(const char* name, const char* def, const char* desc);
     SP<CFloatValue>  conf(const char* name, float def, const char* desc);
-
-    SP<CBoolProp>   prop(const char* name, bool def, const char* desc);
-    SP<CIntProp>    prop(const char* name, int def, const char* desc);
-    SP<CStringProp> prop(const char* name, const char* def, const char* desc);
-    SP<CFloatProp>  prop(const char* name, float def, const char* desc);
+    SP<CFloatProp>   prop(const char* name, float def, const char* desc);
 };
 
 inline UP<CConfigHandler> g_pConfigHandler;

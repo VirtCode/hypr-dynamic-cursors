@@ -1,18 +1,7 @@
 #include "IntProp.hpp"
-#include "../ShapeRule.hpp"
 
-Config::INTEGER CIntProp::value() const {
-    if (m_rules && m_rules->active) {
-        auto& prop = m_rules->active->at(m_id);
-        if (prop)
-            return std::get<Config::INTEGER>(prop.value());
-    }
-
-    return m_config->value();
-}
-
-Config::INTEGER CIntProp::original() const {
-    return m_config->value();
+void CIntProp::activate(std::optional<PropValue> value) {
+    m_value = value ? std::get<Config::INTEGER>(*value) : m_config->value();
 }
 
 const std::type_info* CIntProp::underlying() const {

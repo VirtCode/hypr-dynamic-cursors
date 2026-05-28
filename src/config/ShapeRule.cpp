@@ -20,14 +20,13 @@ using namespace Hyprutils::String;
 
 void CShapeRuleHandler::clear() {
     m_rules.clear();
-    active = nullptr;
 }
 
 void CShapeRuleHandler::activate(const std::string& shape) {
-    if (m_rules.contains(shape))
-        active = &m_rules[shape];
-    else
-        active = nullptr;
+    PropStore* store = m_rules.contains(shape) ? &m_rules[shape] : nullptr;
+
+    for (auto& [_, prop] : m_properties)
+        prop->activate(store ? store->at(prop->m_id) : std::optional<PropValue>());
 }
 
 void CShapeRuleHandler::registerProp(SP<IProp> prop) {

@@ -1,18 +1,7 @@
 #include "BoolProp.hpp"
-#include "../ShapeRule.hpp"
 
-Config::BOOL CBoolProp::value() const {
-    if (m_rules && m_rules->active) {
-        auto& prop = m_rules->active->at(m_id);
-        if (prop)
-            return std::get<Config::BOOL>(prop.value());
-    }
-
-    return m_config->value();
-}
-
-Config::BOOL CBoolProp::original() const {
-    return m_config->value();
+void CBoolProp::activate(std::optional<PropValue> value) {
+    m_value = value ? std::get<Config::BOOL>(*value) : m_config->value();
 }
 
 const std::type_info* CBoolProp::underlying() const {

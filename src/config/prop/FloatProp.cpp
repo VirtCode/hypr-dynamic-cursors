@@ -1,18 +1,7 @@
 #include "FloatProp.hpp"
-#include "../ShapeRule.hpp"
 
-Config::FLOAT CFloatProp::value() const {
-    if (m_rules && m_rules->active) {
-        auto& prop = m_rules->active->at(m_id);
-        if (prop)
-            return std::get<Config::FLOAT>(prop.value());
-    }
-
-    return m_config->value();
-}
-
-Config::FLOAT CFloatProp::original() const {
-    return m_config->value();
+void CFloatProp::activate(std::optional<PropValue> value) {
+    m_value = value ? std::get<Config::FLOAT>(*value) : m_config->value();
 }
 
 const std::type_info* CFloatProp::underlying() const {

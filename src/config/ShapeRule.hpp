@@ -8,12 +8,8 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
-#include <variant>
 
 #include <hyprlang.hpp>
-
-/* the actual types a value can have */
-typedef std::variant<Config::STRING, Config::FLOAT, Config::INTEGER, Config::BOOL> PropValue;
 
 /* how we store all the properties for a rule */
 typedef std::vector<std::optional<PropValue>> PropStore;
@@ -26,9 +22,6 @@ class CShapeRuleHandler {
     std::unordered_map<std::string, PropStore> m_rules;
 
   public:
-    /* currently active rule, nullptr if none */
-    PropStore* active = nullptr;
-
     /* adds a new shape rule property */
     void registerProp(SP<IProp>);
 

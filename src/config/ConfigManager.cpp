@@ -60,7 +60,12 @@ CConfigHandler::CConfigHandler() {
     HyprlandAPI::addLuaFunction(PHANDLE, "dynamic_cursors", "shape_rule", ::luaShapeRule);
 
     // clear shape rules on reload
-    static const auto LISTENER = Event::bus()->m_events.config.preReload.listen([&]() -> void { m_shapeRules->clear(); });
+    static const auto LISTENER_PRE  = Event::bus()->m_events.config.preReload.listen([&]() -> void { m_shapeRules->clear(); });
+    static const auto LISTENER_POST = Event::bus()->m_events.config.reloaded.listen([&]() -> void {
+        // after reload, activate current shape
+        // this also reloads the props from the actual config
+        m_shapeRules->activate(g_pHyprRenderer->m_lastCursorData.name);
+    });
 
     // add magnify dispatcher
     HyprlandAPI::addDispatcherV2(PHANDLE, NS("magnify"), ::dispatchMagnify);
@@ -79,11 +84,25 @@ SP<CBoolValue> CConfigHandler::conf(const char* name, bool def, const char* desc
     return val;
 }
 
+SP<CBoolProp> CConfigHandler::prop(const char* name, bool def, const char* desc) {
+    auto prop = makeShared<CBoolProp>(conf(name, def, desc));
+    m_shapeRules->registerProp(prop);
+
+    return prop;
+}
+
 SP<CIntValue> CConfigHandler::conf(const char* name, int def, const char* desc) {
     auto val = makeShared<CIntValue>(name, desc, def);
     HyprlandAPI::addConfigValueV2(PHANDLE, val);
 
     return val;
+}
+
+SP<CIntProp> CConfigHandler::prop(const char* name, int def, const char* desc) {
+    auto prop = makeShared<CIntProp>(conf(name, def, desc));
+    m_shapeRules->registerProp(prop);
+
+    return prop;
 }
 
 SP<CStringValue> CConfigHandler::conf(const char* name, const char* def, const char* desc) {
@@ -93,6 +112,13 @@ SP<CStringValue> CConfigHandler::conf(const char* name, const char* def, const c
     return val;
 }
 
+SP<CStringProp> CConfigHandler::prop(const char* name, const char* def, const char* desc) {
+    auto prop = makeShared<CStringProp>(conf(name, def, desc));
+    m_shapeRules->registerProp(prop);
+
+    return prop;
+}
+
 SP<CFloatValue> CConfigHandler::conf(const char* name, float def, const char* desc) {
     auto val = makeShared<CFloatValue>(name, desc, def);
     HyprlandAPI::addConfigValueV2(PHANDLE, val);
@@ -100,45 +126,8 @@ SP<CFloatValue> CConfigHandler::conf(const char* name, float def, const char* de
     return val;
 }
 
-SP<CBoolProp> CConfigHandler::prop(const char* name, bool def, const char* desc) {
-    auto val = makeShared<CBoolValue>(name, desc, def);
-    HyprlandAPI::addConfigValueV2(PHANDLE, val);
-
-    auto prop = makeShared<CBoolProp>(val);
-    prop->setHandler(m_shapeRules);
-    m_shapeRules->registerProp(prop);
-
-    return prop;
-}
-
-SP<CIntProp> CConfigHandler::prop(const char* name, int def, const char* desc) {
-    auto val = makeShared<CIntValue>(name, desc, def);
-    HyprlandAPI::addConfigValueV2(PHANDLE, val);
-
-    auto prop = makeShared<CIntProp>(val);
-    prop->setHandler(m_shapeRules);
-    m_shapeRules->registerProp(prop);
-
-    return prop;
-}
-
-SP<CStringProp> CConfigHandler::prop(const char* name, const char* def, const char* desc) {
-    auto val = makeShared<CStringValue>(name, desc, std::string{def});
-    HyprlandAPI::addConfigValueV2(PHANDLE, val);
-
-    auto prop = makeShared<CStringProp>(val);
-    prop->setHandler(m_shapeRules);
-    m_shapeRules->registerProp(prop);
-
-    return prop;
-}
-
 SP<CFloatProp> CConfigHandler::prop(const char* name, float def, const char* desc) {
-    auto val = makeShared<CFloatValue>(name, desc, def);
-    HyprlandAPI::addConfigValueV2(PHANDLE, val);
-
-    auto prop = makeShared<CFloatProp>(val);
-    prop->setHandler(m_shapeRules);
+    auto prop = makeShared<CFloatProp>(conf(name, def, desc));
     m_shapeRules->registerProp(prop);
 
     return prop;
