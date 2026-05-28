@@ -28,4 +28,4 @@ struct SModeResult {
     bool hasDifference(SModeResult* other, double angle, double scale, double stretch);
 };
 
-double activation(std::string function, double max, double value);
+double activation(int function, double max, double value);

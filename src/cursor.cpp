@@ -391,16 +391,12 @@ void CDynamicCursors::onTick(CPointerManager* pointers) {
 }
 
 IMode* CDynamicCursors::currentMode() {
-    auto mode = CONFIG(mode);
-
-    if (mode == "rotate")
-        return &rotate;
-    else if (mode == "tilt")
-        return &tilt;
-    else if (mode == "stretch")
-        return &stretch;
-    else
-        return nullptr;
+    switch (CONFIG(mode)) {
+        case MODE_ROTATE: return &rotate;
+        case MODE_TILT: return &tilt;
+        case MODE_STRETCH: return &stretch;
+        default: return nullptr;
+    }
 }
 
 void CDynamicCursors::calculate(EModeUpdate type) {

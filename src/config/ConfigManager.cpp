@@ -1,7 +1,15 @@
+#include <any>    // IWYU pragma: keep
+#include <chrono> // IWYU pragma: keep
+#define private public
+#include <hyprland/src/errorOverlay/Overlay.hpp>
+#undef private
+
 #include <hyprland/src/config/lua/bindings/LuaBindingsInternal.hpp>
 #include <hyprland/src/render/Renderer.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
 #include <hyprland/src/event/EventBus.hpp>
+#include <hyprland/src/debug/log/Logger.hpp>
+#include <hyprland/src/errorOverlay/Overlay.hpp>
 #include <hyprlang.hpp>
 #include <hyprutils/memory/UniquePtr.hpp>
 
@@ -21,7 +29,7 @@ CConfigHandler::CConfigHandler() {
     // add config variables
     // clang-format off
     c_enabled         = conf(NS("enabled"),                true,                   "global toggle for the plugin");
-    c_mode            = prop(NS("mode"),                   "tilt",                 "sets the cursor behaviour (tilt, rotate, stretch, none)");
+    c_mode            = prop(NS("mode"),                   "tilt",                 "sets the cursor behaviour (tilt, rotate, stretch, none)", {{"tilt", MODE_TILT}, {"rotate", MODE_ROTATE}, {"stretch", MODE_STRETCH}, {"none", MODE_NONE}});
     c_threshold       = conf(NS("threshold"),              2,                      "minimum angle difference in degrees after which the shape is changed");
 
     c_shakeEnabled    = conf(NS("shake:enabled"),          true,                   "enables shake to find");
@@ -39,12 +47,12 @@ CConfigHandler::CConfigHandler() {
     c_highresFallback = conf(NS("hyprcursor:fallback"),    "clientside",           "shape to use when clientside cursors are being magnified");
     c_highresSize     = conf(NS("hyprcursor:resolution"),  -1,                     "resolution in pixels to load the magnified shapes at");
 
-    c_tiltFunction    = prop(NS("tilt:activation"),        "negative_quadratic",   "relationship between speed and tilt (linear, quadratic, negative_quadratic)");
+    c_tiltFunction    = prop(NS("tilt:activation"),        "negative_quadratic",   "relationship between speed and tilt (linear, quadratic, negative_quadratic)", {{"linear", ACTIVATION_LINEAR}, {"quadratic", ACTIVATION_QUADRATIC}, {"negative_quadratic", ACTIVATION_NEGATIVE_QUADRATIC}});
     c_tiltLimit       = prop(NS("tilt:limit"),             5000,                   "controls at which speed the full tilt is reached");
     c_tiltWindow      = prop(NS("tilt:window"),            100,                    "time window over which the speed is calculated");
     c_tiltFull        = prop(NS("tilt:full"),              60,                     "full tilt for each side in degrees");
 
-    c_stretchFunction = prop(NS("stretch:activation"),     "negative_quadratic",   "relationship between speed and stretch amount (linear, quadratic, negative_quadratic)");
+    c_stretchFunction = prop(NS("stretch:activation"),     "negative_quadratic",   "relationship between speed and stretch amount (linear, quadratic, negative_quadratic)", {{"linear", ACTIVATION_LINEAR}, {"quadratic", ACTIVATION_QUADRATIC}, {"negative_quadratic", ACTIVATION_NEGATIVE_QUADRATIC}});
     c_stretchLimit    = prop(NS("stretch:limit"),          3000,                   "controls at which speed the full stretch is reached");
     c_stretchWindow   = prop(NS("stretch:window"),         100,                    "time window over which the speed is calculated");
 
@@ -62,6 +70,23 @@ CConfigHandler::CConfigHandler() {
     // clear shape rules on reload
     static const auto LISTENER_PRE  = Event::bus()->m_events.config.preReload.listen([&]() -> void { m_shapeRules->clear(); });
     static const auto LISTENER_POST = Event::bus()->m_events.config.reloaded.listen([&]() -> void {
+        std::string errors;
+
+        for (auto& wp : m_cachedValues) {
+            auto error = wp->reload();
+            if (!error)
+                continue;
+
+            Log::logger->log(Log::ERR, "[dynamic-cursors] cached value reload failed: {}", error.value());
+
+            if (!errors.empty())
+                errors += '\n';
+            errors += std::format("failed parsing `{}`: {}", wp->internal()->name(), error.value());
+        }
+
+        if (!errors.empty())
+            showError(errors);
+
         // after reload, activate current shape
         // this also reloads the props from the actual config
         m_shapeRules->activate(g_pHyprRenderer->m_lastCursorData.name);
@@ -75,6 +100,17 @@ CConfigHandler::CConfigHandler() {
 bool CConfigHandler::isEnabled() {
     // make sure the compositor is properly initialized
     return c_enabled->value() && g_pHyprRenderer->m_mostHzMonitor && g_pDynamicCursors;
+}
+
+void CConfigHandler::showError(const std::string& err) {
+    // we also need to check for queuedDestroy if the config frehsly doesn't error anymore
+    if (ErrorOverlay::overlay()->active() && !ErrorOverlay::overlay()->m_queuedDestroy) {
+        Log::logger->log(Log::ERR, "[dynamic-cursors] not overriding error overlay: {}", err);
+        return;
+    }
+
+    ErrorOverlay::overlay()->m_queuedDestroy = false;
+    ErrorOverlay::overlay()->queueCreate("Your dynamic-cursors config has errors:\n" + err, ErrorOverlay::Colors::ERROR);
 }
 
 SP<CBoolValue> CConfigHandler::conf(const char* name, bool def, const char* desc) {
@@ -128,6 +164,21 @@ SP<CFloatValue> CConfigHandler::conf(const char* name, float def, const char* de
 
 SP<CFloatProp> CConfigHandler::prop(const char* name, float def, const char* desc) {
     auto prop = makeShared<CFloatProp>(conf(name, def, desc));
+    m_shapeRules->registerProp(prop);
+
+    return prop;
+}
+
+SP<CVariantValue> CConfigHandler::conf(const char* name, const char* def, const char* desc, std::unordered_map<std::string, int> map) {
+    auto cached = makeShared<CVariantValue>(name, def, desc, std::move(map));
+    HyprlandAPI::addConfigValueV2(PHANDLE, cached->internal().lock());
+    m_cachedValues.push_back(cached);
+
+    return cached;
+}
+
+SP<CVariantProp> CConfigHandler::prop(const char* name, const char* def, const char* desc, std::unordered_map<std::string, int> map) {
+    auto prop = makeShared<CVariantProp>(conf(name, def, desc, std::move(map)));
     m_shapeRules->registerProp(prop);
 
     return prop;

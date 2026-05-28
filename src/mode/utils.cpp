@@ -1,31 +1,36 @@
 #include "utils.hpp"
+#include "../config/ConfigManager.hpp"
 
-#include <string>
 #include <hyprland/src/debug/log/Logger.hpp>
 
-double activation(std::string function, double max, double value) {
+double activation(int function, double max, double value) {
     double result = 0;
-    if (function == "linear") {
+    switch (function) {
+        case ACTIVATION_LINEAR: {
+            result = value / max;
+            break;
+        }
 
-        result = value / max;
+        case ACTIVATION_QUADRATIC: {
+            // (1 / m²) * x², is a quadratic function which will reach 1 at m
+            result = (1.0 / (max * max)) * (value * value);
+            result *= (value > 0 ? 1 : -1);
+            break;
+        }
 
-    } else if (function == "quadratic") {
+        case ACTIVATION_NEGATIVE_QUADRATIC: {
+            float x = std::abs(value);
+            // (-1 / m²) * (x - m)² + 1, is a quadratic function with the inverse curvature which will reach 1 at m
+            result = (-1.0 / (max * max)) * ((x - max) * (x - max)) + 1;
+            if (x > max)
+                result = 1; // need to clamp manually, as the function would decrease again
 
-        // (1 / m²) * x², is a quadratic function which will reach 1 at m
-        result = (1.0 / (max * max)) * (value * value);
-        result *= (value > 0 ? 1 : -1);
+            result *= (value > 0 ? 1 : -1);
+            break;
+        }
 
-    } else if (function == "negative_quadratic") {
-
-        float x = std::abs(value);
-        // (-1 / m²) * (x - m)² + 1, is a quadratic function with the inverse curvature which will reach 1 at m
-        result = (-1.0 / (max * max)) * ((x - max) * (x - max)) + 1;
-        if (x > max)
-            result = 1; // need to clamp manually, as the function would decrease again
-
-        result *= (value > 0 ? 1 : -1);
-    } else
-        Log::logger->log(Log::WARN, "[dynamic-cursors] unknown air function specified");
+        default: Log::logger->log(Log::WARN, "[dynamic-cursors] unknown activation function specified"); break;
+    }
 
     return std::clamp(result, -1.0, 1.0);
 }

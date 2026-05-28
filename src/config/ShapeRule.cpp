@@ -2,6 +2,7 @@
 #include "ConfigManager.hpp"
 #include "prop/IProp.hpp"
 
+#include <format>
 #include <hyprland/src/debug/log/Logger.hpp>
 #include <hyprland/src/config/lua/bindings/LuaBindingsInternal.hpp>
 #include <hyprutils/string/String.hpp>
@@ -45,6 +46,10 @@ std::optional<std::string> CShapeRuleHandler::set(const std::string& shape, cons
 
     if (*prop->underlying() != typeid(T))
         return std::format("invalid type for property `{}`", name);
+
+    auto error = prop->validate(value);
+    if (error)
+        return std::format("error parsing `{}`, {}", name, error.value());
 
     // initialize rule with large enough vector
     if (!m_rules.contains(shape))

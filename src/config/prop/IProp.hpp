@@ -26,6 +26,9 @@ class IProp {
     /* applies a rule value, or resets to the default when empty */
     virtual void activate(std::optional<PropValue> value) = 0;
 
+    /* validates the value of a prop, returns error if any */
+    virtual std::optional<std::string> validate(std::optional<PropValue> value);
+
     /* returns the type_info of the underlying type */
     virtual const std::type_info* underlying() const = 0;
 
