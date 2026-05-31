@@ -91,6 +91,45 @@ wayland.windowManager.hyprland = {
 };
 ```
 
+### Gentoo
+
+Dynamic cursors is packaged in the [Hyproverlay portage overlay](https://codeberg.org/hyproverlay/hyproverlay) containing the entire Hypr-* ecosystem, and as such, also Hyprland itself.
+
+To install Hyprland itself, Hyproverlay should already be enabled but if it isn't, it can be enabled as follows:
+```bash
+eselect repository enable hyproverlay
+emerge --sync hyproverlay
+```
+
+By nature of how the Hyprland plugin ecosystem works, Hyprland plugins are usually packaged as `-9999` live ebuilds. As such, unmasking them with `**` is required. This can be done by adding the following to a `/etc/portage/package.accept_keywords` list:
+```
+hyprland-plugin/dynamic-cursors **
+```
+
+From there, dynamic cursors can be installed as
+```bash
+emerge --ask hyprland-plugin/dynamic-cursors
+```
+
+This installs the plugin to `/usr/lib/hyprland-plugins/dynamic-cursors.so`, from where it can be loaded by Hyprland by adding the following to your `hyprland.lua` config:
+```lua
+hl.plugin.load("/usr/lib/hyprland-plugins/dynamic-cursors.so")
+```
+
+> [!NOTE]
+> This does not need Hyprland to be compiled with the `hyprpm` USE flag,
+> as that USE flag only controls the inclusion of the plugin manager, and
+> not the plugin mechanism itself. As such, no `hyprpm update` is required
+> to update plugins after a Hyprland update.
+>
+> Portage should rebuild plugins automatically whenever it updates Hyprland,
+> but this may fail for certain edgecases. In this case a rebuild must be
+> triggered manually as:
+> ```bash
+> emerge --ask --oneshot hyprland-plugin/dynamic-cursors
+> ```
+
+
 ## configuration
 
 <details>
