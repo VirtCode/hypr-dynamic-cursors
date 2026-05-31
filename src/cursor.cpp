@@ -1,5 +1,6 @@
 #include <any>    // IWYU pragma: keep
 #include <chrono> // IWYU pragma: keep
+#include <ranges> // IWYU pragma: keep
 #define private public
 #include <hyprland/src/managers/CursorManager.hpp>
 #include <hyprland/src/managers/PointerManager.hpp>
