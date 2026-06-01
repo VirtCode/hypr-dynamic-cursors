@@ -47,7 +47,7 @@ Please note that this plugin was created more or less as a joke. I mainly wanted
 ## installation
 > Note that this plugin is only supported on `x86_64` architectures, see [compatibility](#compatibility) for more info. If you don't know what this means, you're probably fine.
 
-Installation is officially supported via `hyprpm`. Supported Hyprland versions are `v0.41.2` and upwards and the latest commit on the main branch generally tries to target the `main` branch of Hyprland (aka `-git`).
+Installation is officially supported via `hyprpm`. Supported Hyprland versions are `v0.41.2` and upwards and the latest commit on this `main` branch generally tries to target Hyprland's `main` branch (aka `-git`).
 
 To install the plugin run the following. For more info and how to keep loading the plugin on startup, refer to [`hyprpm`'s section in the wiki](https://wiki.hypr.land/Plugins/Using-Plugins/#hyprpm).
 ```sh
