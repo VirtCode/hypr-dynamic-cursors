@@ -45,22 +45,39 @@ If anything here sounds interesting to you, don't hesitate to contribute.
 Please note that this plugin was created more or less as a joke. I mainly wanted to see how using a rotating or tilted cursor was like. So I will not guarantee any future updates and bugfixes. The only useful feature, shake to find, was implemented more or less as an afterthought.
 
 ## installation
+> Note that this plugin is only supported on `x86_64` architectures, see [compatibility](#compatibility) for more info. If you don't know what this means, you're probably fine.
 
-> Note that this plugin is only supported on `x84_64` architectures, see [compatibility](#compatibility) for more info. If you don't know what this means, you're probably fine.
+Installation is officially supported via `hyprpm`. Supported Hyprland versions are `v0.41.2` and upwards and the latest commit on the main branch generally tries to target the `main` branch of Hyprland (aka `-git`).
 
-### hyprpm
-
-Installation is supported via `hyprpm`. Supported hyprland versions are `v0.41.2` and upwards. The main branch generally tries to target `-git`.
-
+To install the plugin run the following. For more info and how to keep loading the plugin on startup, refer to [`hyprpm`'s section in the wiki](https://wiki.hypr.land/Plugins/Using-Plugins/#hyprpm).
 ```sh
 hyprpm add https://github.com/virtcode/hypr-dynamic-cursors
 hyprpm enable dynamic-cursors
 ```
 
-### NixOS
+### distribution specific
+Some Linux distributions have a package manager sophisticated enough to properly package and manage hyprland plugins with. While `hyprpm` is distribution agnostic, these mechanisms usually offer a better and more stable user experience. Below are some distributions which have packages for dynamic-cursors and how to install them.
 
-Add this flake to your inputs, note that using a mismatched/unsupported Hyprland release will fail to build or load the plugin:
+<details>
+<summary><b>NixOS</b></summary> <!-- we have to use <b> and not <h4> cause github markdown is scuffed -->
 
+This plugin has special support for NixOS by either using the [flake](./flake.nix) in this repo or a version from [nixpkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/window-managers/hyprwm/hyprland-plugins/hypr-dynamic-cursors.nix). Depending on how you manage your system, you can choose from either of them.
+
+##### Nixpkgs
+There is a nix package in [nixpkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/window-managers/hyprwm/hyprland-plugins/hypr-dynamic-cursors.nix) for this plugin. If you are using a release version of hyprland, it is recommended to use this version. Note however that this package is maintained by other people and might not be up-to-date.
+
+To install the plugin from nixpkgs, add it to your Hyprland `plugins` list in your home-manager config:
+```nix
+wayland.windowManager.hyprland = {
+    enable = true;
+    plugins = [ pkgs.hyprlandPlugins.hypr-dynamic-cursors ];
+};
+```
+
+##### With Flakes
+If you daily-drive the development version of hyprland, it is recommended to use the [flake](./flake.nix) included with this plugin. Note that using a **mismatched/unsupported Hyprland release will fail to build or load the plugin** if you update.
+
+Add the following flake to your inputs:
 ```nix
 inputs = {
     hyprland.url = "github:hyprwm/Hyprland"; # follows development branch of hyprland
@@ -72,7 +89,6 @@ inputs = {
 ```
 
 Then, in your home-manager config, add the plugin:
-
 ```nix
 wayland.windowManager.hyprland = {
     enable = true;
@@ -80,20 +96,12 @@ wayland.windowManager.hyprland = {
 };
 ```
 
-or add it like this:
+</details>
 
-```nix
-wayland.windowManager.hyprland = {
-    enable = true;
-    extraConfig = ''
-        plugin = ${inputs.hypr-dynamic-cursors.packages.${pkgs.system}.hypr-dynamic-cursors}/lib/libhypr-dynamic-cursors.so
-    '';
-};
-```
+<details>
+<summary><b>Gentoo</b></summary>
 
-### Gentoo
-
-Dynamic cursors is packaged in the [Hyproverlay portage overlay](https://codeberg.org/hyproverlay/hyproverlay) containing the entire Hypr-* ecosystem, and as such, also Hyprland itself.
+The plugin is packaged for Gentoo in the [Hyproverlay portage overlay](https://codeberg.org/hyproverlay/hyproverlay) containing the entire Hypr-* ecosystem, and as such, also Hyprland itself.
 
 To install Hyprland itself, Hyproverlay should already be enabled but if it isn't, it can be enabled as follows:
 ```bash
@@ -106,8 +114,8 @@ By nature of how the Hyprland plugin ecosystem works, Hyprland plugins are usual
 hyprland-plugin/dynamic-cursors **
 ```
 
-From there, dynamic cursors can be installed as
-```bash
+From there, dynamic-cursors can be installed as
+```sh
 emerge --ask hyprland-plugin/dynamic-cursors
 ```
 
@@ -116,19 +124,18 @@ This installs the plugin to `/usr/lib/hyprland-plugins/dynamic-cursors.so`, from
 hl.plugin.load("/usr/lib/hyprland-plugins/dynamic-cursors.so")
 ```
 
-> [!NOTE]
-> This does not need Hyprland to be compiled with the `hyprpm` USE flag,
-> as that USE flag only controls the inclusion of the plugin manager, and
-> not the plugin mechanism itself. As such, no `hyprpm update` is required
-> to update plugins after a Hyprland update.
+<!-- for some reason the fancy note thing does not work in <details> :( -->
+> **Note:**
+> This does not need Hyprland to be compiled with the `hyprpm` USE flag, as that USE flag only controls the inclusion of the plugin manager, and not the plugin mechanism itself. As such, no `hyprpm update` is required to update plugins after a Hyprland update.
 >
-> Portage should rebuild plugins automatically whenever it updates Hyprland,
-> but this may fail for certain edgecases. In this case a rebuild must be
-> triggered manually as:
+> Portage should rebuild plugins automatically whenever it updates Hyprland, but this may fail for certain edgecases. In this case a rebuild must be triggered manually as:
 > ```bash
 > emerge --ask --oneshot hyprland-plugin/dynamic-cursors
 > ```
 
+</details>
+
+If you think your distro has good packages for dynamic-cursors but it is not listed here, MRs are welcome!
 
 ## configuration
 
