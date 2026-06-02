@@ -64,7 +64,7 @@ Some Linux distributions have a package manager sophisticated enough to properly
 This plugin has special support for NixOS by either using the [flake](./flake.nix) in this repo or a version from [nixpkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/window-managers/hyprwm/hyprland-plugins/hypr-dynamic-cursors.nix). Depending on how you manage your system, you can choose from either of them.
 
 ##### Nixpkgs
-There is a nix package in [nixpkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/window-managers/hyprwm/hyprland-plugins/hypr-dynamic-cursors.nix) for this plugin. If you are using a release version of hyprland, it is recommended to use this version. Note however that this package is maintained by other people and might not be up-to-date.
+There is a Nix package in [nixpkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/window-managers/hyprwm/hyprland-plugins/hypr-dynamic-cursors.nix) for this plugin. If you are using a release version of hyprland, it is recommended to use this version. Note however that this package is maintained by other people and might not be up-to-date.
 
 To install the plugin from nixpkgs, add it to your Hyprland `plugins` list in your home-manager config:
 ```nix
