@@ -325,6 +325,11 @@ This plugin has a couple of dispatchers to trigger certain effects with a keybin
 
 </details>
 
+> Don't forget to put the configuration for this plugin inside an `if` block like the following **to avoid config errors when the plugin is not loaded.**
+> ```lua 
+> if hl.plugin.dynamic_cursors then ... end
+> ```
+
 This plugin can be configured in its dedicated configuration section (`plugin.dynamic_cursors`). The default values are shown below.
 ```lua
 hl.config { plugin = { dynamic_cursors = {
