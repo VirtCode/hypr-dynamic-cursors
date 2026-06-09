@@ -12,6 +12,7 @@
 #include <hyprcursor/hyprcursor.hpp>
 #include <hyprland/src/config/ConfigValue.hpp>
 #include <hyprland/src/protocols/core/Compositor.hpp>
+#include <hyprland/src/state/MonitorState.hpp>
 #include <hyprland/src/protocols/core/Seat.hpp>
 #include <hyprland/src/debug/log/Logger.hpp>
 #include <hyprland/src/helpers/math/Math.hpp>
@@ -57,7 +58,7 @@ CDynamicCursors::~CDynamicCursors() {
 Reimplements rendering of the software cursor.
 Is also largely identical to hyprlands impl, but uses our custom rendering to rotate the cursor.
 */
-void CDynamicCursors::renderSoftware(CPointerManager* pointers, SP<CMonitor> pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos,
+void CDynamicCursors::renderSoftware(CPointerManager* pointers, PHLMONITOR pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos,
                                      bool forceRender) {
     if (!pointers->hasCursor())
         return;
@@ -322,7 +323,7 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
     const auto CURSORBOX = pointers->getCursorBoxGlobal();
     bool       recalc    = false;
 
-    for (auto& m : g_pCompositor->m_monitors) {
+    for (auto& m : State::monitorState()->monitors()) {
         auto state = pointers->stateFor(m);
 
         state->box = pointers->getCursorBoxLogicalForMonitor(state->monitor.lock());
@@ -455,7 +456,7 @@ void CDynamicCursors::calculate(EModeUpdate type) {
 
         bool entered = false;
 
-        for (auto& m : g_pCompositor->m_monitors) {
+        for (auto& m : State::monitorState()->monitors()) {
             auto state = g_pPointerManager->stateFor(m);
 
             if (state->entered)

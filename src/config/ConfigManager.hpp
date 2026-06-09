@@ -26,9 +26,9 @@ using namespace Config::Values;
 
 class CConfigHandler {
   public:
-    SP<CBoolValue>  c_enabled;
+    SP<CBoolValue>   c_enabled;
     SP<CVariantProp> c_mode;
-    SP<CIntValue>   c_threshold;
+    SP<CIntValue>    c_threshold;
 
     SP<CBoolValue>  c_shakeEnabled;
     SP<CBoolValue>  c_shakeEffects;
@@ -46,13 +46,13 @@ class CConfigHandler {
     SP<CIntValue>    c_highresSize;
 
     SP<CVariantProp> c_tiltFunction;
-    SP<CIntProp>    c_tiltLimit;
-    SP<CIntProp>    c_tiltWindow;
-    SP<CIntProp>    c_tiltFull;
+    SP<CIntProp>     c_tiltLimit;
+    SP<CIntProp>     c_tiltWindow;
+    SP<CIntProp>     c_tiltFull;
 
     SP<CVariantProp> c_stretchFunction;
-    SP<CIntProp>    c_stretchLimit;
-    SP<CIntProp>    c_stretchWindow;
+    SP<CIntProp>     c_stretchLimit;
+    SP<CIntProp>     c_stretchWindow;
 
     SP<CIntProp>   c_rotateLength;
     SP<CFloatProp> c_rotateOffset;
@@ -75,14 +75,14 @@ class CConfigHandler {
     void showError(const std::string& err);
 
   private:
-    SP<CBoolValue>   conf(const char* name, bool def, const char* desc);
-    SP<CBoolProp>    prop(const char* name, bool def, const char* desc);
-    SP<CIntValue>    conf(const char* name, int def, const char* desc);
-    SP<CIntProp>     prop(const char* name, int def, const char* desc);
-    SP<CStringValue> conf(const char* name, const char* def, const char* desc);
-    SP<CStringProp>  prop(const char* name, const char* def, const char* desc);
-    SP<CFloatValue>  conf(const char* name, float def, const char* desc);
-    SP<CFloatProp>   prop(const char* name, float def, const char* desc);
+    SP<CBoolValue>    conf(const char* name, bool def, const char* desc);
+    SP<CBoolProp>     prop(const char* name, bool def, const char* desc);
+    SP<CIntValue>     conf(const char* name, int def, const char* desc);
+    SP<CIntProp>      prop(const char* name, int def, const char* desc);
+    SP<CStringValue>  conf(const char* name, const char* def, const char* desc);
+    SP<CStringProp>   prop(const char* name, const char* def, const char* desc);
+    SP<CFloatValue>   conf(const char* name, float def, const char* desc);
+    SP<CFloatProp>    prop(const char* name, float def, const char* desc);
     SP<CVariantValue> conf(const char* name, const char* def, const char* desc, std::unordered_map<std::string, int> map);
     SP<CVariantProp>  prop(const char* name, const char* def, const char* desc, std::unordered_map<std::string, int> map);
 };
