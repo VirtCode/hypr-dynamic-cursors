@@ -177,7 +177,6 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     // setup config
     g_pConfigHandler = makeUnique<CConfigHandler>();
-    HyprlandAPI::reloadConfig();
 
     // init things
     g_pDynamicCursors = makeUnique<CDynamicCursors>();
