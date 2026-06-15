@@ -29,9 +29,9 @@ SModeResult CModeStretch::update(Vector2D pos) {
     Vector2D speed = (samples[current] - samples[first]) / window * 1000;
     double   mag   = speed.size();
 
-    double angle = -std::atan(speed.x / speed.y) + PI;
+    double angle = -std::atan(speed.x / speed.y) + std::numbers::pi;
     if (speed.y > 0)
-        angle += PI;
+        angle += std::numbers::pi;
     if (mag == 0)
         angle = 0;
 

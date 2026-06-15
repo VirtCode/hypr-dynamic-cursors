@@ -285,17 +285,16 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
     if (!(state->monitor->m_output->getBackend()->capabilities() & Aquamarine::IBackendImplementation::eBackendCapabilities::AQ_BACKEND_CAPABILITY_POINTER))
         return false;
 
-    auto PMONITOR = state->monitor.lock();
-    if (!PMONITOR->m_cursorSwapchain)
+    if (!state->monitor->m_cursorSwapchain)
         return false;
 
     // we need to transform the hotspot manually as we need to indent it by the padding
     int      diagonal = pointers->m_currentCursorImage.size.size();
     Vector2D padding  = {diagonal, diagonal};
 
-    const auto HOTSPOT = CBox{((pointers->m_currentCursorImage.hotspot * PMONITOR->m_scale) + padding) * resultShown.scale, {0, 0}}
-                             .transform(Math::wlTransformToHyprutils(Math::invertTransform(PMONITOR->m_transform)), PMONITOR->m_cursorSwapchain->currentOptions().size.x,
-                                        PMONITOR->m_cursorSwapchain->currentOptions().size.y)
+    const auto HOTSPOT = CBox{((pointers->m_currentCursorImage.hotspot * state->monitor->m_scale) + padding) * resultShown.scale, {0, 0}}
+                             .transform(Math::wlTransformToHyprutils(Math::invertTransform(state->monitor->m_transform)), state->monitor->m_cursorSwapchain->currentOptions().size.x,
+                                        state->monitor->m_cursorSwapchain->currentOptions().size.y)
                              .pos();
 
     Log::logger->log(Log::TRACE, "[pointer] hw transformed hotspot for {}: {}", state->monitor->m_name, HOTSPOT);
@@ -306,7 +305,7 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
     state->cursorFrontBuffer = buf;
 
     if (!state->monitor->shouldSkipScheduleFrameOnMouseEvent())
-        g_pCompositor->scheduleFrameForMonitor(state->monitor.lock(), Aquamarine::IOutput::AQ_SCHEDULE_CURSOR_SHAPE);
+        state->monitor->scheduleFrame(Aquamarine::IOutput::AQ_SCHEDULE_CURSOR_SHAPE);
 
     state->monitor->m_scanoutNeedsCursorUpdate = true;
 
@@ -431,9 +430,9 @@ void CDynamicCursors::calculate(EModeUpdate type) {
     auto result = resultMode;
     result.scale *= resultShake;
 
-    if (resultShown.hasDifference(&result, CONFIG(threshold) * (PI / 180.0), 0.01, 0.01)) {
+    if (resultShown.hasDifference(&result, CONFIG(threshold) * (std::numbers::pi / 180.0), 0.01, 0.01)) {
         resultShown = result;
-        resultShown.clamp(CONFIG(threshold) * (PI / 180.0), 0.01, 0.01); // clamp low values so it is rendered pixel-perfectly when no effect
+        resultShown.clamp(CONFIG(threshold) * (std::numbers::pi / 180.0), 0.01, 0.01); // clamp low values so it is rendered pixel-perfectly when no effect
 
         // lock software cursors if zooming
         if (resultShown.scale > 1) {
