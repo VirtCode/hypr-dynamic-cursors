@@ -2,7 +2,7 @@
 #include <hyprland/src/helpers/memory/Memory.hpp>
 #include <hyprland/src/plugins/HookSystem.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
-#include <hyprland/src/output/Monitor.hpp>
+#include <hyprland/src/helpers/Monitor.hpp>
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/managers/CursorManager.hpp>
 #include <hyprland/src/config/ConfigManager.hpp>
@@ -187,7 +187,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
         // clang-format off
         g_pRenderSoftwareCursorsForHook = hook(
             pmf_address(&CPointerManager::renderSoftwareCursorsFor),
-            "_ZN15CPointerManager24renderSoftwareCursorsForEN9Hyprutils6Memory14CSharedPointerIN7Monitor8CMonitorEEERKNSt6chrono10time_pointINS6_3_V212steady_clockENS6_8durationIlSt5ratioILl1ELl1000000000EEEEEERNS0_4Math7CRegionESt8optionalINSH_8Vector2DEEb",
+            "_ZN15CPointerManager24renderSoftwareCursorsForEN9Hyprutils6Memory14CSharedPointerI8CMonitorEERKNSt6chrono10time_pointINS5_3_V212steady_clockENS5_8durationIlSt5ratioILl1ELl1000000000EEEEEERNS0_4Math7CRegionESt8optionalINSG_8Vector2DEEb",
             (void*) &hkRenderSoftwareCursorsFor
         );
         g_pDamageIfSoftwareHook = hook(

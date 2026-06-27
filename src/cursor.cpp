@@ -12,7 +12,6 @@
 #include <hyprcursor/hyprcursor.hpp>
 #include <hyprland/src/config/ConfigValue.hpp>
 #include <hyprland/src/protocols/core/Compositor.hpp>
-#include <hyprland/src/state/MonitorState.hpp>
 #include <hyprland/src/protocols/core/Seat.hpp>
 #include <hyprland/src/debug/log/Logger.hpp>
 #include <hyprland/src/helpers/math/Math.hpp>
@@ -305,7 +304,7 @@ bool CDynamicCursors::setHardware(CPointerManager* pointers, SP<CPointerManager:
     state->cursorFrontBuffer = buf;
 
     if (!state->monitor->shouldSkipScheduleFrameOnMouseEvent())
-        state->monitor->scheduleFrame(Aquamarine::IOutput::AQ_SCHEDULE_CURSOR_SHAPE);
+        g_pCompositor->scheduleFrameForMonitor(state->monitor.lock(), Aquamarine::IOutput::AQ_SCHEDULE_CURSOR_SHAPE);
 
     state->monitor->m_scanoutNeedsCursorUpdate = true;
 
@@ -322,7 +321,7 @@ void CDynamicCursors::onCursorMoved(CPointerManager* pointers) {
     const auto CURSORBOX = pointers->getCursorBoxGlobal();
     bool       recalc    = false;
 
-    for (auto& m : State::monitorState()->monitors()) {
+    for (auto& m : g_pCompositor->m_monitors) {
         auto state = pointers->stateFor(m);
 
         state->box = pointers->getCursorBoxLogicalForMonitor(state->monitor.lock());
@@ -455,7 +454,7 @@ void CDynamicCursors::calculate(EModeUpdate type) {
 
         bool entered = false;
 
-        for (auto& m : State::monitorState()->monitors()) {
+        for (auto& m : g_pCompositor->m_monitors) {
             auto state = g_pPointerManager->stateFor(m);
 
             if (state->entered)

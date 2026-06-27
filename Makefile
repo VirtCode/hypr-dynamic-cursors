@@ -5,7 +5,7 @@ HEADER_FILES := $(wildcard ./src/*.hpp ./src/*/*.hpp ./src/*/*/*.hpp)
 
 OBJECT_FILES := $(patsubst ./src/%.cpp, out/%.o, $(SOURCE_FILES))
 CXXFLAGS := -Wall -fPIC -std=c++26 -g \
-	$(shell pkg-config --cflags hyprland pixman-1 libdrm | sed 's#-I\([^ ]*/hyprland\)\($$\| \)#-I\1 -I\1/src #g')
+	$(shell pkg-config --cflags hyprland pixman-1 libdrm lua | sed 's#-I\([^ ]*/hyprland\)\($$\| \)#-I\1 -I\1/src #g')
 
 OUTPUT=out/$(PLUGIN_NAME).so
 
