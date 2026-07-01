@@ -45,20 +45,39 @@ If anything here sounds interesting to you, don't hesitate to contribute.
 Please note that this plugin was created more or less as a joke. I mainly wanted to see how using a rotating or tilted cursor was like. So I will not guarantee any future updates and bugfixes. The only useful feature, shake to find, was implemented more or less as an afterthought.
 
 ## installation
+> Note that this plugin is only supported on `x86_64` architectures, see [compatibility](#compatibility) for more info. If you don't know what this means, you're probably fine.
 
-### hyprpm
+Installation is officially supported via `hyprpm`. Supported Hyprland versions are `v0.41.2` and upwards and the latest commit on this `main` branch generally tries to target Hyprland's `main` branch (aka `-git`).
 
-Installation is supported via `hyprpm`. Supported hyprland versions are `v0.41.2` and upwards. The main branch generally tries to target `-git`.
-
+To install the plugin run the following. For more info and how to keep loading the plugin on startup, refer to [`hyprpm`'s section in the wiki](https://wiki.hypr.land/Plugins/Using-Plugins/#hyprpm).
 ```sh
 hyprpm add https://github.com/virtcode/hypr-dynamic-cursors
 hyprpm enable dynamic-cursors
 ```
 
-### NixOS
+### distribution specific
+Some Linux distributions have a package manager sophisticated enough to properly package and manage hyprland plugins with. While `hyprpm` is distribution agnostic, these mechanisms usually offer a better and more stable user experience. Below are some distributions which have packages for dynamic-cursors and how to install them.
 
-Add this flake to your inputs, note that using a mismatched/unsupported Hyprland release will fail to build or load the plugin:
+<details>
+<summary><b>NixOS</b></summary> <!-- we have to use <b> and not <h4> cause github markdown is scuffed -->
 
+This plugin has special support for NixOS by either using the [flake](./flake.nix) in this repo or a version from [nixpkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/window-managers/hyprwm/hyprland-plugins/hypr-dynamic-cursors.nix). Depending on how you manage your system, you can choose from either of them.
+
+##### Nixpkgs
+There is a Nix package in [nixpkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/window-managers/hyprwm/hyprland-plugins/hypr-dynamic-cursors.nix) for this plugin. If you are using a release version of hyprland, it is recommended to use this version. Note however that this package is maintained by other people and might not be up-to-date.
+
+To install the plugin from nixpkgs, add it to your Hyprland `plugins` list in your home-manager config:
+```nix
+wayland.windowManager.hyprland = {
+    enable = true;
+    plugins = [ pkgs.hyprlandPlugins.hypr-dynamic-cursors ];
+};
+```
+
+##### With Flakes
+If you daily-drive the development version of hyprland, it is recommended to use the [flake](./flake.nix) included with this plugin. Note that using a **mismatched/unsupported Hyprland release will fail to build or load the plugin** if you update.
+
+Add the following flake to your inputs:
 ```nix
 inputs = {
     hyprland.url = "github:hyprwm/Hyprland"; # follows development branch of hyprland
@@ -70,7 +89,6 @@ inputs = {
 ```
 
 Then, in your home-manager config, add the plugin:
-
 ```nix
 wayland.windowManager.hyprland = {
     enable = true;
@@ -78,18 +96,58 @@ wayland.windowManager.hyprland = {
 };
 ```
 
-or add it like this:
+</details>
 
-```nix
-wayland.windowManager.hyprland = {
-    enable = true;
-    extraConfig = ''
-        plugin = ${inputs.hypr-dynamic-cursors.packages.${pkgs.system}.hypr-dynamic-cursors}/lib/libhypr-dynamic-cursors.so
-    '';
-};
+<details>
+<summary><b>Gentoo</b></summary>
+
+The plugin is packaged for Gentoo in the [Hyproverlay portage overlay](https://codeberg.org/hyproverlay/hyproverlay) containing the entire Hypr-* ecosystem, and as such, also Hyprland itself.
+
+To install Hyprland itself, Hyproverlay should already be enabled but if it isn't, it can be enabled as follows:
+```bash
+eselect repository enable hyproverlay
+emerge --sync hyproverlay
 ```
 
+By nature of how the Hyprland plugin ecosystem works, Hyprland plugins are usually packaged as `-9999` live ebuilds. As such, unmasking them with `**` is required. This can be done by adding the following to a `/etc/portage/package.accept_keywords` list:
+```
+hyprland-plugin/dynamic-cursors **
+```
+
+From there, dynamic-cursors can be installed as
+```sh
+emerge --ask hyprland-plugin/dynamic-cursors
+```
+
+This installs the plugin to `/usr/lib/hyprland-plugins/dynamic-cursors.so`, from where it can be loaded by Hyprland by adding the following to your `hyprland.lua` config:
+```lua
+hl.plugin.load("/usr/lib/hyprland-plugins/dynamic-cursors.so")
+```
+
+<!-- for some reason the fancy note thing does not work in <details> :( -->
+> **Note:**
+> This does not need Hyprland to be compiled with the `hyprpm` USE flag, as that USE flag only controls the inclusion of the plugin manager, and not the plugin mechanism itself. As such, no `hyprpm update` is required to update plugins after a Hyprland update.
+>
+> Portage should rebuild plugins automatically whenever it updates Hyprland, but this may fail for certain edgecases. In this case a rebuild must be triggered manually as:
+> ```bash
+> emerge --ask --oneshot hyprland-plugin/dynamic-cursors
+> ```
+
+</details>
+
+If you think your distro has good packages for dynamic-cursors but it is not listed here, MRs are welcome!
+
 ## configuration
+
+<details>
+<summary>
+<b>Still using hyprlang configuration?</b> Don't worry, this plugin currently supports configuration via both hyprlang and lua. Click here to expand the section about configuring with hyprlang.
+</summary>
+
+***
+
+### variables (hyprlang)
+    
 This plugin can be configured in its dedicated configuration section (`plugin:dynamic-cursors`). The default values are shown below.
 ```ini
 plugin:dynamic-cursors {
@@ -101,7 +159,7 @@ plugin:dynamic-cursors {
     # tilt    - tilt the cursor based on x-velocity
     # rotate  - rotate the cursor based on movement direction
     # stretch - stretch the cursor shape based on direction and velocity
-    # none    - do not change the cursors behaviour
+    # none    - do not change the cursor's behaviour
     mode = tilt
 
     # minimum angle difference in degrees after which the shape is changed
@@ -133,7 +191,6 @@ plugin:dynamic-cursors {
 
         # controls how powerful the tilt is, the lower, the more power
         # this value controls at which speed (px/s) the full tilt is reached
-        # the full tilt being 60° in both directions
         limit = 5000
 
         # relationship between speed and tilt, supports these values:
@@ -141,11 +198,14 @@ plugin:dynamic-cursors {
         # quadratic          - a quadratic function is used (most realistic to actual air drag)
         # negative_quadratic - negative version of the quadratic one, feels more aggressive
         # see `activation` in `src/mode/utils.cpp` for how exactly the calculation is done
-        function = negative_quadratic
+        activation = negative_quadratic
 
         # time window (ms) over which the speed is calculated
         # higher values will make slow motions smoother but more delayed
         window = 100
+
+        # full tilt for each side (°)
+        full = 60
     }
 
     # for mode = stretch
@@ -161,7 +221,7 @@ plugin:dynamic-cursors {
         # quadratic          - a quadratic function is used
         # negative_quadratic - negative version of the quadratic one, feels more aggressive
         # see `activation` in `src/mode/utils.cpp` for how exactly the calculation is done
-        function = quadratic
+        activation = quadratic
 
         # time window (ms) over which the speed is calculated
         # higher values will make slow motions smoother but more delayed
@@ -175,10 +235,6 @@ plugin:dynamic-cursors {
         # enables shake to find
         enabled = true
 
-        # use nearest-neighbour (pixelated) scaling when shaking
-        # may look weird when effects are enabled
-        nearest = true
-
         # controls how soon a shake is detected
         # lower values mean sooner
         threshold = 6.0
@@ -187,14 +243,14 @@ plugin:dynamic-cursors {
         base = 4.0
         # magnification increase per second when continuing to shake
         speed = 4.0
-        # how much the speed is influenced by the current shake intensitiy
+        # how much the speed is influenced by the current shake intensity
         influence = 0.0
 
         # maximal magnification the cursor can reach
         # values below 1 disable the limit (e.g. 0)
         limit = 0.0
 
-        # time in millseconds the cursor will stay magnified after a shake has ended
+        # time in milliseconds the cursor will stay magnified after a shake has ended
         timeout = 2000
 
         # show cursor behaviour `tilt`, `rotate`, etc. while shaking
@@ -209,11 +265,11 @@ plugin:dynamic-cursors {
     # see the `hyprcursor` section below
     hyprcursor {
 
-        # use nearest-neighbour (pixelated) scaling when magnifing beyond texture size
+        # use nearest-neighbour (pixelated) scaling when magnifying beyond texture size
         # this will also have effect without hyprcursor support being enabled
         # 0 / false - never use pixelated scaling
         # 1 / true  - use pixelated when no highres image
-        # 2         - always use pixleated scaling
+        # 2         - always use pixelated scaling
         nearest = true
 
         # enable dedicated hyprcursor support
@@ -232,7 +288,7 @@ plugin:dynamic-cursors {
 }
 ```
 
-### shape rules
+### shape rules (hyprlang)
 Shape Rules can be used to override the mode or its behaviour on a per-shape basis. They can be defined with the keyword `shaperule` in the config file, preferably in the `plugin:dynamic-cursors` section.
 
 **Note:** Shape rules only apply to server side cursor shapes. Sadly, not everyone supports server side cursors yet, which means shape rules won't work in some applications.
@@ -259,8 +315,192 @@ plugin:dynamic-cursors {
 }
 ```
 
+### dispatchers (hyprlang)
+This plugin has a couple of dispatchers to trigger certain effects with a keybind. Here's a list:
+- `plugin:dynamic-cursors:magnify` with arguments `duration?, size?` triggers cursor magnification like on a shake
+  - `duration` (optional): overrides duration in milliseconds to stay magnified
+  - `size` (optional): overrides magnification factor
+
+***
+
+</details>
+
+> Don't forget to put the configuration for this plugin inside an `if` block like the following **to avoid config errors when the plugin is not loaded.**
+> ```lua 
+> if hl.plugin.dynamic_cursors then ... end
+> ```
+
+This plugin can be configured in its dedicated configuration section (`plugin.dynamic_cursors`). The default values are shown below.
+```lua
+hl.config { plugin = { dynamic_cursors = {
+
+    -- enables the plugin
+    enabled = true,
+
+    -- sets the cursor behaviour, supports these values:
+    -- tilt    - tilt the cursor based on x-velocity
+    -- rotate  - rotate the cursor based on movement direction
+    -- stretch - stretch the cursor shape based on direction and velocity
+    -- none    - do not change the cursor's behaviour
+    mode = "tilt",
+
+    -- minimum angle difference in degrees after which the shape is changed
+    -- smaller values are smoother, but more expensive for hw cursors
+    threshold = 2,
+
+    -- for mode = "rotate"
+    rotate = {
+
+        -- length in px of the simulated stick used to rotate the cursor
+        -- most realistic if this is your actual cursor size
+        length = 20,
+
+        -- clockwise offset applied to the angle in degrees
+        -- this will apply to ALL shapes
+        offset = 0.0,
+    },
+
+    -- for mode = "tilt"
+    tilt = {
+
+        -- controls how powerful the tilt is, the lower, the more power
+        -- this value controls at which speed (px/s) the full tilt is reached
+        limit = 5000,
+
+        -- relationship between speed and tilt, supports these values:
+        -- linear             - a linear function is used
+        -- quadratic          - a quadratic function is used (most realistic to actual air drag)
+        -- negative_quadratic - negative version of the quadratic one, feels more aggressive
+        -- see `activation` in `src/mode/utils.cpp` for how exactly the calculation is done
+        activation = "negative_quadratic",
+
+        -- time window (ms) over which the speed is calculated
+        -- higher values will make slow motions smoother but more delayed
+        window = 100,
+
+        -- full tilt for each side (°)
+        full = 60,
+    },
+
+    -- for mode = "stretch"
+    stretch = {
+
+        -- controls how much the cursor is stretched
+        -- this value controls at which speed (px/s) the full stretch is reached
+        -- the full stretch being twice the original length
+        limit = 3000,
+
+        -- relationship between speed and stretch amount, supports these values:
+        -- linear             - a linear function is used
+        -- quadratic          - a quadratic function is used
+        -- negative_quadratic - negative version of the quadratic one, feels more aggressive
+        -- see `activation` in `src/mode/utils.cpp` for how exactly the calculation is done
+        activation = "quadratic",
+
+        -- time window (ms) over which the speed is calculated
+        -- higher values will make slow motions smoother but more delayed
+        window = 100,
+    },
+
+    -- configure shake to find
+    -- magnifies the cursor if its is being shaken
+    shake = {
+
+        -- enables shake to find
+        enabled = true,
+
+        -- controls how soon a shake is detected
+        -- lower values mean sooner
+        threshold = 6.0,
+
+        -- magnification level immediately after shake start
+        base = 4.0,
+        -- magnification increase per second when continuing to shake
+        speed = 4.0,
+        -- how much the speed is influenced by the current shake intensity
+        influence = 0.0,
+
+        -- maximal magnification the cursor can reach
+        -- values below 1 disable the limit (e.g. 0)
+        limit = 0.0,
+
+        -- time in milliseconds the cursor will stay magnified after a shake has ended
+        timeout = 2000,
+
+        -- show cursor behaviour `tilt`, `rotate`, etc. while shaking
+        effects = false,
+
+        -- enable ipc events for shake
+        -- see the `ipc` section below
+        ipc = false,
+    },
+
+    -- use hyprcursor to get a higher resolution texture when the cursor is magnified
+    -- see the `hyprcursor` section below
+    hyprcursor = {
+
+        -- use nearest-neighbour (pixelated) scaling when magnifying beyond texture size
+        -- this will also have effect without hyprcursor support being enabled
+        -- 0 - never use pixelated scaling
+        -- 1 - use pixelated when no highres image
+        -- 2 - always use pixelated scaling
+        nearest = 1,
+
+        -- enable dedicated hyprcursor support
+        enabled = true,
+
+        -- resolution in pixels to load the magnified shapes at
+        -- be warned that loading a very high-resolution image will take a long time and might impact memory consumption
+        -- -1 means we use [normal cursor size] * [shake:base option]
+        resolution = -1,
+
+        -- shape to use when clientside cursors are being magnified
+        -- see the shape-name property of shape rules for possible names
+        -- specifying clientside will use the actual shape, but will be pixelated
+        fallback = "clientside",
+    },
+}}}
+```
+
+### shape rules
+Shape Rules can be used to override the mode or its behaviour on a per-shape basis. For instance, you can add a rule such that only the `text` cursor shape is always in `tilt` mode and not e.g. `rotate`. 
+
+**Note:** Shape rules only apply to server side cursor shapes. Sadly, not everyone supports server side cursors yet, which means shape rules won't work in some applications (mainly xwayland apps).
+
+A shape rule is defined like this:
+```lua
+hl.plugin.dynamic_cursors.shape_rule {
+    -- name of the shape to apply to
+    -- see below
+    shape = "<shape-name>",
+
+    -- config variables to override
+    -- supported values are from the `rotate`, `tilt` and `stretch` category, 
+    -- and also the `mode` configuration value
+    property = <value>,
+    property = { property = <value> },
+    ...
+}
+```
+
+For the `shape` you should provide the name of the shape the rule will apply to. Should be one of [those specified in the protocol](https://wayland.app/protocols/cursor-shape-v1#wp_cursor_shape_device_v1:enum:shape). You can use the special shape `clientside` to apply your rule to **ALL** client side cursors. Also note that the compositor will set the shape to `left_ptr` if you are on the wallpaper. 
+
+It is possible to specificy multiple rules per shape, but properties overridden by later rules will have precendence.
+
+Here are a few example rules to get you started:
+```lua
+-- apply a 90° offset in rotate mode to the text shape
+hl.plugin.dynamic_cursors.shape_rule { shape = "text", rotate = { offset = 90.0 } } }
+
+-- use stretch mode when grabbing, and set the limit low
+hl.plugin.dynamic_cursors.shape_rule { shape = "grab", mode = "stretch", stretch = { limit = 2000 } } }
+
+-- do not show any effects on clientside cursors
+hl.plugin.dynamic_cursors.shape_rule { shape = "clientside", mode = "none" }
+```
+
 ### ipc
-This plugin can expose cursor shake events via IPC. This behaviour must be explicitly enabled via the `plugin:dynamic-cursors:shake:ipc` option, as it will spam the socket quite a bit during a shake. These events will appear on [Hyprland's event socket](https://wiki.hyprland.org/IPC/#xdg_runtime_dirhyprhissocket2sock).
+This plugin can expose cursor shake events via IPC. This behaviour must be explicitly enabled via the `plugin.dynamic_cursors.shake.ipc` option, as it will spam the socket quite a bit during a shake. These events will appear on [Hyprland's event socket](https://wiki.hyprland.org/IPC/#xdg_runtime_dirhyprhissocket2sock).
 
 The following events with the described arguments are available, when IPC is enabled:
 - `shakestart`: fired when a shake is detected.
@@ -270,14 +510,12 @@ The following events with the described arguments are available, when IPC is ena
   - `zoom` is the current cursor magnification level, as currently shown by this plugin, depending on the shake configuration. It is also interpolated smoothly.
 - `shakeend`: fired when a shake has ended (after the `timeout`)
 
-If you only want the IPC events and not the plugin actually changing the cursor size, you can set the properties `base` to `1`, `speed`, `influence` and `timeout` to `0` in the `plugin:dynamic-cursors:shake` section such that the cursor is not magified during the shake.
-
 ### hyprcursor
-This plugin supports using [hyprcursor](https://github.com/hyprwm/hyprcursor) to get higher-resolution images for when the cursor is magnified, i.e. when using shake to find. Due to the nature of cursors on wayland, there are some caveats to it. All configuration for it is located in the `plugin:dynamic-cursors:hyprcursor` section.
+This plugin supports using [hyprcursor](https://github.com/hyprwm/hyprcursor) to get higher-resolution images for when the cursor is magnified, i.e. when using shake to find. Due to the nature of cursors on wayland, there are some caveats to it. All configuration for it is located in the `plugin.dynamic_cursors.hyprcursor` section.
 
 To use hyprcursor for magnified shapes, the following must be met:
-- `plugin:dynamic-cursors:hyprcursor:enabled` must be true (is by default)
-- `cursor:enable_hyprcursor` must be true (is by default)
+- `plugin.dynamic_cursors.hyprcursor.enabled` must be true (is by default)
+- `cursor.enable_hyprcursor` must be true (is by default)
 - you must be using a hyprcursor theme
 - the hyprcursor theme should be **SVG-based**
 
@@ -285,16 +523,18 @@ As mentioned, there are some caveats to it. Here are the most common ones:
 - **Still pixelated some apps and xwayland** - These apps probably are using clientside cursors, so the program itself is specifying the cursor shape, hence we cannot load a higher resolution for it. You can set a specific shape to show in these cases with the `fallback` option (see config).
 - **Blurred at very large sizes** - The high resolution cursors are preloaded at a fixed size. If you magnify your cursor beyond this size, your cursors will look blurry. You can increase the preload size with the `resolution` option (see config), at the expense of some memory and higher loading times.
 
-Loading a cursor theme at a high resolution is relatively resource intensive. This plugin thus loads the theme asynchronously on a seperate thread, meaning your session will stay interactive during this time. But this means that when loading the plugin or changing cursor theme, your CPU might spike momentarily and the high-resolution theme will only be available after a short time (usually just a couple of seconds).
+Loading a cursor theme at a high resolution is relatively resource intensive. This plugin thus loads the theme asynchronously on a separate thread, meaning your session will stay interactive during this time. But this means that when loading the plugin or changing cursor theme, your CPU might spike momentarily, and the high-resolution theme will only be available after a short time (usually just a couple of seconds).
 
 ### dispatchers
 This plugin has a couple of dispatchers to trigger certain effects with a keybind. Here's a list:
-- `plugin:dynamic-cursors:magnify` with arguments `duration?, size?` triggers cursor magnification like on a shake
+- `hl.plugin.dynamic_cursors.dsp_magnify({ duration = 2000, size = 4.0 })`
   - `duration` (optional): overrides duration in milliseconds to stay magnified
   - `size` (optional): overrides magnification factor
 
+These lua functions work like Hyprland's normal dispatchers (under `hl.dsp`) and can be passed to a bind or `hl.dispatch()`.
+
 ## performance
-> **TL;DR:** Hardware cursor performance is about the same as if an animated cursor shape was shown whenever you move your mouse. Sofware cursor performance is not impacted. When the cursor is magnified during a shake, the compositor will temporarily switch to software cursors. If your are using an nvidia gpu, this plugin will fall back to software cursors, see [compatibility](#compatibility).
+> **TL;DR:** Hardware cursor performance is about the same as if an animated cursor shape was shown whenever you move your mouse. Software cursor performance is not impacted. When the cursor is magnified during a shake, the compositor will temporarily switch to software cursors. If you are using an nvidia gpu, this plugin will fall back to software cursors, see [compatibility](#compatibility).
 
 Depending on your Hyprland configuration, this plugin can have a different performance impact, mainly depending on whether you are using software or hardware cursors:
 
@@ -302,14 +542,16 @@ Depending on your Hyprland configuration, this plugin can have a different perfo
 Transforming the cursor can be done in the same draw call that is used to draw the cursor anyway, so there is no additional performance impact. Note however that software cursors in of themselves are not really efficient.
 
 **Hardware Cursors**: Medium performance impact. <br>
-To transform the cursor smoothly, the cursor shape needs to be changed quite often. This is not exactly compatible with how hardware cursors are intended to work. Thus, performance can be compared to how an animated cursor shape would be rendered, every time the cursor is not stationary. It is however still more performant than software cursors. <br> Another limitation of hardware cursors are the size they are rendered at. This means that when the cursor is being magnified, software cursors will be used temporarily. <br> If your are using an Nvidia GPU, the plugin will also fall back to software cursors because of driver limitations (see [compatibility](#compatibility)).
+To transform the cursor smoothly, the cursor shape needs to be changed quite often. This is not exactly compatible with how hardware cursors are intended to work. Thus, performance can be compared to how an animated cursor shape would be rendered, every time the cursor is not stationary. It is however still more performant than software cursors. <br> Another limitation of hardware cursors are the size they are rendered at. This means that when the cursor is being magnified, software cursors will be used temporarily. <br> If you are using an Nvidia GPU, the plugin will also fall back to software cursors because of driver limitations (see [compatibility](#compatibility)).
 
 If you have any ideas to improve performance, let me know!
 
 ## compatibility
+This plugin makes heavy use of [function hooks](https://wiki.hypr.land/Plugins/Development/Advanced/#using-function-hooks), a feature of Hyprland's plugin API which is only supported on `x86_64` systems. The plugin will load on other architectures but won't actually do anything useful. If you want support for other architectures, [bother Vaxry here](https://github.com/hyprwm/Hyprland/discussions/10695).
+
 Compatibility with other plugins is not guaranteed. It probably should work with most plugins, unless they also change your cursor's behaviour. It will however work with any cursor theme.
 
-The plugin does also not support _hardware cursors_ on Nvidia GPUs. If you are on nvidia, Hyprland will use CPU rendering to draw into your hardware cursor buffer, because of driver limitations. When using an effect with this plugin however, we potentially draw into the cursor buffer every frame (when the cursor is moving) which is really resource intensive if done on the CPU. Additionally the whole drawing logic would have to be implemented again to be able run on the CPU too. This is why on Nvidia GPUs, the plugin will automatically force the compositor to use software cursors, avoiding the above issues at a slight performance penalty.
+The plugin does also not support _hardware cursors_ on Nvidia GPUs. If you are on nvidia, Hyprland will use CPU rendering to draw into your hardware cursor buffer, because of driver limitations. When using an effect with this plugin however, we potentially draw into the cursor buffer every frame (when the cursor is moving) which is really resource intensive if done on the CPU. Additionally, the whole drawing logic would have to be implemented again to be able to run on the CPU too. This is why on Nvidia GPUs, the plugin will automatically force the compositor to use software cursors, avoiding the above issues at a slight performance penalty.
 
 ## development
 To work on this plugin, you can clone this repository and use the Makefile to build it. I suggest opening a nested Hyprland session, and loading the plugin there:
@@ -322,7 +564,7 @@ In some cases when working in a nest, nothing will happen with the plugin loaded
 
 If you want to debug hardware cursors, this plugin also has an additional configuration option, `plugin:dynamic-cursors:hw_debug` which when true will show where the whole cursor buffer is, and also shows when it is updated.
 
-Also make sure you disable the plugin on your host session if your are using hardware cursors, otherwise your cursor will be rotated twice.
+Also make sure you disable the plugin on your host session if you are using hardware cursors, otherwise your cursor will be rotated twice.
 
 ## license
 This plugin is licensed under the MIT License. Have a look at the `LICENSE.md` file for more information.

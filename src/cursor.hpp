@@ -1,12 +1,12 @@
-#include "globals.hpp"
-#include <memory>
-
+#include <any>    // IWYU pragma: keep
+#include <chrono> // IWYU pragma: keep
 #define private public
 #include <hyprland/src/managers/PointerManager.hpp>
 #undef private
-#include <hyprutils/math/Vector2D.hpp>
-#include <hyprland/src/managers/eventLoop/EventLoopManager.hpp>
+
 #include <hyprcursor/hyprcursor.hpp>
+#include <hyprland/src/managers/eventLoop/EventLoopManager.hpp>
+#include <hyprutils/math/Vector2D.hpp>
 
 #include "mode/ModeRotate.hpp"
 #include "mode/ModeTilt.hpp"
@@ -25,13 +25,13 @@ class CDynamicCursors {
     void onTick(CPointerManager* pointers);
 
     /* hook on renderSoftwareCursorsFor */
-    void renderSoftware(CPointerManager* pointers, SP<CMonitor> pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos, bool forceRender);
+    void renderSoftware(CPointerManager* pointers, PHLMONITOR pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos, bool forceRender);
     /* hook on damageIfSoftware*/
     void damageSoftware(CPointerManager* pointers);
     /* hook on renderHWCursorBuffer */
-    SP<Aquamarine::IBuffer> renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<CTexture> texture);
+    SP<Aquamarine::IBuffer> renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<Render::ITexture> texture);
     /* hook on setHWCursorBuffer */
-    bool setHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<Aquamarine::IBuffer> buf);
+    bool                    setHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<Aquamarine::IBuffer> buf);
 
     /* hook on setCursorFromName */
     void setShape(const std::string& name);
@@ -53,8 +53,8 @@ class CDynamicCursors {
 
     // current state of the cursor
     SModeResult resultMode;
-    double resultShake;
-    Vector2D lastPos; // used for warp compensation
+    double      resultShake;
+    Vector2D    lastPos; // used for warp compensation
 
     SModeResult resultShown;
 
@@ -62,8 +62,8 @@ class CDynamicCursors {
     bool zoomSoftware = false;
 
     // modes
-    CModeRotate rotate;
-    CModeTilt tilt;
+    CModeRotate  rotate;
+    CModeTilt    tilt;
     CModeStretch stretch;
 
     /* returns the current mode, nullptr if none is selected */

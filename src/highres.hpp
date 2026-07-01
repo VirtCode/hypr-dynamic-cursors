@@ -8,7 +8,7 @@
 #include <string>
 
 class CHighresHandler {
-public:
+  public:
     CHighresHandler();
 
     /* refreshes the hyprcursor theme and stuff, should be called if config values change */
@@ -17,23 +17,23 @@ public:
     /* update the currently loaded shape */
     void loadShape(const std::string& name);
 
-    SP<CTexture> getTexture();
-    SP<CCursorBuffer> getBuffer();
+    SP<Render::ITexture> getTexture();
+    SP<CCursorBuffer>    getBuffer();
 
-private:
+  private:
     bool enabled = true;
 
     Hyprcursor::SCursorStyleInfo style;
 
     UP<std::future<UP<Hyprcursor::CHyprcursorManager>>> managerFuture;
-    UP<Hyprcursor::CHyprcursorManager> manager;
+    UP<Hyprcursor::CHyprcursorManager>                  manager;
 
-    /* keep track of loaded theme so we don't reload unnessecarily (<- i'm almost certain there's a typo in this word) */
+    /* keep track of loaded theme so we don't reload unnecessarily (<- i'm almost certain there's a typo in this word (<- i'm almost certain i just fixed it)) */
     unsigned int loadedSize = -1;
-    std::string loadedName = "";
+    std::string  loadedName = "";
 
     /* current texture and hotspot */
-    std::string shape = "";
-    SP<CTexture> texture;
-    SP<CCursorBuffer> buffer;
+    std::string          shape = "";
+    SP<Render::ITexture> texture;
+    SP<CCursorBuffer>    buffer;
 };

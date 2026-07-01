@@ -1,0 +1,111 @@
+#pragma once
+
+#include "ShapeRule.hpp"
+#include "cache/ICachedValue.hpp"
+#include "cache/VariantValue.hpp"
+#include "prop/BoolProp.hpp"
+#include "prop/FloatProp.hpp"
+#include "prop/VariantProp.hpp"
+#include "prop/IntProp.hpp"
+#include "prop/StringProp.hpp"
+
+#include <hyprlang.hpp>
+#include <hyprutils/string/VarList.hpp>
+#include <hyprland/src/SharedDefs.hpp>
+#include <hyprland/src/config/values/types/BoolValue.hpp>
+#include <hyprland/src/config/values/types/IntValue.hpp>
+#include <hyprland/src/config/values/types/FloatValue.hpp>
+#include <hyprland/src/config/values/types/StringValue.hpp>
+
+#define NS(a)  "plugin:dynamic-cursors:" a
+#define NS_LEN 23
+
+#define CONFIG(a) g_pConfigHandler->c_##a->value()
+
+using namespace Config::Values;
+
+class CConfigHandler {
+  public:
+    SP<CBoolValue>   c_enabled;
+    SP<CVariantProp> c_mode;
+    SP<CIntValue>    c_threshold;
+
+    SP<CBoolValue>  c_shakeEnabled;
+    SP<CBoolValue>  c_shakeEffects;
+    SP<CBoolValue>  c_shakeIPC;
+    SP<CFloatValue> c_shakeThreshold;
+    SP<CFloatValue> c_shakeBase;
+    SP<CFloatValue> c_shakeSpeed;
+    SP<CFloatValue> c_shakeInfluence;
+    SP<CFloatValue> c_shakeLimit;
+    SP<CIntValue>   c_shakeTimeout;
+
+    SP<CBoolValue>   c_highresEnabled;
+    SP<CIntValue>    c_highresNearest;
+    SP<CStringValue> c_highresFallback;
+    SP<CIntValue>    c_highresSize;
+
+    SP<CVariantProp> c_tiltFunction;
+    SP<CIntProp>     c_tiltLimit;
+    SP<CIntProp>     c_tiltWindow;
+    SP<CIntProp>     c_tiltFull;
+
+    SP<CVariantProp> c_stretchFunction;
+    SP<CIntProp>     c_stretchLimit;
+    SP<CIntProp>     c_stretchWindow;
+
+    SP<CIntProp>   c_rotateLength;
+    SP<CFloatProp> c_rotateOffset;
+
+    SP<CBoolValue> c_hwDebug;
+    SP<CBoolValue> c_ignoreWarps;
+
+    UP<CShapeRuleHandler> m_shapeRules;
+
+    /* config values which need to be recached */
+    std::vector<WP<ICachedValue>> m_cachedValues;
+
+    /* create and initialize the config handler */
+    CConfigHandler();
+
+    /* whether the plugin is enabled */
+    bool isEnabled();
+
+    /* shows an error overlay to the user, unless one is already shown */
+    void showError(const std::string& err);
+
+  private:
+    SP<CBoolValue>    conf(const char* name, bool def, const char* desc);
+    SP<CBoolProp>     prop(const char* name, bool def, const char* desc);
+    SP<CIntValue>     conf(const char* name, int def, const char* desc);
+    SP<CIntProp>      prop(const char* name, int def, const char* desc);
+    SP<CStringValue>  conf(const char* name, const char* def, const char* desc);
+    SP<CStringProp>   prop(const char* name, const char* def, const char* desc);
+    SP<CFloatValue>   conf(const char* name, float def, const char* desc);
+    SP<CFloatProp>    prop(const char* name, float def, const char* desc);
+    SP<CVariantValue> conf(const char* name, const char* def, const char* desc, std::unordered_map<std::string, int> map);
+    SP<CVariantProp>  prop(const char* name, const char* def, const char* desc, std::unordered_map<std::string, int> map);
+};
+
+inline UP<CConfigHandler> g_pConfigHandler;
+
+/* the callback for the magnify dispatcher */
+SDispatchResult dispatchMagnify(std::string args);
+
+/* lua magnify dispatcher factory */
+int luaMagnifyDispatcher(lua_State* L);
+
+/* implemented modes */
+enum EMode {
+    MODE_NONE    = 0,
+    MODE_TILT    = 1,
+    MODE_ROTATE  = 2,
+    MODE_STRETCH = 3,
+};
+
+/* implemented activation curves */
+enum EActivation {
+    ACTIVATION_LINEAR             = 0,
+    ACTIVATION_QUADRATIC          = 1,
+    ACTIVATION_NEGATIVE_QUADRATIC = 2,
+};

@@ -20,12 +20,12 @@ struct SModeResult {
 
     // stretch along axis with angle, going through hotspot
     struct {
-        double angle = 0;
-        Vector2D magnitude = Vector2D{1,1};
+        double   angle     = 0;
+        Vector2D magnitude = Vector2D{1, 1};
     } stretch;
 
     void clamp(double angle, double scale, double stretch);
     bool hasDifference(SModeResult* other, double angle, double scale, double stretch);
 };
 
-double activation(std::string function, double max, double value);
+double activation(int function, double max, double value);
