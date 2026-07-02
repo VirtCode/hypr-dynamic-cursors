@@ -4,7 +4,7 @@
 #include <hyprland/src/plugins/PluginAPI.hpp>
 #include <hyprland/src/output/Monitor.hpp>
 #include <hyprland/src/Compositor.hpp>
-#include <hyprland/src/managers/CursorManager.hpp>
+#include <hyprland/src/pointer/cursor/CursorManager.hpp>
 #include <hyprland/src/config/ConfigManager.hpp>
 #include <hyprland/src/debug/log/Logger.hpp>
 #include <hyprland/src/helpers/time/Time.hpp>
@@ -27,7 +27,7 @@ typedef void (*origRenderSoftwareCursorsFor)(void*, PHLMONITOR, const Time::stea
 inline CFunctionHook* g_pRenderSoftwareCursorsForHook = nullptr;
 void hkRenderSoftwareCursorsFor(void* thisptr, PHLMONITOR pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos, bool forceRender) {
     if (g_pConfigHandler->isEnabled())
-        g_pDynamicCursors->renderSoftware((CPointerManager*)thisptr, pMonitor, now, damage, overridePos, forceRender);
+        g_pDynamicCursors->renderSoftware((Pointer::CPointerManager*)thisptr, pMonitor, now, damage, overridePos, forceRender);
     else
         (*(origRenderSoftwareCursorsFor)g_pRenderSoftwareCursorsForHook->m_original)(thisptr, pMonitor, now, damage, overridePos, forceRender);
 }
@@ -36,25 +36,25 @@ typedef void (*origDamageIfSoftware)(void*);
 inline CFunctionHook* g_pDamageIfSoftwareHook = nullptr;
 void                  hkDamageIfSoftware(void* thisptr) {
     if (g_pConfigHandler->isEnabled())
-        g_pDynamicCursors->damageSoftware((CPointerManager*)thisptr);
+        g_pDynamicCursors->damageSoftware((Pointer::CPointerManager*)thisptr);
     else
         (*(origDamageIfSoftware)g_pDamageIfSoftwareHook->m_original)(thisptr);
 }
 
-typedef SP<Aquamarine::IBuffer> (*origRenderHWCursorBuffer)(void*, SP<CPointerManager::SMonitorPointerState>, SP<Render::ITexture>);
+typedef SP<Aquamarine::IBuffer> (*origRenderHWCursorBuffer)(void*, SP<Pointer::CPointerManager::SMonitorPointerState>, SP<Render::ITexture>);
 inline CFunctionHook*   g_pRenderHWCursorBufferHook = nullptr;
-SP<Aquamarine::IBuffer> hkRenderHWCursorBuffer(void* thisptr, SP<CPointerManager::SMonitorPointerState> state, SP<Render::ITexture> texture) {
+SP<Aquamarine::IBuffer> hkRenderHWCursorBuffer(void* thisptr, SP<Pointer::CPointerManager::SMonitorPointerState> state, SP<Render::ITexture> texture) {
     if (g_pConfigHandler->isEnabled())
-        return g_pDynamicCursors->renderHardware((CPointerManager*)thisptr, state, texture);
+        return g_pDynamicCursors->renderHardware((Pointer::CPointerManager*)thisptr, state, texture);
     else
         return (*(origRenderHWCursorBuffer)g_pRenderHWCursorBufferHook->m_original)(thisptr, state, texture);
 }
 
-typedef bool (*origSetHWCursorBuffer)(void*, SP<CPointerManager::SMonitorPointerState>, SP<Aquamarine::IBuffer>);
+typedef bool (*origSetHWCursorBuffer)(void*, SP<Pointer::CPointerManager::SMonitorPointerState>, SP<Aquamarine::IBuffer>);
 inline CFunctionHook* g_pSetHWCursorBufferHook = nullptr;
-bool                  hkSetHWCursorBuffer(void* thisptr, SP<CPointerManager::SMonitorPointerState> state, SP<Aquamarine::IBuffer> buffer) {
+bool                  hkSetHWCursorBuffer(void* thisptr, SP<Pointer::CPointerManager::SMonitorPointerState> state, SP<Aquamarine::IBuffer> buffer) {
     if (g_pConfigHandler->isEnabled())
-        return g_pDynamicCursors->setHardware((CPointerManager*)thisptr, state, buffer);
+        return g_pDynamicCursors->setHardware((Pointer::CPointerManager*)thisptr, state, buffer);
     else
         return (*(origSetHWCursorBuffer)g_pSetHWCursorBufferHook->m_original)(thisptr, state, buffer);
 }
@@ -63,7 +63,7 @@ typedef void (*origOnCursorMoved)(void*);
 inline CFunctionHook* g_pOnCursorMovedHook = nullptr;
 void                  hkOnCursorMoved(void* thisptr) {
     if (g_pConfigHandler->isEnabled())
-        return g_pDynamicCursors->onCursorMoved((CPointerManager*)thisptr);
+        return g_pDynamicCursors->onCursorMoved((Pointer::CPointerManager*)thisptr);
     else
         return (*(origOnCursorMoved)g_pOnCursorMovedHook->m_original)(thisptr);
 }
@@ -186,49 +186,49 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     try {
         // clang-format off
         g_pRenderSoftwareCursorsForHook = hook(
-            pmf_address(&CPointerManager::renderSoftwareCursorsFor),
-            "_ZN15CPointerManager24renderSoftwareCursorsForEN9Hyprutils6Memory14CSharedPointerIN7Monitor8CMonitorEEERKNSt6chrono10time_pointINS6_3_V212steady_clockENS6_8durationIlSt5ratioILl1ELl1000000000EEEEEERNS0_4Math7CRegionESt8optionalINSH_8Vector2DEEb",
+            pmf_address(&Pointer::CPointerManager::renderSoftwareCursorsFor),
+            "_ZN7Pointer15CPointerManager24renderSoftwareCursorsForEN9Hyprutils6Memory14CSharedPointerIN7Monitor8CMonitorEEERKNSt6chrono10time_pointINS7_3_V212steady_clockENS7_8durationIlSt5ratioILl1ELl1000000000EEEEEERNS1_4Math7CRegionESt8optionalINSI_8Vector2DEEb",
             (void*) &hkRenderSoftwareCursorsFor
         );
         g_pDamageIfSoftwareHook = hook(
-            pmf_address(&CPointerManager::damageIfSoftware),
-            "_ZN15CPointerManager16damageIfSoftwareEv",
+            pmf_address(&Pointer::CPointerManager::damageIfSoftware),
+            "_ZN7Pointer15CPointerManager16damageIfSoftwareEv",
             (void*) &hkDamageIfSoftware
         );
         g_pRenderHWCursorBufferHook = hook(
-            pmf_address(&CPointerManager::renderHWCursorBuffer),
-            "_ZN15CPointerManager20renderHWCursorBufferEN9Hyprutils6Memory14CSharedPointerINS_20SMonitorPointerStateEEENS2_IN6Render8ITextureEEE",
+            pmf_address(&Pointer::CPointerManager::renderHWCursorBuffer),
+            "_ZN7Pointer15CPointerManager20renderHWCursorBufferEN9Hyprutils6Memory14CSharedPointerINS0_20SMonitorPointerStateEEENS3_IN6Render8ITextureEEE",
             (void*) &hkRenderHWCursorBuffer
         );
         g_pSetHWCursorBufferHook = hook(
-            pmf_address(&CPointerManager::setHWCursorBuffer),
-            "_ZN15CPointerManager17setHWCursorBufferEN9Hyprutils6Memory14CSharedPointerINS_20SMonitorPointerStateEEENS2_IN10Aquamarine7IBufferEEE",
+            pmf_address(&Pointer::CPointerManager::setHWCursorBuffer),
+            "_ZN7Pointer15CPointerManager17setHWCursorBufferEN9Hyprutils6Memory14CSharedPointerINS0_20SMonitorPointerStateEEENS3_IN10Aquamarine7IBufferEEE",
             (void*) &hkSetHWCursorBuffer
         );
         g_pOnCursorMovedHook = hook(
-            pmf_address(&CPointerManager::onCursorMoved),
-            "_ZN15CPointerManager13onCursorMovedEv",
+            pmf_address(&Pointer::CPointerManager::onCursorMoved),
+            "_ZN7Pointer15CPointerManager13onCursorMovedEv",
             (void*) &hkOnCursorMoved
         );
         g_pMoveHook = hook(
-            pmf_address(&CPointerManager::move),
-            "_ZN15CPointerManager4moveERKN9Hyprutils4Math8Vector2DE",
+            pmf_address(&Pointer::CPointerManager::move),
+            "_ZN7Pointer15CPointerManager4moveERKN9Hyprutils4Math8Vector2DE",
             (void*) &hkMove
         );
 
         g_pSetCursorFromNameHook = hook(
-            pmf_address(&CCursorManager::setCursorFromName),
-            "_ZN14CCursorManager17setCursorFromNameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+            pmf_address(&Pointer::Cursor::CCursorManager::setCursorFromName),
+            "_ZN7Pointer6Cursor14CCursorManager17setCursorFromNameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
             (void*) &hkSetCursorFromName
         );
         g_pSetCursorSurfaceHook = hook(
-            pmf_address(&CCursorManager::setCursorSurface),
-            "_ZN14CCursorManager16setCursorSurfaceEN9Hyprutils6Memory14CSharedPointerIN7Desktop4View10CWLSurfaceEEERKNS0_4Math8Vector2DE",
+            pmf_address(&Pointer::Cursor::CCursorManager::setCursorSurface),
+            "_ZN7Pointer6Cursor14CCursorManager16setCursorSurfaceEN9Hyprutils6Memory14CSharedPointerIN7Desktop4View10CWLSurfaceEEERKNS2_4Math8Vector2DE",
             (void*) &hkSetCursorSurface
         );
         g_pUpdateThemeHook = hook(
-            pmf_address(&CCursorManager::updateTheme),
-            "_ZN14CCursorManager11updateThemeEv",
+            pmf_address(&Pointer::Cursor::CCursorManager::updateTheme),
+            "_ZN7Pointer6Cursor14CCursorManager11updateThemeEv",
             (void*) &hkUpdateTheme
         );
         // clang-format on

@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <chrono>
 #include <hyprland/src/Compositor.hpp>
-#include <hyprland/src/debug/Log.hpp>
 #include <hyprland/src/debug/log/Logger.hpp>
 #include <hyprland/src/managers/animation/AnimationManager.hpp>
 #include <hyprland/src/managers/EventManager.hpp>

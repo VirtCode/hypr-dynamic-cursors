@@ -1,7 +1,7 @@
 #include <any>    // IWYU pragma: keep
 #include <chrono> // IWYU pragma: keep
 #define private public
-#include <hyprland/src/managers/PointerManager.hpp>
+#include <hyprland/src/pointer/PointerManager.hpp>
 #undef private
 
 #include <hyprcursor/hyprcursor.hpp>
@@ -20,18 +20,19 @@ class CDynamicCursors {
     ~CDynamicCursors();
 
     /* hook on onCursorMoved */
-    void onCursorMoved(CPointerManager* pointers);
+    void onCursorMoved(Pointer::CPointerManager* pointers);
     /* called on tick */
-    void onTick(CPointerManager* pointers);
+    void onTick(Pointer::CPointerManager* pointers);
 
     /* hook on renderSoftwareCursorsFor */
-    void renderSoftware(CPointerManager* pointers, PHLMONITOR pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos, bool forceRender);
+    void renderSoftware(Pointer::CPointerManager* pointers, PHLMONITOR pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos,
+                        bool forceRender);
     /* hook on damageIfSoftware*/
-    void damageSoftware(CPointerManager* pointers);
+    void damageSoftware(Pointer::CPointerManager* pointers);
     /* hook on renderHWCursorBuffer */
-    SP<Aquamarine::IBuffer> renderHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<Render::ITexture> texture);
+    SP<Aquamarine::IBuffer> renderHardware(Pointer::CPointerManager* pointers, SP<Pointer::CPointerManager::SMonitorPointerState> state, SP<Render::ITexture> texture);
     /* hook on setHWCursorBuffer */
-    bool                    setHardware(CPointerManager* pointers, SP<CPointerManager::SMonitorPointerState> state, SP<Aquamarine::IBuffer> buf);
+    bool                    setHardware(Pointer::CPointerManager* pointers, SP<Pointer::CPointerManager::SMonitorPointerState> state, SP<Aquamarine::IBuffer> buf);
 
     /* hook on setCursorFromName */
     void setShape(const std::string& name);
