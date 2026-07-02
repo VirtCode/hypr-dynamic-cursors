@@ -1,5 +1,5 @@
 #include <future>
-#include <hyprland/src/managers/CursorManager.hpp>
+#include <hyprland/src/pointer/cursor/CursorManager.hpp>
 #include <hyprland/src/render/Texture.hpp>
 #include <hyprland/src/helpers/memory/Memory.hpp>
 #include <hyprcursor/hyprcursor.hpp>
@@ -17,8 +17,8 @@ class CHighresHandler {
     /* update the currently loaded shape */
     void loadShape(const std::string& name);
 
-    SP<Render::ITexture> getTexture();
-    SP<CCursorBuffer>    getBuffer();
+    SP<Render::ITexture>               getTexture();
+    SP<Pointer::Cursor::CCursorBuffer> getBuffer();
 
   private:
     bool enabled = true;
@@ -33,7 +33,7 @@ class CHighresHandler {
     std::string  loadedName = "";
 
     /* current texture and hotspot */
-    std::string          shape = "";
-    SP<Render::ITexture> texture;
-    SP<CCursorBuffer>    buffer;
+    std::string                        shape = "";
+    SP<Render::ITexture>               texture;
+    SP<Pointer::Cursor::CCursorBuffer> buffer;
 };

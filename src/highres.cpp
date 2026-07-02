@@ -1,7 +1,7 @@
 #include <any>    // IWYU pragma: keep
 #include <chrono> // IWYU pragma: keep
 #define private public
-#include <hyprland/src/managers/CursorManager.hpp>
+#include <hyprland/src/pointer/cursor/CursorManager.hpp>
 #undef private
 
 #include <hyprland/src/debug/log/Logger.hpp>
@@ -46,9 +46,10 @@ void CHighresHandler::update() {
         return;
     }
 
-    std::string  name = g_pCursorManager->m_theme;
-    unsigned int size = CONFIG(highresSize) != -1 ? CONFIG(highresSize) :
-                                                    std::round(g_pCursorManager->m_currentStyleInfo.size * CONFIG(shakeBase) * 1.5f); // * 1.5f to accommodate for slight growth
+    std::string  name = Pointer::Cursor::mgr()->m_theme;
+    unsigned int size = CONFIG(highresSize) != -1 ?
+        CONFIG(highresSize) :
+        std::round(Pointer::Cursor::mgr()->m_currentStyleInfo.size * CONFIG(shakeBase) * 1.5f); // * 1.5f to accommodate for slight growth
 
     // we already have loaded the same theme and size
     if (manager && loadedName == name && loadedSize == size)
@@ -135,7 +136,8 @@ void CHighresHandler::loadShape(const std::string& name) {
         }
     }
 
-    buffer = makeShared<CCursorBuffer>(shape.images[0].surface, Vector2D{shape.images[0].size, shape.images[0].size}, Vector2D{shape.images[0].hotspotX, shape.images[0].hotspotY});
+    buffer = makeShared<Pointer::Cursor::CCursorBuffer>(shape.images[0].surface, Vector2D{shape.images[0].size, shape.images[0].size},
+                                                        Vector2D{shape.images[0].hotspotX, shape.images[0].hotspotY});
 
     texture = g_pHyprRenderer->createTexture(SP<Aquamarine::IBuffer>(buffer));
 }
@@ -144,6 +146,6 @@ SP<Render::ITexture> CHighresHandler::getTexture() {
     return texture;
 }
 
-SP<CCursorBuffer> CHighresHandler::getBuffer() {
+SP<Pointer::Cursor::CCursorBuffer> CHighresHandler::getBuffer() {
     return buffer;
 }
