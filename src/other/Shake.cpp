@@ -6,8 +6,8 @@
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/debug/log/Logger.hpp>
 #include <hyprland/src/animation/AnimationManager.hpp>
-#include <hyprland/src/ipc/s2/S2.hpp>
 #include <hyprutils/animation/AnimationConfig.hpp>
+#include <hyprland/src/managers/EventManager.hpp>
 #include <hyprland/src/render/Renderer.hpp>
 #include <hyprland/src/event/EventBus.hpp>
 
@@ -90,14 +90,14 @@ double CShake::update(Vector2D pos) {
     if (CONFIG(shakeIPC)) {
         if (started || this->zoom->value() > 1) {
             if (!ipc) {
-                IPC::Socket2::sock()->postEvent({IPC_SHAKE_START});
+                g_pEventManager->postEvent({IPC_SHAKE_START, ""});
                 ipc = true;
             }
 
-            IPC::Socket2::sock()->postEvent({IPC_SHAKE_UPDATE, std::format("{},{},{},{},{}", (int)pos.x, (int)pos.y, trail, diagonal, this->zoom->value())});
+            g_pEventManager->postEvent({IPC_SHAKE_UPDATE, std::format("{},{},{},{},{}", (int)pos.x, (int)pos.y, trail, diagonal, this->zoom->value())});
         } else {
             if (ipc) {
-                IPC::Socket2::sock()->postEvent({IPC_SHAKE_END});
+                g_pEventManager->postEvent({IPC_SHAKE_END, ""});
                 ipc = false;
             }
         }
