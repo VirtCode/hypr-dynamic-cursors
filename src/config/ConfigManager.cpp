@@ -44,6 +44,7 @@ CConfigHandler::CConfigHandler() {
     c_highresEnabled  = conf(NS("hyprcursor:enabled"),     true,                   "enable dedicated hyprcursor support");
     c_highresNearest  = conf(NS("hyprcursor:nearest"),     1,                      "use nearest-neighbour scaling when magnifying beyond texture size");
     c_highresFallback = conf(NS("hyprcursor:fallback"),    "clientside",           "shape to use when clientside cursors are being magnified");
+    c_highresLockShape = conf(NS("hyprcursor:lock_shape"), "",                     "if set, always magnify as this shape (e.g. left_ptr), like KDE Plasma's shake to find");
     c_highresSize     = conf(NS("hyprcursor:resolution"),  -1,                     "resolution in pixels to load the magnified shapes at");
 
     c_tiltFunction    = prop(NS("tilt:activation"),        "negative_quadratic",   "relationship between speed and tilt (linear, quadratic, negative_quadratic)", {{"linear", ACTIVATION_LINEAR}, {"quadratic", ACTIVATION_QUADRATIC}, {"negative_quadratic", ACTIVATION_NEGATIVE_QUADRATIC}});

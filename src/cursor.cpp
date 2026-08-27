@@ -375,7 +375,13 @@ void CDynamicCursors::onCursorMoved(Pointer::CPointerManager* pointers) {
 
 void CDynamicCursors::setShape(const std::string& shape) {
     g_pConfigHandler->m_shapeRules->activate(shape);
-    highres.loadShape(shape);
+
+    // when a lock shape is configured, always magnify as that shape,
+    // like KDE Plasma's shake to find
+    if (!CONFIG(highresLockShape).empty())
+        highres.loadShape(CONFIG(highresLockShape));
+    else
+        highres.loadShape(shape);
 }
 
 void CDynamicCursors::unsetShape() {
