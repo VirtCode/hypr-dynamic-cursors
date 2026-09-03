@@ -75,7 +75,7 @@ CConfigHandler::CConfigHandler() {
             if (!error)
                 continue;
 
-            Log::logger->log(Log::ERR, "[dynamic-cursors] cached value reload failed: {}", error.value());
+            LOG(Log::ERR, "[dynamic-cursors] cached value reload failed: {}", error.value());
 
             if (!errors.empty())
                 errors += '\n';
@@ -102,7 +102,7 @@ bool CConfigHandler::isEnabled() {
 void CConfigHandler::showError(const std::string& err) {
     // we also need to check for queuedDestroy if the config frehsly doesn't error anymore
     if (ErrorOverlay::overlay()->active() && !ErrorOverlay::overlay()->m_queuedDestroy) {
-        Log::logger->log(Log::ERR, "[dynamic-cursors] not overriding error overlay: {}", err);
+        LOG(Log::ERR, "[dynamic-cursors] not overriding error overlay: {}", err);
         return;
     }
 

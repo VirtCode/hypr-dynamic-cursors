@@ -29,7 +29,7 @@ double activation(int function, double max, double value) {
             break;
         }
 
-        default: Log::logger->log(Log::WARN, "[dynamic-cursors] unknown activation function specified"); break;
+        default: LOG(Log::WARN, "[dynamic-cursors] unknown activation function specified"); break;
     }
 
     return std::clamp(result, -1.0, 1.0);
