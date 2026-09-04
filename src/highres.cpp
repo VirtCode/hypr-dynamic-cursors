@@ -29,7 +29,7 @@ CHighresHandler::CHighresHandler() {
 static void hcLogger(enum eHyprcursorLogLevel level, char* message) {
     if (level == HC_LOG_TRACE)
         return;
-    Log::logger->log(Log::INFO, "[hc (dynamic)] {}", message);
+    LOG(Log::INFO, "[hc (dynamic)] {}", message);
 }
 
 void CHighresHandler::update() {
@@ -60,7 +60,7 @@ void CHighresHandler::update() {
         // in this case we don't do anything as proceeding would block until the future is done (thanks cpp apis)
         // we just skip the update, but when retrieving the future we check again and then these changes will be loaded
 
-        Log::logger->log(Log::INFO, "Skipping hyprcursor theme reload for dynamic cursors because one is already being loaded");
+        LOG(Log::INFO, "Skipping hyprcursor theme reload for dynamic cursors because one is already being loaded");
         return;
     }
 
@@ -69,10 +69,10 @@ void CHighresHandler::update() {
     loadedSize = size;
     loadedName = name;
 
-    Log::logger->log(Log::INFO, "Creating future for loading hyprcursor theme for dynamic cursors");
+    LOG(Log::INFO, "Creating future for loading hyprcursor theme for dynamic cursors");
 
     auto fut = std::async(std::launch::async, [=, style = style]() -> UP<Hyprcursor::CHyprcursorManager> {
-        Log::logger->log(Log::INFO, "Starting to load hyprcursor theme '{}' of size {} for dynamic cursors asynchronously ...", name, size);
+        LOG(Log::INFO, "Starting to load hyprcursor theme '{}' of size {} for dynamic cursors asynchronously ...", name, size);
         auto time = std::chrono::system_clock::now();
 
         auto options                 = Hyprcursor::SManagerOptions();
@@ -82,14 +82,14 @@ void CHighresHandler::update() {
         auto manager = makeUnique<Hyprcursor::CHyprcursorManager>(name.empty() ? nullptr : name.c_str(), options);
 
         if (!manager->valid()) {
-            Log::logger->log(Log::ERR, "... hyprcursor for dynamic cursors failed loading theme '{}', falling back to pixelated trash.", name);
+            LOG(Log::ERR, "... hyprcursor for dynamic cursors failed loading theme '{}', falling back to pixelated trash.", name);
             return nullptr;
         }
 
         manager->loadThemeStyle(style);
 
         float ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - time).count();
-        Log::logger->log(Log::INFO, "... hyprcursor for dynamic cursors loading finished, took {}ms", ms);
+        LOG(Log::INFO, "... hyprcursor for dynamic cursors loading finished, took {}ms", ms);
 
         return manager;
     });
@@ -107,7 +107,7 @@ void CHighresHandler::loadShape(const std::string& name) {
         if (!managerFuture || managerFuture->wait_for(std::chrono::seconds(0)) != std::future_status::ready)
             return;
 
-        Log::logger->log(Log::INFO, "Future for hyprcursor theme for dynamic cursors is ready, using new theme");
+        LOG(Log::INFO, "Future for hyprcursor theme for dynamic cursors is ready, using new theme");
         manager       = managerFuture->get();
         managerFuture = nullptr;
 
@@ -128,7 +128,7 @@ void CHighresHandler::loadShape(const std::string& name) {
         shape = manager->getShape(CONFIG(highresFallback).c_str(), style);
 
         if (shape.images.size() == 0) {
-            Log::logger->log(Log::WARN, "Failed to load fallback shape {}, for shape {}!", CONFIG(highresFallback), name);
+            LOG(Log::WARN, "Failed to load fallback shape {}, for shape {}!", CONFIG(highresFallback), name);
 
             texture = nullptr;
             buffer  = nullptr;

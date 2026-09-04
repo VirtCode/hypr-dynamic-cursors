@@ -117,7 +117,7 @@ void* pmf_address(T pmf) {
 
     // if it is a virtual function, it would be a vtable offset + 1, so this would catch it
     if (representation.ptr & 0x01) {
-        Log::logger->log(Log::ERR, "[dynamic-cursors] aborting hook on virtual function pointer");
+        LOG(Log::ERR, "[dynamic-cursors] aborting hook on virtual function pointer");
         throw std::runtime_error("unexpected virtual function, are you up-to-date?");
     }
 
@@ -133,11 +133,11 @@ void* pmf_address(T pmf) {
  * to hook member functions, refer to `pmf_address` above
  */
 CFunctionHook* hook(void* target, std::string signature, void* handler) {
-    Log::logger->log(Log::INFO, "[dynamic-cursors] starting to hook for {} at {:p}", signature, target);
+    LOG(Log::INFO, "[dynamic-cursors] starting to hook for {} at {:p}", signature, target);
 
     Dl_info info = {};
     if (!dladdr(target, &info)) {
-        Log::logger->log(Log::ERR, "[dynamic-cursors] aborting hook without associated symbol");
+        LOG(Log::ERR, "[dynamic-cursors] aborting hook without associated symbol");
         throw std::runtime_error("symbol not available, are you up-to-date?");
     }
 
@@ -145,19 +145,19 @@ CFunctionHook* hook(void* target, std::string signature, void* handler) {
 // this makes sure that the function signature has not changed without us noticing
 #ifdef __GLIBCXX__
     if (signature != info.dli_sname) {
-        Log::logger->log(Log::ERR, "[dynamic-cursors] aborting hook, function symbol changed to {}", info.dli_sname);
+        LOG(Log::ERR, "[dynamic-cursors] aborting hook, function symbol changed to {}", info.dli_sname);
         throw std::runtime_error("unexpected function signature, are you up-to-date?");
     }
 #else
-    Log::logger->log(Log::INFO, "[dynamic-cursors] unchecked symbol compiled against unknown libc++ is {}", info.dli_sname);
-    Log::logger->log(Log::WARN, "[dynamic-cursors] hooking on unknown libc++, signatures are not checked, this might crash");
+    LOG(Log::INFO, "[dynamic-cursors] unchecked symbol compiled against unknown libc++ is {}", info.dli_sname);
+    LOG(Log::WARN, "[dynamic-cursors] hooking on unknown libc++, signatures are not checked, this might crash");
 #endif
 
     auto hook = HyprlandAPI::createFunctionHook(PHANDLE, target, handler);
 
-    Log::logger->log(Log::INFO, "[dynamic-cursors] checks passed, actually hooking");
+    LOG(Log::INFO, "[dynamic-cursors] checks passed, actually hooking");
     if (!hook->hook()) {
-        Log::logger->log(Log::ERR, "[dynamic-cursors] could not hook, hooking failed");
+        LOG(Log::ERR, "[dynamic-cursors] could not hook, hooking failed");
         throw std::runtime_error("hooking failed, are you on x86_64?");
     }
 
@@ -233,11 +233,11 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
         );
         // clang-format on
     } catch (std::exception& e) {
-        Log::logger->log(Log::ERR, "[dynamic-cursors] failed to hook, {}", e.what());
+        LOG(Log::ERR, "[dynamic-cursors] failed to hook, {}", e.what());
         HyprlandAPI::addNotification(PHANDLE, std::format("[dynamic-cursors] cannot load, {}", e.what()), CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
         throw e;
     } catch (...) {
-        Log::logger->log(Log::ERR, "[dynamic-cursors] failed to hook for unknown reason");
+        LOG(Log::ERR, "[dynamic-cursors] failed to hook for unknown reason");
         HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] cannot load, unknown error with hooks!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
         throw std::runtime_error("hooks failed for unknown reason");
     }

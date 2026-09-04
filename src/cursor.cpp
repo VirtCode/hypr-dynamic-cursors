@@ -195,7 +195,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(Pointer::CPointerManager
 
     if (maxSize != Vector2D{-1, -1}) {
         if (targetSize.x > maxSize.x || targetSize.y > maxSize.y) {
-            Log::logger->log(Log::TRACE, "hardware cursor too big! {} > {}", pointers->m_currentCursorImage.size, maxSize);
+            LOG(Log::TRACE, "hardware cursor too big! {} > {}", pointers->m_currentCursorImage.size, maxSize);
             return nullptr;
         }
     } else {
@@ -226,7 +226,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(Pointer::CPointerManager
         // but if it's set, we don't wanna change it.
 
         if (!state->monitor->m_cursorSwapchain->reconfigure(options)) {
-            Log::logger->log(Log::TRACE, "Failed to reconfigure cursor swapchain");
+            LOG(Log::TRACE, "Failed to reconfigure cursor swapchain");
             return nullptr;
         }
     }
@@ -243,7 +243,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(Pointer::CPointerManager
 
     auto buf = state->monitor->m_cursorSwapchain->next(nullptr);
     if (!buf) {
-        Log::logger->log(Log::TRACE, "Failed to acquire a buffer from the cursor swapchain");
+        LOG(Log::TRACE, "Failed to acquire a buffer from the cursor swapchain");
         return nullptr;
     }
 
@@ -299,7 +299,7 @@ bool CDynamicCursors::setHardware(Pointer::CPointerManager* pointers, SP<Pointer
                                         state->monitor->m_cursorSwapchain->currentOptions().size.x, state->monitor->m_cursorSwapchain->currentOptions().size.y)
                              .pos();
 
-    Log::logger->log(Log::TRACE, "[pointer] hw transformed hotspot for {}: {}", state->monitor->m_name, HOTSPOT);
+    LOG(Log::TRACE, "[pointer] hw transformed hotspot for {}: {}", state->monitor->m_name, HOTSPOT);
 
     if (!state->monitor->m_output->setCursor(buf, HOTSPOT))
         return false;
@@ -332,11 +332,11 @@ void CDynamicCursors::onCursorMoved(Pointer::CPointerManager* pointers) {
         auto CROSSES = !m->logicalBox().intersection(CURSORBOX).empty();
 
         if (!CROSSES && state->cursorFrontBuffer) {
-            Log::logger->log(Log::TRACE, "onCursorMoved for output {}: cursor left the viewport, removing it from the backend", m->m_name);
+            LOG(Log::TRACE, "onCursorMoved for output {}: cursor left the viewport, removing it from the backend", m->m_name);
             pointers->setHWCursorBuffer(state, nullptr);
             continue;
         } else if (CROSSES && !state->cursorFrontBuffer) {
-            Log::logger->log(Log::TRACE, "onCursorMoved for output {}: cursor entered the output, but no front buffer, forcing recalc", m->m_name);
+            LOG(Log::TRACE, "onCursorMoved for output {}: cursor entered the output, but no front buffer, forcing recalc", m->m_name);
             recalc = true;
         }
 
@@ -471,7 +471,7 @@ void CDynamicCursors::calculate(EModeUpdate type) {
         // there should always be one monitor entered
         // this fixes an issue where the cursor shape would not properly update after change
         if (!entered) {
-            Log::logger->log(Log::INFO, "[dynamic-cursors] updating because none entered");
+            LOG(Log::INFO, "[dynamic-cursors] updating because none entered");
             Pointer::mgr()->recheckEnteredOutputs();
             Pointer::mgr()->updateCursorBackend();
         }
