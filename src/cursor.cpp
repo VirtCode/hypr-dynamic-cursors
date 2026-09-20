@@ -157,8 +157,15 @@ void CDynamicCursors::renderSoftware(Pointer::CPointerManager* pointers, PHLMONI
                 CCursorPassElement::SRenderData trailData = data;
 
                 //we'll render the point's texture
-                if (point.tex) {
-                    trailData.tex = point.tex;
+                if(zoom > 1) {
+                    if (point.highres_tex) {
+                        trailData.tex = point.highres_tex;
+                    }
+                }
+                else {
+                    if (point.tex) {
+                        trailData.tex = point.tex;
+                    }
                 }
 
                 //we'll render the point's rotation
@@ -514,7 +521,20 @@ void CDynamicCursors::calculate(EModeUpdate type) {
     if (CONFIG(trailEnabled)) {
         bool pushed = false;
         if (type == TICK) {
-            pushed = trail.push(Pointer::mgr()->m_pointerPos, Pointer::mgr()->m_currentCursorImage, resultShown);
+            auto high = highres.getTexture();
+            Vector2D highHotspotFrac, highSize;
+
+            if(high) {
+                auto buf = highres.getBuffer();
+                highHotspotFrac = buf->m_hotspot;
+                highSize = buf->size;
+            }
+
+            pushed = trail.push(
+                    Pointer::mgr()->m_pointerPos, Pointer::mgr()->m_currentCursorImage,
+                    resultShown,
+                    high, highHotspotFrac, highSize
+            );
         }
 
         if (!trailSoftware) {

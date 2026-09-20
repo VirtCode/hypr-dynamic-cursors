@@ -15,6 +15,9 @@ class CTrail {
     struct TrailPoint {
         Vector2D                          pos;
         SP<Render::ITexture>              tex;
+        SP<Render::ITexture>              highres_tex;
+        Vector2D                          highHostpotFrac;
+        Vector2D                          HighSize;
         SModeResult result;
         Vector2D                          size;
         Vector2D                          hotspot;
@@ -24,9 +27,14 @@ class CTrail {
             return duration_cast<std::chrono::milliseconds>(high_resolution_clock::now() - timestamp).count();
         }
     };
-        float timeSinceLastPush(void);
-        bool hasChanged(Vector2D pos, SModeResult& given_result);
-    bool                          push(Vector2D pos, const Pointer::CPointerManager::SCursorImage& img, SModeResult& given_result);
+
+    float timeSinceLastPush(void);
+    bool hasChanged(Vector2D pos, SModeResult& given_result);
+
+    bool push(
+        Vector2D pos, const Pointer::CPointerManager::SCursorImage& img, SModeResult& given_result, const SP<Render::ITexture>  highres_tex, Vector2D highHotspotFrac, Vector2D highSize
+    );
+    
     const std::deque<TrailPoint>& get() const {
         return samples;
     }
