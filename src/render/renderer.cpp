@@ -30,13 +30,13 @@ Mat3x3 toTransform(CBox& box, float rotation, Vector2D hotspot, float stretchAng
     return mat;
 }
 
-void drawCursor(const Mat3x3& transform, SP<Render::ITexture> tex, CBox box, CRegion damage, bool nearest) {
+void drawCursor(const Mat3x3& transform, SP<Render::ITexture> tex, CBox box, CRegion damage, bool nearest, double alpha) {
     Mat3x3 proj = g_pHyprRenderer->m_renderData.targetProjection.copy().multiply(transform);
 
     std::swap(g_pHyprRenderer->m_renderData.targetProjection, proj);
     g_pHyprRenderer->m_renderData.useNearestNeighbor = nearest;
 
-    g_pHyprRenderer->draw(CTexPassElement::SRenderData{.tex = tex, .box = box}, damage);
+    g_pHyprRenderer->draw(CTexPassElement::SRenderData{.tex = tex, .box = box, .a = alpha}, damage);
 
     std::swap(g_pHyprRenderer->m_renderData.targetProjection, proj);
     g_pHyprRenderer->m_renderData.useNearestNeighbor = false;

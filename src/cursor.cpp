@@ -1,6 +1,8 @@
 #include <any>    // IWYU pragma: keep
 #include <chrono> // IWYU pragma: keep
 #include <ranges> // IWYU pragma: keep
+#include <algorithm>
+
 #define private public
 #include <hyprland/src/pointer/cursor/CursorManager.hpp>
 #include <hyprland/src/pointer/PointerManager.hpp>
@@ -140,11 +142,98 @@ void CDynamicCursors::renderSoftware(Pointer::CPointerManager* pointers, PHLMONI
     data.nearest          = nearest;
     data.stretchAngle     = resultShown.stretch.angle;
     data.stretchMagnitude = resultShown.stretch.magnitude;
+    data.alpha            = 1.0f;
 
+    if(CONFIG(trailEnabled)) {
+        //nu trail stuff
+
+        //check if we're enabling cursor trail during zoom.
+        if ((zoom > 1 && CONFIG(trailShake)) || (zoom <= 1)) {
+            //tracking this for current damage box (currentTrailBounds)
+            double min_x = 0, max_x = 0, min_y = 0, max_y = 0;
+            bool   first_point = true;
+
+            for (const auto& point : trail.get()) {
+                CCursorPassElement::SRenderData trailData = data;
+
+                //we'll render the point's texture
+                if(zoom > 1) {
+                    if (point.highres_tex) {
+                        trailData.tex = point.highres_tex;
+                    }
+                }
+                else {
+                    if (point.tex) {
+                        trailData.tex = point.tex;
+                    }
+                }
+
+                //we'll render the point's rotation
+                trailData.box.rot = point.result.rotation;
+
+                //render point's scale 
+                trailData.box.w = point.size.x / point.imageScale * pMonitor->m_scale * point.result.scale;
+                trailData.box.h = point.size.y / point.imageScale * pMonitor->m_scale * point.result.scale;
+
+
+                //trailData.box.w = point.size.x * point.result.scale;
+                //trailData.box.h = point.size.y * point.result.scale; 
+
+                //render point's stretch...
+                trailData.stretchAngle = point.result.stretch.angle;
+                trailData.stretchMagnitude = point.result.stretch.magnitude;
+
+                Vector2D local = (point.pos - pMonitor->m_position - point.hotspot) * pMonitor->m_scale;
+
+                trailData.box.x = std::round(local.x) - point.hotspot.x * (zoom-1);
+                trailData.box.y = std::round(local.y) - point.hotspot.y * (zoom-1);
+
+                //update damage bounds
+                if (first_point) {
+                    min_x       = trailData.box.x;
+                    max_x       = trailData.box.x + trailData.box.w;
+                    min_y       = trailData.box.y;
+                    max_y       = trailData.box.y + trailData.box.h;
+                    first_point = false;
+                } else {
+                    min_x = std::min(trailData.box.x, min_x);
+                    max_x = std::max(trailData.box.x + trailData.box.w, max_x);
+                    min_y = std::min(trailData.box.y, min_y);
+                    max_y = std::max(trailData.box.y + trailData.box.h, max_y);
+                }
+
+                //compute point's alpha value, if trail fading is enabled.
+                if (CONFIG(trailFade)) {
+                    if (point.age() > CONFIG(trailLifetime)) {
+                        trailData.alpha = 0;
+                    } else {
+                        trailData.alpha = 1.0f - point.age() / CONFIG(trailLifetime);
+                    }
+                } else {
+                    trailData.alpha = 1.0f;
+                }
+
+                g_pHyprRenderer->m_renderPass.add(makeUnique<CCursorPassElement>(trailData));
+
+                /* compute diagonal of cursor box to damage cursor rotations:w*/
+                int diagonal = sqrt(2 * trailData.box.w + 2 * trailData.box.h);
+
+                CBox currentTrailBounds = {min_x - diagonal, min_y - diagonal, max_x - min_x + 2 * diagonal, max_y - min_y + 2 * diagonal};
+
+                pMonitor->addDamage(currentTrailBounds);
+                pMonitor->addDamage(lastTrailBounds);
+
+                lastTrailBounds = currentTrailBounds;
+            }
+        }
+    }
+    
+    //always render current cursor
     g_pHyprRenderer->m_renderPass.add(makeUnique<CCursorPassElement>(data));
 
-    if (pointers->m_currentCursorImage.surface)
+    if (pointers->m_currentCursorImage.surface) {
         pointers->m_currentCursorImage.surface->resource()->frame(now);
+    }
 }
 
 /*
@@ -271,7 +360,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(Pointer::CPointerManager
     Mat3x3 transform = toTransform(xbox, resultShown.rotation, Pointer::mgr()->m_currentCursorImage.hotspot * state->monitor->m_scale * zoom, resultShown.stretch.angle,
                                    resultShown.stretch.magnitude);
 
-    drawCursor(transform, texture, xbox, damageRegion, zoom > 1 && CONFIG(highresNearest));
+    drawCursor(transform, texture, xbox, damageRegion, zoom > 1 && CONFIG(highresNearest), 1.0);
 
     g_pHyprRenderer->endRender();
     g_pHyprRenderer->m_renderData.pMonitor.reset();
@@ -365,6 +454,10 @@ void CDynamicCursors::onCursorMoved(Pointer::CPointerManager* pointers) {
 
         if (CONFIG(shakeEnabled))
             shake.warp(lastPos, pointers->m_pointerPos);
+
+        if (CONFIG(trailEnabled)) {
+            trail.warp();
+        }
     }
 
     calculate(MOVE);
@@ -428,6 +521,42 @@ void CDynamicCursors::calculate(EModeUpdate type) {
             resultMode = SModeResult();
     } else
         resultShake = 1;
+
+    if (CONFIG(trailEnabled)) {
+        bool pushed = false;
+        if (type == TICK) {
+            auto high = highres.getTexture();
+            Vector2D highHotspotFrac, highSize;
+
+            if(high) {
+                auto buf = highres.getBuffer();
+                highHotspotFrac = buf->m_hotspot;
+                highSize = buf->size;
+            }
+
+            pushed = trail.push(
+                    Pointer::mgr()->m_pointerPos, Pointer::mgr()->m_currentCursorImage,
+                    resultShown,
+                    high, highHotspotFrac, highSize
+            );
+        }
+
+        if (!trailSoftware) {
+            Pointer::mgr()->lockSoftwareAll();
+            trailSoftware = true;
+        }
+
+        if (trail.get().size() > 1 || pushed) {
+            Pointer::mgr()->damageIfSoftware();
+        }
+
+    } else {
+        if (trailSoftware) {
+            Pointer::mgr()->damageIfSoftware();
+            Pointer::mgr()->unlockSoftwareAll();
+            trailSoftware = false;
+        }
+    }
 
     auto result = resultMode;
     result.scale *= resultShake;
