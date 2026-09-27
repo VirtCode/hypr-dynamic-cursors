@@ -51,7 +51,7 @@ bool CTrail::push(Vector2D pos, const Pointer::CPointerManager::SCursorImage& im
             samples.push_back({
                 pos, img.bufferTex, 
                 highres_tex, highHotspotFrac, highSize,
-                given_result, img.size, img.hotspot, high_resolution_clock::now()
+                given_result, img.size, img.hotspot, img.scale, high_resolution_clock::now()
             });
 
             last_push_time = high_resolution_clock::now();

@@ -171,9 +171,13 @@ void CDynamicCursors::renderSoftware(Pointer::CPointerManager* pointers, PHLMONI
                 //we'll render the point's rotation
                 trailData.box.rot = point.result.rotation;
 
-                //render point's scale
-                trailData.box.w = point.size.x * point.result.scale;
-                trailData.box.h = point.size.y * point.result.scale; 
+                //render point's scale 
+                trailData.box.w = point.size.x / point.imageScale * pMonitor->m_scale * point.result.scale;
+                trailData.box.h = point.size.y / point.imageScale * pMonitor->m_scale * point.result.scale;
+
+
+                //trailData.box.w = point.size.x * point.result.scale;
+                //trailData.box.h = point.size.y * point.result.scale; 
 
                 //render point's stretch...
                 trailData.stretchAngle = point.result.stretch.angle;

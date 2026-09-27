@@ -18,9 +18,10 @@ class CTrail {
         SP<Render::ITexture>              highres_tex;
         Vector2D                          highHostpotFrac;
         Vector2D                          HighSize;
-        SModeResult result;
+        SModeResult                       result;
         Vector2D                          size;
         Vector2D                          hotspot;
+        float                             imageScale;
         high_resolution_clock::time_point timestamp;
 
         float age(void) const {
