@@ -22,14 +22,14 @@
 #include "cursor.hpp"
 #include "config/ConfigManager.hpp"
 
-typedef void (*origRenderSoftwareCursorsFor)(void*, PHLMONITOR, const Time::steady_tp&, CRegion&, std::optional<Vector2D>, bool, bool);
+typedef void (*origRenderSoftwareCursorsFor)(void*, Render::CRenderContext&, PHLMONITOR, const Time::steady_tp&, CRegion&, std::optional<Vector2D>, bool, bool);
 inline CFunctionHook* g_pRenderSoftwareCursorsForHook = nullptr;
-void hkRenderSoftwareCursorsFor(void* thisptr, PHLMONITOR pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos, bool screencopy,
-                                bool forceRender) {
+void hkRenderSoftwareCursorsFor(void* thisptr, Render::CRenderContext& ctx, PHLMONITOR pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos,
+                                bool screencopy, bool forceRender) {
     if (g_pConfigHandler->isEnabled())
-        g_pDynamicCursors->renderSoftware((Pointer::CPointerManager*)thisptr, pMonitor, now, damage, overridePos, screencopy, forceRender);
+        g_pDynamicCursors->renderSoftware((Pointer::CPointerManager*)thisptr, ctx, pMonitor, now, damage, overridePos, screencopy, forceRender);
     else
-        (*(origRenderSoftwareCursorsFor)g_pRenderSoftwareCursorsForHook->m_original)(thisptr, pMonitor, now, damage, overridePos, screencopy, forceRender);
+        (*(origRenderSoftwareCursorsFor)g_pRenderSoftwareCursorsForHook->m_original)(thisptr, ctx, pMonitor, now, damage, overridePos, screencopy, forceRender);
 }
 
 typedef void (*origDamageIfSoftware)(void*);
@@ -187,7 +187,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
         // clang-format off
         g_pRenderSoftwareCursorsForHook = hook(
             pmf_address(&Pointer::CPointerManager::renderSoftwareCursorsFor),
-            "_ZN7Pointer15CPointerManager24renderSoftwareCursorsForEN9Hyprutils6Memory14CSharedPointerIN7Monitor8CMonitorEEERKNSt6chrono10time_pointINS7_3_V212steady_clockENS7_8durationIlSt5ratioILl1ELl1000000000EEEEEERNS1_4Math7CRegionESt8optionalINSI_8Vector2DEEbb",
+            "_ZN7Pointer15CPointerManager24renderSoftwareCursorsForERN6Render14CRenderContextEN9Hyprutils6Memory14CSharedPointerIN7Monitor8CMonitorEEERKNSt6chrono10time_pointINSA_3_V212steady_clockENSA_8durationIlSt5ratioILl1ELl1000000000EEEEEERNS4_4Math7CRegionESt8optionalINSL_8Vector2DEEbb",
             (void*) &hkRenderSoftwareCursorsFor
         );
         g_pDamageIfSoftwareHook = hook(
@@ -249,7 +249,7 @@ APICALL EXPORT void PLUGIN_EXIT() {
 
     // we need to remove our pass elements because otherwise we'll have some
     // invalid passes after unload, causing a SEGV
-    g_pHyprRenderer->m_renderPass.removeAllOfType("CCursorPassElement");
+    g_pHyprRenderer->context().m_pass.removeAllOfType("CCursorPassElement");
 }
 
 // Do NOT change this function.

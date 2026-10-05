@@ -58,8 +58,8 @@ CDynamicCursors::~CDynamicCursors() {
 Reimplements rendering of the software cursor.
 Is also largely identical to hyprlands impl, but uses our custom rendering to rotate the cursor.
 */
-void CDynamicCursors::renderSoftware(Pointer::CPointerManager* pointers, PHLMONITOR pMonitor, const Time::steady_tp& now, CRegion& damage, std::optional<Vector2D> overridePos,
-                                     bool screencopy, bool forceRender) {
+void CDynamicCursors::renderSoftware(Pointer::CPointerManager* pointers, Render::CRenderContext& ctx, PHLMONITOR pMonitor, const Time::steady_tp& now, CRegion& damage,
+                                     std::optional<Vector2D> overridePos, bool screencopy, bool forceRender) {
     if (!pointers->hasCursor())
         return;
 
@@ -141,7 +141,7 @@ void CDynamicCursors::renderSoftware(Pointer::CPointerManager* pointers, PHLMONI
     data.stretchAngle     = resultShown.stretch.angle;
     data.stretchMagnitude = resultShown.stretch.magnitude;
 
-    g_pHyprRenderer->m_renderPass.add(makeUnique<CCursorPassElement>(data));
+    g_pHyprRenderer->addPassElement(ctx, makeUnique<CCursorPassElement>(std::move(data)));
 
     if (pointers->m_currentCursorImage.surface)
         pointers->m_currentCursorImage.surface->resource()->frame(now);
@@ -180,6 +180,9 @@ It is largely copied from hyprland, but adjusted to allow the cursor to be rotat
 */
 SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(Pointer::CPointerManager* pointers, SP<Pointer::CPointerManager::SMonitorPointerState> state,
                                                         SP<Render::ITexture> texture) {
+    if (g_pHyprRenderer->context().active())
+        return nullptr;
+
     auto output = state->monitor->m_output;
 
     auto maxSize = output->cursorPlaneSize();
@@ -249,32 +252,39 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(Pointer::CPointerManager
 
     CRegion damage = {0, 0, INT16_MAX, INT16_MAX};
 
-    g_pHyprRenderer->m_renderData.pMonitor = state->monitor;
-    auto RBO                               = g_pHyprRenderer->getOrCreateRenderbuffer(buf, state->monitor->m_cursorSwapchain->currentOptions().format);
+    auto RBO = g_pHyprRenderer->getOrCreateRenderbuffer(buf, state->monitor->m_cursorSwapchain->currentOptions().format);
 
     // we just fail if we cannot create a render buffer, this will force hl to render software cursors, which we support
     if (!RBO)
         return nullptr;
 
     RBO->bind();
+    auto FB = RBO->getFB();
 
     CRegion damageRegion = {0, 0, INT_MAX, INT_MAX};
-    g_pHyprRenderer->beginFullFakeRender(state->monitor.lock(), damageRegion, RBO->getFB());
-    g_pHyprRenderer->startRenderPass();
+
+    FB->setImageDescription(state->monitor->m_imageDescription);
+    if (!g_pHyprRenderer->beginFullFakeRender(state->monitor.lock(), damageRegion, RBO->getFB()))
+        return nullptr;
+
+    auto& ctx         = g_pHyprRenderer->context();
+    ctx.m_data.fbSize = FB->m_size;
+    g_pHyprRenderer->setProjectionType(ctx, Render::RPT_FB);
+    ctx.m_data.transformDamage = true;
+    g_pHyprRenderer->startRenderPass(ctx);
 
     if (CONFIG(hwDebug))
-        g_pHyprRenderer->draw(CClearPassElement::SClearData{CHyprColor{rand() / float(RAND_MAX), rand() / float(RAND_MAX), rand() / float(RAND_MAX), 1.F}});
+        g_pHyprRenderer->draw(ctx, CClearPassElement::SClearData{CHyprColor{rand() / float(RAND_MAX), rand() / float(RAND_MAX), rand() / float(RAND_MAX), 1.F}});
     else
-        g_pHyprRenderer->draw(CClearPassElement::SClearData{{0.F, 0.F, 0.F, 0.F}});
+        g_pHyprRenderer->draw(ctx, CClearPassElement::SClearData{{0.F, 0.F, 0.F, 0.F}});
 
     CBox   xbox      = {cursorPadding, Vector2D{Pointer::mgr()->m_currentCursorImage.size / Pointer::mgr()->m_currentCursorImage.scale * state->monitor->m_scale * zoom}.round()};
     Mat3x3 transform = toTransform(xbox, resultShown.rotation, Pointer::mgr()->m_currentCursorImage.hotspot * state->monitor->m_scale * zoom, resultShown.stretch.angle,
                                    resultShown.stretch.magnitude);
 
-    drawCursor(transform, texture, xbox, damageRegion, zoom > 1 && CONFIG(highresNearest));
+    drawCursor(ctx, transform, texture, xbox, damageRegion, zoom > 1 && CONFIG(highresNearest));
 
     g_pHyprRenderer->endRender();
-    g_pHyprRenderer->m_renderData.pMonitor.reset();
 
     return buf;
 }

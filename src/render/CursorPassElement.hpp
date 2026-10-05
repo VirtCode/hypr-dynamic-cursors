@@ -20,12 +20,12 @@ class CCursorPassElement : public IPassElement {
     CCursorPassElement(const SRenderData& data);
     virtual ~CCursorPassElement() = default;
 
-    virtual std::vector<UP<IPassElement>> draw();
-    virtual bool                          needsLiveBlur();
-    virtual bool                          needsPrecomputeBlur();
-    virtual std::optional<CBox>           boundingBox();
-    virtual CRegion                       opaqueRegion();
-    virtual void                          discard();
+    virtual std::vector<UP<IPassElement>> draw(Render::CRenderContext& ctx);
+    virtual bool                          needsLiveBlur(Render::CRenderContext& ctx);
+    virtual bool                          needsPrecomputeBlur(Render::CRenderContext& ctx);
+    virtual std::optional<CBox>           boundingBox(Render::CRenderContext& ctx);
+    virtual CRegion                       opaqueRegion(Render::CRenderContext& ctx);
+    virtual void                          discard(Render::CRenderContext& ctx);
 
     virtual const char* passName() {
         return "CCursorPassElement";
