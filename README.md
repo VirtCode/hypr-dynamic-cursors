@@ -55,6 +55,14 @@ hyprpm add https://github.com/virtcode/hypr-dynamic-cursors
 hyprpm enable dynamic-cursors
 ```
 
+### Hyprland release updates
+
+The `hyprpm.toml` manifest pins compatible plugin commits for released Hyprland versions. If an existing installation reports a version mismatch after updating Hyprland, force a rebuild so the cached plugin is rebuilt against the current headers:
+
+```sh
+hyprpm update -f dynamic-cursors
+```
+
 ### distribution specific
 Some Linux distributions have a package manager sophisticated enough to properly package and manage hyprland plugins with. While `hyprpm` is distribution agnostic, these mechanisms usually offer a better and more stable user experience. Below are some distributions which have packages for dynamic-cursors and how to install them.
 
