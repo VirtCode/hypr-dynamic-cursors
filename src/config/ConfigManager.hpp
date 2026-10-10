@@ -40,6 +40,7 @@ class CConfigHandler {
     SP<CBoolValue>   c_highresEnabled;
     SP<CIntValue>    c_highresNearest;
     SP<CStringValue> c_highresFallback;
+    SP<CStringValue> c_highresLockShape;
     SP<CIntValue>    c_highresSize;
 
     SP<CVariantProp> c_tiltFunction;

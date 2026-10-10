@@ -272,6 +272,11 @@ hl.config { plugin = { dynamic_cursors = {
         -- see the shape-name property of shape rules for possible names
         -- specifying clientside will use the actual shape, but will be pixelated
         fallback = "clientside",
+
+        -- if set, the magnified cursor is always shown as this shape (e.g. "left_ptr"),
+        -- regardless of what the cursor is hovering, like KDE Plasma's shake to find
+        -- empty (default) keeps the behaviour of magnifying the actual shape
+        lock_shape = "",
     },
 }}}
 ```
