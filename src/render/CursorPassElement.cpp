@@ -13,7 +13,7 @@ std::vector<UP<IPassElement>> CCursorPassElement::draw(Render::CRenderContext& c
     Mat3x3 transform = toTransform(m_data.box, m_data.box.rot, m_data.hotspot, m_data.stretchAngle, m_data.stretchMagnitude);
     m_data.box.rot   = 0;
 
-    drawCursor(ctx, transform, m_data.tex, m_data.box, ctx.m_data.damage, m_data.nearest);
+    drawCursor(ctx, transform, m_data.tex, m_data.box, ctx.m_data.damage, m_data.nearest, m_data.alpha);
 
     return {}; // no passes to be submitted later
 }
