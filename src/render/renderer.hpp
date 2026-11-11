@@ -7,7 +7,7 @@
  *
  *  TODO: refactor box out of here and do the compensation back in drawCursor()
  */
-Mat3x3 toTransform(CBox& box, float rotation, Vector2D hotspot, float stretchAngle, Vector2D stretch);
+Mat3x3 toTransform(CBox& box, float rotation, Vector2D hotspot, float stretchAngle, Vector2D stretch, float clickScale = 1.0f);
 
 /*
  * dispatches a draw call using the current hyprland renderer to draw the cursor with the provided transform

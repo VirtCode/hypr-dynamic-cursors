@@ -11,6 +11,7 @@
 
 #include <hyprcursor/hyprcursor.hpp>
 #include <hyprland/src/config/ConfigValue.hpp>
+#include <hyprland/src/event/EventBus.hpp>
 #include <hyprland/src/protocols/core/Compositor.hpp>
 #include <hyprland/src/state/MonitorState.hpp>
 #include <hyprland/src/protocols/core/Seat.hpp>
@@ -40,9 +41,16 @@ void tickRaw(SP<CEventLoopTimer> self, void* data) {
 CDynamicCursors::CDynamicCursors() {
     this->tick = SP<CEventLoopTimer>(new CEventLoopTimer(std::chrono::microseconds(500), tickRaw, nullptr));
     g_pEventLoopManager->addTimer(this->tick);
+
+    this->buttonListener = Event::bus()->m_events.input.mouse.button.listen([this](IPointer::SButtonEvent e, Event::SCallbackInfo&) {
+        if (g_pConfigHandler->isEnabled())
+            this->onButton(e);
+    });
 }
 
 CDynamicCursors::~CDynamicCursors() {
+    this->buttonListener.reset();
+
     // stop and deallocate timer
     g_pEventLoopManager->removeTimer(this->tick);
     this->tick.reset();
@@ -140,6 +148,7 @@ void CDynamicCursors::renderSoftware(Pointer::CPointerManager* pointers, Render:
     data.nearest          = nearest;
     data.stretchAngle     = resultShown.stretch.angle;
     data.stretchMagnitude = resultShown.stretch.magnitude;
+    data.clickScale       = resultShown.click;
 
     g_pHyprRenderer->addPassElement(ctx, makeUnique<CCursorPassElement>(std::move(data)));
 
@@ -280,7 +289,7 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(Pointer::CPointerManager
 
     CBox   xbox      = {cursorPadding, Vector2D{Pointer::mgr()->m_currentCursorImage.size / Pointer::mgr()->m_currentCursorImage.scale * state->monitor->m_scale * zoom}.round()};
     Mat3x3 transform = toTransform(xbox, resultShown.rotation, Pointer::mgr()->m_currentCursorImage.hotspot * state->monitor->m_scale * zoom, resultShown.stretch.angle,
-                                   resultShown.stretch.magnitude);
+                                   resultShown.stretch.magnitude, resultShown.click);
 
     drawCursor(ctx, transform, texture, xbox, damageRegion, zoom > 1 && CONFIG(highresNearest));
 
@@ -403,6 +412,14 @@ void CDynamicCursors::onTick(Pointer::CPointerManager* pointers) {
     calculate(TICK);
 }
 
+/*
+Handle mouse button press/release events.
+*/
+void CDynamicCursors::onButton(const IPointer::SButtonEvent& event) {
+    if (click.onButton(event) && this->tick)
+        this->tick->updateTimeout(std::chrono::milliseconds(0));
+}
+
 IMode* CDynamicCursors::currentMode() {
     switch (CONFIG(mode)) {
         case MODE_ROTATE: return &rotate;
@@ -439,8 +456,16 @@ void CDynamicCursors::calculate(EModeUpdate type) {
     } else
         resultShake = 1;
 
+    if (CONFIG(clickEnabled))
+        resultClick = click.update();
+    else {
+        click.reset();
+        resultClick = 1.0;
+    }
+
     auto result = resultMode;
     result.scale *= resultShake;
+    result.click = resultClick;
 
     if (resultShown.hasDifference(&result, CONFIG(threshold) * (std::numbers::pi / 180.0), 0.01, 0.01)) {
         resultShown = result;

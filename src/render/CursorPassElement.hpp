@@ -15,6 +15,7 @@ class CCursorPassElement : public IPassElement {
         bool     nearest;
         double   stretchAngle;
         Vector2D stretchMagnitude;
+        float    clickScale = 1.0f;
     };
 
     CCursorPassElement(const SRenderData& data);

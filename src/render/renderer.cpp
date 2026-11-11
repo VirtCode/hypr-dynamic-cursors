@@ -2,9 +2,15 @@
 
 #include <hyprland/src/render/Renderer.hpp>
 
-Mat3x3 toTransform(CBox& box, float rotation, Vector2D hotspot, float stretchAngle, Vector2D stretch) {
+Mat3x3 toTransform(CBox& box, float rotation, Vector2D hotspot, float stretchAngle, Vector2D stretch, float clickScale) {
     auto mat = Mat3x3::identity();
     mat.translate(box.pos());
+
+    if (clickScale != 1.0f) {
+        mat.translate(hotspot);
+        mat.scale({clickScale, clickScale});
+        mat.translate(-hotspot);
+    }
 
     if (stretch != Vector2D{1, 1}) {
         // center to origin, rotate, shift up, scale, undo

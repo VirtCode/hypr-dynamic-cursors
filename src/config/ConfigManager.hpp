@@ -37,6 +37,13 @@ class CConfigHandler {
     SP<CFloatValue> c_shakeLimit;
     SP<CIntValue>   c_shakeTimeout;
 
+    SP<CBoolProp>  c_clickEnabled;
+    SP<CFloatProp> c_clickScale;
+    SP<CFloatProp> c_clickOvershoot;
+    SP<CIntProp>   c_clickPressTime;
+    SP<CIntProp>   c_clickReleaseTime;
+    SP<CIntProp>   c_clickButton;
+
     SP<CBoolValue>   c_highresEnabled;
     SP<CIntValue>    c_highresNearest;
     SP<CStringValue> c_highresFallback;

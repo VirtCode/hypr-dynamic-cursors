@@ -249,6 +249,28 @@ hl.config { plugin = { dynamic_cursors = {
         ipc = false,
     },
 
+    -- configure cursor depression animation on click
+    click = {
+
+        -- enables cursor depression on click
+        enabled = true,
+
+        -- scale factor reached when the mouse button is pressed
+        scale = 0.82,
+
+        -- peak scale factor reached when springing back on release
+        overshoot = 1.05,
+
+        -- duration in milliseconds of the press shrink animation
+        press_time = 60,
+
+        -- duration in milliseconds of the release spring animation
+        release_time = 150,
+
+        -- mouse button code to trigger click animation (0 for any button, e.g. 272 for left click)
+        button = 0,
+    },
+
     -- use hyprcursor to get a higher resolution texture when the cursor is magnified
     -- see the `hyprcursor` section below
     hyprcursor = {
