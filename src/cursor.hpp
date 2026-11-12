@@ -12,6 +12,7 @@
 #include "mode/ModeTilt.hpp"
 #include "mode/ModeStretch.hpp"
 #include "other/Shake.hpp"
+#include "other/Click.hpp"
 #include "highres.hpp"
 
 class CDynamicCursors {
@@ -23,6 +24,8 @@ class CDynamicCursors {
     void onCursorMoved(Pointer::CPointerManager* pointers);
     /* called on tick */
     void onTick(Pointer::CPointerManager* pointers);
+    /* called on mouse button event */
+    void onButton(const IPointer::SButtonEvent& event);
 
     /* hook on renderSoftwareCursorsFor */
     void                    renderSoftware(Pointer::CPointerManager* pointers, Render::CRenderContext& ctx, PHLMONITOR pMonitor, const Time::steady_tp& now, CRegion& damage,
@@ -48,6 +51,7 @@ class CDynamicCursors {
 
   private:
     SP<CEventLoopTimer> tick;
+    CHyprSignalListener buttonListener;
 
     /* hyprcursor handler for highres images */
     CHighresHandler highres;
@@ -55,6 +59,7 @@ class CDynamicCursors {
     // current state of the cursor
     SModeResult resultMode;
     double      resultShake;
+    double      resultClick = 1.0;
     Vector2D    lastPos; // used for warp compensation
 
     SModeResult resultShown;
@@ -73,6 +78,9 @@ class CDynamicCursors {
 
     // shake
     CShake shake;
+
+    // click animation
+    CClick click;
 
     /* is set true if a genuine move is being performed, and will be reset to false after onCursorMoved */
     bool isMove = false;

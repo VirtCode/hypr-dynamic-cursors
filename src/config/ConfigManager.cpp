@@ -41,6 +41,13 @@ CConfigHandler::CConfigHandler() {
     c_shakeLimit      = conf(NS("shake:limit"),            0.0f,                   "maximal magnification the cursor can reach");
     c_shakeTimeout    = conf(NS("shake:timeout"),          2000,                   "time in milliseconds the cursor will stay magnified after a shake has ended");
 
+    c_clickEnabled     = prop(NS("click:enabled"),         true,                   "enables cursor depression animation on click");
+    c_clickScale       = prop(NS("click:scale"),           0.82f,                  "scale factor reached when the mouse button is pressed");
+    c_clickOvershoot   = prop(NS("click:overshoot"),       1.05f,                  "peak scale factor reached when springing back on release");
+    c_clickPressTime   = prop(NS("click:press_time"),      60,                     "duration in milliseconds of the press shrink animation");
+    c_clickReleaseTime = prop(NS("click:release_time"),    150,                    "duration in milliseconds of the release spring animation");
+    c_clickButton      = prop(NS("click:button"),          0,                      "mouse button code to trigger click animation (0 for any button, e.g. 272 for left click)");
+
     c_highresEnabled  = conf(NS("hyprcursor:enabled"),     true,                   "enable dedicated hyprcursor support");
     c_highresNearest  = conf(NS("hyprcursor:nearest"),     1,                      "use nearest-neighbour scaling when magnifying beyond texture size");
     c_highresFallback = conf(NS("hyprcursor:fallback"),    "clientside",           "shape to use when clientside cursors are being magnified");
